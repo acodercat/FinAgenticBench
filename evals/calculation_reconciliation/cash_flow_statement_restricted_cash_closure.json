@@ -1,0 +1,111 @@
+{
+  "name": "cash_flow_statement_restricted_cash_closure",
+  "module": "evals.calculation_reconciliation.cash_flow_statement_restricted_cash_closure",
+  "task_family": "calculation_reconciliation",
+  "data_sources": [
+    "sec_financial_statements",
+    "sec_companyfacts"
+  ],
+  "case_type": "baseline",
+  "difficulty": "hard",
+  "judge_reference": {
+    "source": "Frozen SEC financial-statement extracts for annual filings with period ends in 2023 and 2024, and the frozen company-fact set covering the 500 largest filers. The reconciliations and counts are analytic constructions rather than reported statistics.",
+    "facts": [
+      "3,642 annual reports for 2024, a jointly filed report counted once, carry the three cash flow totals and a cash and cash equivalents balance in both the 2024 report and a 2023 report ending 350 to 380 days earlier; the three totals match the change in that balance to within three dollars for only 1,162. Cash also moves through the effect of exchange rates on cash held in foreign currencies and through changes in restricted cash, neither of which sits in the three activity totals.",
+      "The cash flow statement reconciles the change in cash, cash equivalents and restricted cash together. Among the filers also in the large-filer fact set, reading both balances from the 2024 report itself and adding the exchange effect, the reconciliation against the combined balance closes for 354 of 402 filers, while against cash and cash equivalents alone it closes for 93 of 308: a check against the cash line fails whenever restricted cash moves, however correct the statement is.",
+      "183 of the 284 filers reporting both closing balances hold restricted cash, so the failure is the common case rather than an edge case, and 185 filers report an exchange effect other than zero.",
+      "393 filers carry both the combined opening balance in the 2024 report and the combined closing balance of their 2023 report, and 16 of them differ by more than three dollars. Such a difference records a later revision or reclassification of the earlier figure: starting the reconciliation from the 2024 report's comparative figure closes 10 of the 16, while starting from the 2023 report's own figure closes 1. A reconciliation of the 2024 statement should take its opening balance from the comparative column of the 2024 report."
+    ]
+  },
+  "conversations": [
+    {
+      "turns": [
+        {
+          "query": "Select original full-year Form 10-Ks ending in calendar 2024, one per filer by latest report date, filing date, then accession. Attach each filer's similarly selected 2023 report only if its period end is 350–380 days earlier. Keep reports with 2024 operating, investing and financing cash-flow totals and cash/equivalents in both reports; count a joint filing once. Report the cohort count and how many have the three flows within USD 3 of the cash/equivalents change. What else can move cash between balance-sheet dates?",
+          "validator": "validate_turn_1",
+          "stores": [
+            "statement_population_count",
+            "statement_closing_count"
+          ],
+          "claims": [
+            {
+              "id": "other_movements",
+              "mode": "required",
+              "description": "Names the effect of exchange rates on cash held in foreign currencies and movements in restricted cash as items that change cash without appearing in the three activity totals."
+            },
+            {
+              "id": "earlier_report_revised",
+              "mode": "optional",
+              "description": "Notes that the balance in the earlier report may have been revised since that report was filed."
+            }
+          ]
+        },
+        {
+          "query": "Revisit all selected 2024 reports, including T1 exclusions. In the separate large-filer fact set, keep accessions with all three cash-flow totals. From each same report take period-end and 350–380-day-earlier balances for plain cash/equivalents/restricted cash (excluding disposal-group and discontinued-operation variants) and the T1 cash/equivalents line (excluding bank due-from-banks and cash-without-equivalents substitutes). Use its plain annual exchange-rate effect on the combined balance, not the disposal/discontinued variant, or zero if absent. For each balance report the number with both dates and the number whose change equals the three flows plus exchange within USD 3. Which balance does the cash-flow statement reconcile, and what does the other check show?",
+          "validator": "validate_turn_2",
+          "stores": [
+            "inclusive_checkable_count",
+            "inclusive_closing_count",
+            "cash_only_checkable_count",
+            "cash_only_closing_count"
+          ],
+          "claims": [
+            {
+              "id": "transfers_are_not_cash_flows",
+              "mode": "required",
+              "description": "Explains that moving money between restricted and unrestricted cash is not presented as a cash flow, which is why, since the 2016 update to the cash flow standard, the statement reconciles cash, cash equivalents and restricted cash as one balance."
+            },
+            {
+              "id": "cash_line_fails_with_restricted_cash",
+              "mode": "required",
+              "description": "Explains that a check against cash and cash equivalents alone fails whenever the filer holds restricted cash whose balance moves, even when the statement itself is correct."
+            }
+          ]
+        },
+        {
+          "query": "Stay with the filers kept in the previous turn. Report how many carry both balances at the 2024 period end, and how many of those show a combined balance differing by more than three dollars from cash and cash equivalents alone. Report how many report an exchange effect other than zero. Explain how common restricted cash and exchange effects are among these filers, and what that means for a check written against cash and cash equivalents alone.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "both_closing_balances_count",
+            "restricted_cash_holder_count",
+            "nonzero_exchange_effect_count"
+          ],
+          "claims": [
+            {
+              "id": "restricted_cash_is_common",
+              "mode": "required",
+              "description": "Observes that most of the filers reporting both balances hold restricted cash, so the failure of the cash-line check is not a narrow edge case."
+            },
+            {
+              "id": "exchange_effect_is_widespread",
+              "mode": "optional",
+              "description": "Notes that a large share of the filers report an exchange effect, which a check leaving it out would count as a failure."
+            }
+          ]
+        },
+        {
+          "query": "Now compare two opening figures for combined cash, cash equivalents and restricted cash: the 2024 report's figure for the earlier date, and the closing figure in the 2023 report attached in the first turn, read from that report's own facts in the fact set. Among the second turn's filers, report how many carry both and how many differ by more than three dollars. For those that differ, report how many close the second turn's reconciliation starting from the 2024 report's figure, and how many starting from the 2023 report's. Explain what such a difference records, and which opening figure a reconciliation of the 2024 statement should use.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "opening_comparable_count",
+            "opening_revised_count",
+            "revised_closing_with_comparative_count",
+            "revised_closing_with_prior_report_count"
+          ],
+          "claims": [
+            {
+              "id": "use_the_comparative_column",
+              "mode": "required",
+              "description": "States that the opening balance should come from the comparative column of the current report, because a difference from the prior report records a later revision or reclassification of that figure."
+            },
+            {
+              "id": "stale_opening_breaks_closure",
+              "mode": "optional",
+              "description": "Notes that starting from the earlier report's figure fails for almost every filer whose opening was revised, which is the measured cost of using a stale opening."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

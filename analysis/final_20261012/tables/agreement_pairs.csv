@@ -1,0 +1,27 @@
+study_a,study_b,p_correct_cross,p_correct_own_mean,n_agree_cross
+Claude Sonnet 5.5,DeepSeek V4 Flash,0.984089,0.968869,3331
+Claude Sonnet 5.5,DeepSeek V4 Pro,0.99632,0.983741,3533
+Claude Sonnet 5.5,Gemini 3.8 Flash,0.99577,0.982406,3546
+Claude Sonnet 5.5,GLM-5.3,0.990044,0.978103,3415
+Claude Sonnet 5.5,GPT-6 Luna,0.991782,0.979312,3529
+Claude Sonnet 5.5,Qwen3.8-27B,0.981005,0.976311,3422
+Claude Sonnet 5.5,Qwen3.8 Flash,0.993316,0.980026,3441
+DeepSeek V4 Flash,Gemini 3.8 Flash,0.992566,0.978158,3363
+DeepSeek V4 Flash,GLM-5.3,0.985463,0.973854,3302
+DeepSeek V4 Flash,GPT-6 Luna,0.98364,0.975064,3423
+DeepSeek V4 Flash,Qwen3.8-27B,0.990666,0.972063,3214
+DeepSeek V4 Flash,Qwen3.8 Flash,0.987338,0.975777,3317
+DeepSeek V4 Pro,Gemini 3.8 Flash,0.996706,0.99303,3643
+DeepSeek V4 Pro,GLM-5.3,0.997416,0.988727,3483
+DeepSeek V4 Pro,GPT-6 Luna,0.992035,0.989936,3641
+DeepSeek V4 Pro,Qwen3.8-27B,0.999115,0.986936,3388
+DeepSeek V4 Pro,Qwen3.8 Flash,0.993245,0.99065,3553
+Gemini 3.8 Flash,GLM-5.3,0.995687,0.987392,3478
+Gemini 3.8 Flash,GPT-6 Luna,0.994467,0.988601,3615
+Gemini 3.8 Flash,Qwen3.8-27B,0.996752,0.985601,3387
+Gemini 3.8 Flash,Qwen3.8 Flash,0.99292,0.989315,3531
+GLM-5.3,GPT-6 Luna,0.98913,0.984298,3496
+GLM-5.3,Qwen3.8-27B,0.992408,0.981297,3293
+GLM-5.3,Qwen3.8 Flash,0.99177,0.985011,3402
+GPT-6 Luna,Qwen3.8-27B,0.992391,0.982506,3417
+GPT-6 Luna,Qwen3.8 Flash,0.991465,0.986221,3515

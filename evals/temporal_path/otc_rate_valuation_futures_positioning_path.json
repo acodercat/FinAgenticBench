@@ -1,0 +1,105 @@
+{
+  "name": "otc_rate_valuation_futures_positioning_path",
+  "module": "evals.temporal_path.otc_rate_valuation_futures_positioning_path",
+  "task_family": "temporal_path",
+  "data_sources": [
+    "bis_otc_derivatives",
+    "cftc_cot"
+  ],
+  "case_type": "baseline",
+  "difficulty": "hard",
+  "conversations": [
+    {
+      "turns": [
+        {
+          "query": "Using the BIS semiannual OTC derivatives series from 2019-S1 through 2025-S2, consider interest-rate contracts at total-instrument and total-counterparty scope on the net-net basis, and use outstanding gross market value in USD millions. For every half-year from 2019-S2 onward, calculate its signed percent change from the immediately preceding half-year. Identify the half-year with the largest absolute change, breaking a tie in favor of the earliest half-year, and report that period and its signed change. Briefly interpret what a movement in gross market value represents.",
+          "validator": "validate_otc_event",
+          "stores": [
+            "otc_event_half_year",
+            "otc_interest_rate_gmv_change_pct"
+          ],
+          "claims": [
+            {
+              "id": "gross_market_value_meaning",
+              "description": "The response distinguishes gross market value, a current replacement-value measure, from face-value notional amount.",
+              "mode": "required"
+            },
+            {
+              "id": "gross_market_value_flow_boundary",
+              "description": "If the response describes the change as trading activity or cash flow, it qualifies that outstanding gross market value is a stock measured at successive half-year ends.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Carry that event half-year into the CFTC futures-only reports. Restrict the comparison to U.S. Treasury contract market codes 020601, 020604, 042601, 043602 and 044601. Define leveraged-money net positioning as long contracts minus short contracts. For each code, compare the first and last report dates available within the event half-year. Identify the code with the largest absolute first-to-last change, breaking a tie by the lexicographically smallest code, and report the code and the signed last-minus-first change in contracts. Discuss how this futures signal relates to the preceding OTC observation.",
+          "validator": "validate_contract_move",
+          "stores": [
+            "treasury_contract_code",
+            "treasury_net_position_change_contracts"
+          ],
+          "claims": [
+            {
+              "id": "cross_market_scope",
+              "description": "The response treats the BIS global OTC aggregate and the selected U.S. exchange-traded leveraged-money position as different market and participant scopes rather than the same exposure population.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "For that selected contract within the same event half-year, compute leveraged-money net positioning as a percent of total open interest on each report date. Identify the report with the largest absolute percentage, breaking a tie in favor of the earliest date, and report the date and the signed percentage. Explain which side of the market the sign points to for these funds, and what the size of the number represents against all outstanding contracts.",
+          "validator": "validate_peak_position",
+          "stores": [
+            "peak_position_date",
+            "peak_signed_net_open_interest_pct"
+          ],
+          "claims": [
+            {
+              "id": "peak_position_interpretation",
+              "description": "The response uses the reported sign to state whether leveraged-money shorts or longs exceed the other side and treats the magnitude as a share of total open interest.",
+              "mode": "required"
+            },
+            {
+              "id": "open_interest_ownership_boundary",
+              "description": "If the response treats the percentage as leveraged money's complete market share, it notes that the numerator is a net position while total open interest includes all reportable categories.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "At that selected peak report, run a transparent sensitivity in which leveraged-money long contracts are reduced by 10 percent while short contracts and total open interest remain fixed. Recompute and report the signed net-position percentage. Explain the material limits of combining this sensitivity with the BIS event when drawing a market conclusion.",
+          "validator": "validate_long_sensitivity",
+          "stores": [
+            "long_reduction_scenario_net_open_interest_pct"
+          ],
+          "claims": [
+            {
+              "id": "cross_market_causality_boundary",
+              "description": "The response states that the two aggregate series can provide contemporaneous context but do not identify a causal OTC-to-futures hedging channel.",
+              "mode": "required"
+            },
+            {
+              "id": "sensitivity_observation_boundary",
+              "description": "If the response describes the reduced-long result as observed positioning, it identifies the result as a mechanical sensitivity rather than a reported portfolio adjustment.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen BIS semiannual OTC derivatives outstanding and CFTC financial-futures Commitments of Traders tables in dataset_new.",
+    "facts": [
+      "The largest absolute consecutive change in BIS interest-rate gross market value over the stated window occurs in 2020-S1 and is +40.3024 percent.",
+      "Within the fixed futures-only Treasury basket, code 042601 has the largest absolute first-to-last change at +452,523 contracts.",
+      "That contract's peak absolute leveraged-money net share is -28.5607 percent on 2020-01-07.",
+      "Reducing its reported leveraged-money long position by ten percent while holding shorts and open interest fixed changes the signed share to -30.9722 percent."
+    ],
+    "known_overclaims": [
+      "Treating BIS gross market value as notional amount, transaction flow or realized loss.",
+      "Treating the BIS global OTC population and CFTC leveraged-money Treasury futures population as the same exposure set.",
+      "Inferring that the OTC movement caused the futures positioning change or that the sensitivity occurred."
+    ]
+  }
+}

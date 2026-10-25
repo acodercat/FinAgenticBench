@@ -1,0 +1,1391 @@
+[
+ {
+  "case": "annual_report_fourth_quarter_flow_derivation",
+  "slots": [
+   "superseded_by_amendment_count",
+   "form_disagreement_count"
+  ],
+  "primary": "K5",
+  "secondary": null,
+  "mechanism": "Pre-filtered the submission index to form label 10-K before joining on (CIK, accession), so the two filings the index labels 10-K/A fell out as unmatched rows (form disagreement 0) and the amendment-supersession set was then built from the index's own labels rather than the statements-side population (575 vs 574).",
+  "anticipated_by_author": "yes",
+  "knows_but_fails": "no",
+  "confidence": "medium",
+  "evidence": "Redo superseded and median using inner join (clean matched set); the two excluded rows had no acceptance info anyway"
+ },
+ {
+  "case": "annual_report_fourth_quarter_flow_derivation",
+  "slots": [
+   "median_days_to_public"
+  ],
+  "primary": "K5",
+  "secondary": "K9",
+  "mechanism": "Measured the publication lag as fractional days from the acceptance timestamp's clock time (total_seconds/86400) instead of whole calendar days between period end and acceptance date, so the median landed at 65.9 rather than 65.0.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "no",
+  "confidence": "medium",
+  "evidence": "days_to_public = (acceptance_dt - report_date).dt.total_seconds()/86400"
+ },
+ {
+  "case": "bank_acquisition_goodwill_nci_capital_bridge",
+  "slots": [
+   "nci_fair_value_mn"
+  ],
+  "primary": "K6",
+  "secondary": null,
+  "mechanism": "Read \"its book equity\" as the whole target's book equity instead of the 20% stake's, so the NCI cash flows (5% per year and 1.4x terminal) were five times too large (744.37 = 5 x 148.87).",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "no",
+  "confidence": "high",
+  "evidence": "cf_annual = 0.05 * target_equity_mn; terminal = 1.4 * target_equity_mn"
+ },
+ {
+  "case": "bank_acquisition_goodwill_nci_capital_bridge",
+  "slots": [
+   "new_goodwill_mn"
+  ],
+  "primary": "K1",
+  "secondary": null,
+  "mechanism": "Computed goodwill against identifiable net assets = assets - liabilities (563.8m less markdown) without deducting the 27.407m inherited subsidiary NCI that IFRS 3 keeps separate, so goodwill was understated by exactly that amount (219.349 vs 246.756).",
+  "anticipated_by_author": "yes",
+  "knows_but_fails": "yes",
+  "confidence": "high",
+  "evidence": "Identifiable net assets at fair value = (target assets 3,351,145 - 33,511.45) - liabilities 2,787,320; parent equity does subtract inherited_nci"
+ },
+ {
+  "case": "bank_year_to_date_flow_derivation",
+  "slots": [
+   "cumulative_income_usd_billions"
+  ],
+  "primary": "K9",
+  "secondary": "K6",
+  "mechanism": "Reported the panel's cumulative net interest income at the final 2024-12-31 date rather than at the panel-defining 2024-09-30 report date; after the query discusses \"each of the four dates\", \"the report date\" is genuinely readable as the last one.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "no",
+  "confidence": "medium",
+  "evidence": "# cumulative net interest income at report date (2024-12-31, the last date)"
+ },
+ {
+  "case": "bdc_pik_cash_distribution_borrowing_base",
+  "slots": [
+   "q2_early_debt_repayment_mn"
+  ],
+  "primary": "K6",
+  "secondary": "K3",
+  "mechanism": "Chose zero April 1 repayment, missing that repaying debt saves 91 days of SOFR+2.5% financing while held cash earns nothing and the freed borrowing capacity can be redrawn on June 30 to fund the distribution, so applying the full 3m budget to debt dominates.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "unclear",
+  "confidence": "medium",
+  "evidence": "q2_max_distribution_mn = round(distribution_x0/1e6, 3); zero spare borrowing capacity already exists at the start of Q2"
+ },
+ {
+  "case": "bis_var_generalized_connectedness",
+  "slots": [
+   "maximum_ols_normal_moment"
+  ],
+  "primary": "K4",
+  "secondary": null,
+  "mechanism": "Took the \"maximum absolute sample normal-equation moment\" as the largest element of the design cross-product X'X (3051) rather than the OLS orthogonality moment X'(Y - XB), which is zero by construction.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "no",
+  "confidence": "high",
+  "evidence": "maximum_ols_normal_moment = round(float(max_moment), 10) -> 3051.1177 vs expected 0.0"
+ },
+ {
+  "case": "bis_var_generalized_connectedness",
+  "slots": [
+   "net_transmitter",
+   "largest_directed_edge_source",
+   "girf_shock_node",
+   "girf_shock_size",
+   "girf_ofr_impact_response",
+   "girf_ofr_peak_absolute_horizon",
+   "girf_ofr_peak_absolute_response",
+   "girf_cumulative_usd_response",
+   "girf_cumulative_eur_response",
+   "girf_cumulative_jpy_response",
+   "girf_cumulative_ofr_response",
+   "girf_terminal_ofr_response"
+  ],
+  "primary": "K4",
+  "secondary": null,
+  "mechanism": "Mis-specified the generalized FEVD (omitting the sigma_jj^-1 scaling / transposing the from-to orientation), which inflates the column of the highest-variance innovation (JPY, sd 5.52 vs USD 2.32) and names jpy rather than usd the net transmitter; every turn-4 GIRF output then shocks the wrong node.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "no",
+  "confidence": "medium",
+  "evidence": "jpy received 6.1521 transmitted 56.4554 vs docstring yen keeps 91.10% at home, total connectedness 18.19"
+ },
+ {
+  "case": "corporate_payout_cash_buffer_capacity",
+  "slots": [
+   "selected_issuer_cik",
+   "selected_filing_accession",
+   "selected_acceptance_timestamp",
+   "closing_cash_bn",
+   "other_investing_inflow_bn",
+   "other_financing_inflow_bn",
+   "cash_change_residual_bn"
+  ],
+  "primary": "K5",
+  "secondary": "K1",
+  "mechanism": "Treated common-stock dividends (or a self-assembled common+NCI sum) as the required \"reported total dividends\" when the PaymentsOfDividends concept was absent, admitting Exxon into the cohort and letting its 6.3bn shortfall outrank Coca-Cola's; turn-2 flows then describe the wrong filing.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "no",
+  "confidence": "medium",
+  "evidence": "total dividends assembled from common/minority/preferred components when an aggregate tag was absent; leader Exxon 0000034088"
+ },
+ {
+  "case": "corporate_payout_cash_buffer_capacity",
+  "slots": [
+   "full_plan_stressed_closing_cash_bn",
+   "maximum_retained_repurchases_bn",
+   "minimum_operating_cash_full_plan_bn"
+  ],
+  "primary": "K1",
+  "secondary": "K5",
+  "mechanism": "Used Coca-Cola's cash, cash equivalents and restricted cash balance (11.488bn) as the closing cash-and-equivalents balance (10.828bn), shifting ending cash by 0.66bn and both floor-constrained answers by half that.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "no",
+  "confidence": "high",
+  "evidence": "Starting from Coca-Cola's closing cash balance of $11.488B; expected closing_cash_bn 10.8280"
+ },
+ {
+  "case": "equity_awards_convertible_antidilution_sequence",
+  "slots": [
+   "loss_total_diluted_eps"
+  ],
+  "primary": "K1",
+  "secondary": null,
+  "mechanism": "Applied the dilution test separately to total earnings (a profit) and included options, instead of using continuing operations as the IAS 33 control number: a continuing loss makes every potential share antidilutive for total EPS too, so total diluted EPS equals basic (146.2/87.0).",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "yes",
+  "confidence": "high",
+  "evidence": "# Total diluted EPS: profit -> options included; prose: Because continuing operations show a loss, IAS 33 treats every potential share..."
+ },
+ {
+  "case": "fund_redemption_month_alignment_and_sign",
+  "slots": [
+   "total_gross_redeemed_usd_billions",
+   "month_gross_redeemed_usd_billions",
+   "median_month_share_of_period",
+   "period_net_inflow_despite_stress_count",
+   "filings_redeeming_over_one_tenth_count",
+   "largest_filing_month_redemption_usd_billions",
+   "month_net_share_flow_usd_billions"
+  ],
+  "primary": "K7",
+  "secondary": null,
+  "mechanism": "Summed the filer-signed redemption field as-is (taking abs of the total, not of each observation), so the 183,280 negative-signed redemptions netted against positives, understating gross redemptions, shrinking shares and counts, and flipping the month's net flow to +499bn.",
+  "anticipated_by_author": "yes",
+  "knows_but_fails": "yes",
+  "confidence": "high",
+  "evidence": "total_gross_redeemed_usd_billions = round(abs(total_redeemed)/1e9, 4); (redemptions taken in absolute value)"
+ },
+ {
+  "case": "hmda_pool_acquisition_state_preservation",
+  "slots": [
+   "fha_severe_loss_million",
+   "fha_severe_default_principal_pct"
+  ],
+  "primary": "K6",
+  "secondary": "K3",
+  "mechanism": "Applied the severe 30% income and collateral shocks to an already-stressed FHA comparison state rather than re-running the pool from its base underwriting with the 30% shocks replacing the 20% ones, defaulting 96% of principal with a 57% loss per defaulted dollar instead of 60%.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "unclear",
+  "confidence": "low",
+  "evidence": "96.3933% (61,416 of 64,244 loans default); loss per dollar of defaulted principal ... 0.5687"
+ },
+ {
+  "case": "industry_erc_ofr_tail_stress",
+  "slots": [
+   "erc_stress_maximum_drawdown_pct"
+  ],
+  "primary": "K4",
+  "secondary": null,
+  "mechanism": "Took the running peak over the post-return wealth path only, excluding the initial value 1.0 of the wealth index, so a negative first day (2020-02-21) lowered the peak and the drawdown read 38.64% instead of 39.33%.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "no",
+  "confidence": "high",
+  "evidence": "erc_stress_maximum_drawdown_pct = round(float(erc_mdd*100), 4); query: wealth index initialized at one"
+ },
+ {
+  "case": "insider_indirect_holdings_outside_transaction_stream",
+  "slots": [
+   "selected_holdings_to_shares_outstanding_pct"
+  ],
+  "primary": "K6",
+  "secondary": null,
+  "mechanism": "Used the largest single holding row (602.8m shares) as the numerator instead of T3's holding-row total across the issuer's retained filings, as the query and variable (\"that holding-row total\") require.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "no",
+  "confidence": "high",
+  "evidence": "selected_holdings_to_shares_outstanding_pct = round(100 * largest_holding_row_shares / shares_outstanding, 4)"
+ },
+ {
+  "case": "money_market_share_class_fee_wedge",
+  "slots": [
+   "widest_series_name"
+  ],
+  "primary": "K5",
+  "secondary": null,
+  "mechanism": "Mapped series ID to name via drop_duplicates over the whole file and took the first (historical) name, returning the pre-rebrand \"Wells Fargo Money Market Fund\" instead of the name the series carries at the 2025-06-30 yield date, \"Allspring Money Market Fund\".",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "no",
+  "confidence": "high",
+  "evidence": "name_map = sf[['series_id','series_name']].drop_duplicates(); ...iloc[0]"
+ },
+ {
+  "case": "nmfp_bridge_facility_state_preservation",
+  "slots": [
+   "government_daily_liquidity_pct",
+   "government_peak_bridge_million",
+   "government_interest_usd",
+   "prime_peak_bridge_million",
+   "prime_interest_usd",
+   "prime_forced_sale_million",
+   "prime_day30_cash_usd",
+   "government_all_in_cost_usd",
+   "government_max_commitment_fee_bp"
+  ],
+  "primary": "K9",
+  "secondary": "K5",
+  "mechanism": "Blended the filer-reported daily/weekly liquid-asset fraction column (a share of total assets as filed) instead of the liquid-asset amounts divided by net assets the query specifies, giving a 61.28% rather than 62.97% day-1 fraction; selection and WAM (39.3691) were right, and every ledger figure inherits the fraction.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "no",
+  "confidence": "medium",
+  "evidence": "daily_frac_blend = (top3['weight']*top3['daily_liquid_assets_fraction']).sum()",
+  "reclassified": {
+   "from_primary": "K5",
+   "from_secondary": "K1",
+   "date": "2026-10-25",
+   "reason": "The query says 'the reported daily-liquid fraction'; the table carries a reported daily_liquid_assets_fraction column, and the shared value 61.2814 is exactly the net-asset-weighted blend of that column. The query wording supports the reading the reference rejects, so the root cause is residual contract ambiguity."
+  }
+ },
+ {
+  "case": "ofr_stress_jump_industry_dispersion",
+  "slots": [
+   "worst_event_date_industry_label"
+  ],
+  "primary": "K8",
+  "secondary": "K5",
+  "mechanism": "Translated the official Ken French abbreviation carried in the column name (enrgy -> \"Enrgy\") into a descriptive long name \"Energy\", although the variable asks for the official 10-industry label; the computation itself was right.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "no",
+  "confidence": "high",
+  "evidence": "labels = {'enrgy_pct':'Energy', 'hitec_pct':'High Technology', ...}"
+ },
+ {
+  "case": "private_fund_waterfall_catchup_clawback",
+  "slots": [
+   "early_deal_carry_mn"
+  ],
+  "primary": "K3",
+  "secondary": null,
+  "mechanism": "Paid deal-level carry as a flat 20% of each exited project's gross gain with a complete catch-up (7.8591 + 3.4383), overshooting the contract's tiered deal-by-deal waterfall by 0.3303m; the omitted term is not recoverable from the excerpt.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "unclear",
+  "confidence": "low",
+  "evidence": "Project 1 ... fully fund a 20% catch-up, paying the GP $7.8591 million (= 20% of 0.8 x 49.1192)"
+ },
+ {
+  "case": "shareholder_payout_tag_scope_composition",
+  "slots": [
+   "misclassified_payer_count"
+  ],
+  "primary": "K6",
+  "secondary": "K5",
+  "mechanism": "Counted filers by concept presence (broad tag present, narrow tag absent) rather than by paying a positive dividend under the broader-first rule while reporting nothing under the narrow tag, so one zero-valued boundary filer was counted (115 vs 114).",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "no",
+  "confidence": "medium",
+  "evidence": "misclassified_ciks = set(broad_map.index) - set(narrow_map.index)"
+ },
+ {
+  "case": "thirteen_f_option_underlier_exposure_boundary",
+  "slots": [
+   "option_underlier_q4_accessions"
+  ],
+  "primary": "K5",
+  "secondary": null,
+  "mechanism": "Reported the information-table row count (holding_rows, 4,640) as the number of distinct 13F-HR accessions (3,283), conflating line items with filings.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "yes",
+  "confidence": "high",
+  "evidence": "option_underlier_q4_accessions = int(round(top.holding_rows)); prose: the number of individual information-table line items"
+ },
+ {
+  "case": "treasury_bill_discount_investment_rate_basis",
+  "slots": [
+   "leap_basis_count"
+  ],
+  "primary": "K6",
+  "secondary": null,
+  "mechanism": "Applied the inferred year-following-issue rule only to the 821 bills of at most 182 days (the inference cohort) instead of to all 867 selected bills, dropping the 52-week auctions that take a 366-day year (258 vs 273).",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "no",
+  "confidence": "high",
+  "evidence": "leap_basis_count = int(short['match_366'].sum()); Applying the inferred day-count rule to all 821 short-term bills"
+ },
+ {
+  "case": "treasury_par_bootstrap_auction_hedge",
+  "slots": [
+   "five_year_hedge_face_per100_target",
+   "ten_year_hedge_face_per100_target"
+  ],
+  "primary": "K7",
+  "secondary": null,
+  "mechanism": "Solved the key-rate system with hedge DV01s quoted per 100 face and reported the resulting unit multipliers as face amounts without multiplying by 100, so both hedges were off by a factor of 100 (-0.9969 vs -99.6913).",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "unclear",
+  "confidence": "high",
+  "evidence": "w5, w10 are face amounts per 100 face of target hedge positions (since DV01s are per 100 face of hedge instrument)"
+ },
+ {
+  "case": "wti_negative_spot_stress_recovery",
+  "slots": [
+   "largest_positive_contribution_change_category"
+  ],
+  "primary": "K8",
+  "secondary": "K9",
+  "mechanism": "Stored the lower-case column key \"credit\" instead of the category name \"Credit\" as written in the query; the identification itself was correct.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "no",
+  "confidence": "medium",
+  "evidence": "cats = ['credit','equity_valuation',...]; largest_positive_contribution_change_category = candidates[0]"
+ },
+ {
+  "case": "apple_commitment_curve_discount_stress",
+  "slots": [
+   "gross_debt_fact_physical_row_count",
+   "gross_debt_undimensioned_physical_row_count",
+   "gross_long_term_debt_usd_billions",
+   "maturity_sum_minus_gross_debt_usd_millions"
+  ],
+  "primary": "K1",
+  "secondary": "K5",
+  "mechanism": "Selected the single undimensioned net carrying-amount fact (LongTermDebt, 90.678bn, after unamortized discount/issuance costs/hedge adjustments) as 'consolidated gross long-term debt' instead of the face-amount concept (91.281bn, 4 physical rows / 2 undimensioned), so all four reconciliation outputs are those of the net figure.",
+  "anticipated_by_author": "yes",
+  "knows_but_fails": "yes",
+  "confidence": "high",
+  "evidence": "gross_long_term_debt_usd_billions = round(rows_all['value'].iloc[0]/1e9,3) -> 90.678; prose: 'the face amount of debt before unamort...'"
+ },
+ {
+  "case": "bank_arellano_bond_fieller_margin",
+  "slots": [
+   "one_step_persistence",
+   "one_step_sofr_coefficient",
+   "two_step_persistence",
+   "two_step_sofr_coefficient",
+   "hansen_j_statistic",
+   "jackknife_coefficient_correlation",
+   "fieller_set_topology"
+  ],
+  "primary": "K4",
+  "secondary": null,
+  "mechanism": "One-step Arellano-Bond estimator mis-specified (most likely the first-step weight built as (Z'Z)^-1/identity rather than (Z'HZ)^-1 with the tridiagonal differenced-error H, or the collapsed lag-2..4 instrument block differs), shifting beta_SOFR from 0.0349 to 0.0495 while two-step values stay close, and the residual error propagates through J, jackknife covariance and the Fieller set's sign of A (bounded interval instead of disjoint rays).",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "unclear",
+  "confidence": "low",
+  "evidence": "'W_std': W_std.copy(), # standard weight (no 1/N); one-step 0.0495 vs 0.0349, two-step 0.0440 vs 0.0432"
+ },
+ {
+  "case": "bdc_collateral_sale_deleveraging",
+  "slots": [
+   "year_end_borrowing_deficiency_m",
+   "whole_window_minimum_sale_pct"
+  ],
+  "primary": "K3",
+  "secondary": "K6",
+  "mechanism": "Accrued facility interest on the remaining collateral principal ($16,893.30m) instead of the post-cure loan principal ($9,200.10m); same implied rate 5.877% so 162.72 = 88.62 x 16,893.3/9,200.1, and the larger accrual pushes the whole-window minimum sale from 27.33% to 29.28%.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "no",
+  "confidence": "high",
+  "evidence": "'the remaining principal of $16,893.30 million ... cured the facility to exactly debt = base = $9,200.10 million'"
+ },
+ {
+  "case": "bill_refinancing_settlement_face_cap_replanning",
+  "slots": [
+   "post_jan_28_cash_mn"
+  ],
+  "primary": "K6",
+  "secondary": "K3",
+  "mechanism": "Turn-2 lot selection produced zero lots for both irrevocable dates, so no issue proceeds existed to sweep and cash degenerates to 0.0 with the bridge absorbing the shortfall, whereas the pinned plan issues notes and leaves 0.674931m unswept after the January 28 sweep.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "unclear",
+  "confidence": "low",
+  "evidence": "'Since both lot counts are 0, issue cash at both 2025-01-07 and 2025-01-28 contributes zero proceeds'"
+ },
+ {
+  "case": "buyback_share_compensation_cash_coverage_screen",
+  "slots": [
+   "eligible_filer_count",
+   "negative_value_excluded_filer_count",
+   "repurchasing_filer_count",
+   "operating_cash_flow_bn",
+   "free_cash_flow_bn",
+   "negative_free_cash_flow_filers",
+   "repurchase_bn",
+   "share_based_compensation_bn",
+   "above_compensation_share_rise_pct",
+   "dividend_reporting_filer_count"
+  ],
+  "primary": "K6",
+  "secondary": "K5",
+  "mechanism": "Took the 500-company registrant table as the filer universe (445 FY2024 10-Ks -> 140 with all four concepts) instead of every filer in the annual financial-statement table (1,259 tagging all four -> 1,251 eligible), so every count, sum, median, split and the dividend screen is computed on a large-cap subset.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "no",
+  "confidence": "high",
+  "evidence": "'Starting from the 500-company universe, I isolated original ... 10-K filings ... 445 filers ... 140 filers tagged all four'"
+ },
+ {
+  "case": "debt_modification_effective_interest_derecognition",
+  "slots": [
+   "A_ten_percent_test_pct"
+  ],
+  "primary": "K1",
+  "secondary": null,
+  "mechanism": "Ran the IFRS 9 B3.3.6 10% test on the bare new contractual cash flows, omitting the lender fee paid (0.4% of principal) from the discounted cash flows, giving 3.2360% instead of 2.8405%.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "no",
+  "confidence": "high",
+  "evidence": "'PV of the new cash flows ... = $870,589,651.46 ... |870,589,651.46 - 899,704,418.25| / 899,704,418.25 = 3.2360%'"
+ },
+ {
+  "case": "debt_modification_effective_interest_derecognition",
+  "slots": [
+   "A_adjusted_carrying_mn",
+   "A_fee_amortizing_semiannual_eir_pct",
+   "second_prechange_carrying_mn",
+   "second_gain_mn"
+  ],
+  "primary": "K1",
+  "secondary": "K7",
+  "mechanism": "Added lender and third-party fees to the recalculated carrying amount (870.59 + 8.90 = 879.49) instead of deducting them (861.69) as costs that reduce the continuing liability and are recovered through a higher EIR; the wrong direction drops the EIR to 2.157% (vs 2.4371%) and inflates the pre-exchange carrying amount and second gain.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "no",
+  "confidence": "high",
+  "evidence": "A_adjusted_carrying = recalculated_carrying_before_fees + total_fees  # 'fees paid ... increase the liability's effective basis'"
+ },
+ {
+  "case": "fails_to_deliver_exposure_measure_divergence",
+  "slots": [
+   "largest_average_balance_shares",
+   "largest_average_balance_margin_pct"
+  ],
+  "primary": "K5",
+  "secondary": "K2",
+  "mechanism": "groupby-mean divided each symbol's summed balance by the number of settlement dates on which it appears in the file rather than by all 126 window dates, treating an omitted date as missing instead of as a nil undelivered balance.",
+  "anticipated_by_author": "yes",
+  "knows_but_fails": "no",
+  "confidence": "high",
+  "evidence": "'average fails-to-deliver balance of 3,946,780.3010 shares per settlement date on which it appeared'"
+ },
+ {
+  "case": "gdp_revision_curve_positioning",
+  "slots": [
+   "largest_revision_quarter"
+  ],
+  "primary": "K8",
+  "secondary": null,
+  "mechanism": "Stored the source's '2025:Q2' token instead of the requested YYYY-Qn format '2025-Q2'; the quarter selection and all numeric outputs were correct.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "yes",
+  "confidence": "high",
+  "evidence": "code: largest_revision_quarter = \"2025:Q2\"; prose: 'Selected quarter: 2025-Q2'"
+ },
+ {
+  "case": "industry_beta_crisis_prediction_failure",
+  "slots": [
+   "utilities_standard_errors",
+   "technology_standard_errors",
+   "telecom_standard_errors"
+  ],
+  "primary": "K4",
+  "secondary": null,
+  "mechanism": "Residual standard deviation taken with a different degrees-of-freedom convention (sample ddof=1 vs the pinned population/other ddof), so the scaled standard errors are smaller in magnitude by exactly sqrt(1253/1252) = 1.0004.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "no",
+  "confidence": "high",
+  "evidence": "-7.7509 vs -7.7540, 6.0500 vs 6.0525, -1.0501 vs -1.0506: all ratios = 1.0004 = sqrt(n/(n-1))"
+ },
+ {
+  "case": "industry_hansen_jagannathan_good_deal",
+  "slots": [
+   "nonnegative_kernel_sd",
+   "maximum_nonnegative_kernel"
+  ],
+  "primary": "K4",
+  "secondary": null,
+  "mechanism": "Nonnegativity-constrained minimum-second-moment kernel converged to a slightly different point (tolerance-limited numerical QP or truncation of the unconstrained kernel rather than exactly solving m=(a+b'x)+ against the pricing equations), moving sd and max by ~0.03%.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "unclear",
+  "confidence": "low",
+  "evidence": "zero_kernel_states = int((np.abs(m_pos)<1e-8).sum()); sd 0.5066 vs 0.5074, max 2.3134 vs 2.3141"
+ },
+ {
+  "case": "insider_option_exercise_intrinsic_capture",
+  "slots": [
+   "issuer_count"
+  ],
+  "primary": "K5",
+  "secondary": null,
+  "mechanism": "Grouped by (issuercik, issuername) instead of CIK alone, splitting TE Connectivity Ltd./plc into two issuers (167 vs 166).",
+  "anticipated_by_author": "yes",
+  "knows_but_fails": "no",
+  "confidence": "high",
+  "evidence": "issuer_summary = matched_iss.groupby(['issuercik','issuername']).agg(...)"
+ },
+ {
+  "case": "mortgage_ho_lee_prepayment_oas",
+  "slots": [
+   "year_two_low_short_rate_pct",
+   "option_adjusted_spread_bp",
+   "prepayment_probability",
+   "effective_duration_years",
+   "effective_convexity_years2"
+  ],
+  "primary": "K4",
+  "secondary": "K3",
+  "mechanism": "Ho-Lee adjacent-node spacing set to one volatility step (delta = sigma*sqrt(dt)) rather than the 2*sigma*sqrt(dt) gap implied by +/-sigma*sqrt(dt) branches, halving the tree's dispersion (year-two low node 3.24% vs 2.23%) so no node reaches the prepayment boundary (probability 0 vs 0.0156) and OAS/duration/convexity shift slightly.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "no",
+  "confidence": "medium",
+  "evidence": "nodes(%)= [round((a[i]+delta*j)*100,4) for j in range(i+1)]; 'confirms hold at every single node'"
+ },
+ {
+  "case": "nmfp_maturity_moments_liquidity_bounds",
+  "slots": [
+   "worst_70pct_liquidation_cost_mn",
+   "capped_70pct_cost_mn",
+   "budget_guarantee"
+  ],
+  "primary": "K3",
+  "secondary": null,
+  "mechanism": "Optimized execution cost ~0.12% too high (consistent with sizing sales on gross rather than net-of-spread stressed value, or a stressed-mark/zero-shift convention), which against a 9 bp budget that exceeds the true maximum by only ~0.0003m flips the guarantee from YES to NO.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "unclear",
+  "confidence": "low",
+  "evidence": "0.1699 vs 0.1697; 0.149 vs 0.1488; 'Within budget?', best_cost_capped <= budget_mn -> NO"
+ },
+ {
+  "case": "operating_lease_discount_rate_lag",
+  "slots": [
+   "rate_filer_count",
+   "below_treasury_count",
+   "paired_filer_count",
+   "asset_filer_count",
+   "asset_below_liability_count",
+   "median_asset_to_liability"
+  ],
+  "primary": "K5",
+  "secondary": null,
+  "mechanism": "Join of the weighted-average discount-rate fact to the 359 reconciling filers lost six filers (a stricter form-type/dimension/first-reported filter than 'earliest annual report carrying it at that date'), and the 333-filer base propagates to every later count and the asset/liability median.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "unclear",
+  "confidence": "low",
+  "evidence": "'This gave 333 filers' vs 339; 'unamended annual 10-K, first-reported value, latest tagged balance date'"
+ },
+ {
+  "case": "reg_cf_deadline_bridge_cash_shortfall",
+  "slots": [
+   "prior_close_cash_usd"
+  ],
+  "primary": "K2",
+  "secondary": null,
+  "mechanism": "SOFR fixing alignment over the 27-day accrual (publication-lag or non-publication-day carry) deviates from the pinned 'latest fixing already published at 9 a.m.' rule, understating interest by USD 0.68.",
+  "anticipated_by_author": "yes",
+  "knows_but_fails": "unclear",
+  "confidence": "low",
+  "evidence": "23971.1072 vs 23970.4279; prose: 'using the latest already-published SOFR fixing'"
+ },
+ {
+  "case": "sofr_average_compounding_and_bill_basis",
+  "slots": [
+   "median_premium_30_day_bp",
+   "median_premium_180_day_bp",
+   "max_premium_180_day_bp"
+  ],
+  "primary": "K3",
+  "secondary": "K2",
+  "mechanism": "Compounded the daily rate on every calendar day (weekend days as separate compounding steps) instead of compounding only business-day to business-day with simple interest across the gap, overstating the compounded-minus-simple premium by ~0.03 bp on each window (matches the author's measured calendar-day alternative).",
+  "anticipated_by_author": "yes",
+  "knows_but_fails": "no",
+  "confidence": "high",
+  "evidence": "'daily compounding on an actual/360 basis: ((Prod(1 + r_i/100/360)) - 1) x 360/N x 100'"
+ },
+ {
+  "case": "thirteen_f_reporting_unit_break_ownership",
+  "slots": [
+   "pre_break_filing_count",
+   "post_break_filing_count",
+   "pre_break_median_cover_value_per_holding_reported",
+   "post_break_median_cover_value_per_holding_reported",
+   "median_value_per_holding_ratio",
+   "cover_total_sum_ratio",
+   "post_break_thousand_holding_convention_count",
+   "post_break_thousand_cover_scale_count",
+   "post_break_dollar_holding_convention_count",
+   "post_break_dollar_cover_scale_count",
+   "convention_disagreement_filing_count",
+   "dollar_holdings_thousand_cover_count",
+   "holdings_usd_to_raw_cover_quotient",
+   "filings_including_other_managers"
+  ],
+  "primary": "K5",
+  "secondary": "K6",
+  "mechanism": "Qualifying-filing population roughly halved (3,177/3,485 vs 6,745/7,066) by a null-sensitive or over-restrictive report-type/amendment/join filter that disproportionately drops thousands-convention filers, so every count, median, ratio, quotient and other-managers count is computed on a biased subset.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "no",
+  "confidence": "low",
+  "evidence": "'13F-HR and 13F-HR Combination Reports only, excluding 13F-NT and all amendments ... 3,177 ... 3,485'"
+ },
+ {
+  "case": "treasury_bill_repo_carry_advance_limit",
+  "slots": [
+   "repo_interest_usd",
+   "break_even_spread_bp",
+   "stressed_repo_interest_usd",
+   "maximum_advance_pct"
+  ],
+  "primary": "K2",
+  "secondary": null,
+  "mechanism": "Daily SOFR assignment deviates from the 'latest fixing published by 9 a.m., carry across non-publication days' rule on a few holiday/weekend days (identical +USD 44.06 on baseline and stressed paths, matching neither the same-day-effective nor the ACT/365 alternative), shifting break-even spread and maximum advance.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "unclear",
+  "confidence": "low",
+  "evidence": "200229.06 vs 200185.00 and 223236.01 vs 223191.96: same +44.06 offset"
+ },
+ {
+  "case": "treasury_rank1_vecm_positioning",
+  "slots": [
+   "ecm_observation_count",
+   "ecm_intercept_pp",
+   "ecm_adjustment_coefficient",
+   "ecm_two_year_change_coefficient",
+   "ecm_sofr_change_coefficient",
+   "ecm_r_squared"
+  ],
+  "primary": "K6",
+  "secondary": "K9",
+  "mechanism": "Estimated the ECM on the full 260-week differenced panel instead of the carried training window (155 obs) that precedes the 105-week out-of-sample test, changing every coefficient and the R-squared.",
+  "anticipated_by_author": "yes",
+  "knows_but_fails": "unclear",
+  "confidence": "medium",
+  "evidence": "'# The ECM was estimated on the full panel (260 obs) ... using the cointegrating residual carried forward from the training coefs.'"
+ },
+ {
+  "case": "z1_corporate_equity_issuance_versus_market_value",
+  "slots": [
+   "summed_net_issuance_usd_millions"
+  ],
+  "primary": "K5",
+  "secondary": "K7",
+  "mechanism": "Summed the FA (seasonally adjusted annual-rate) series as 'net issuance the sector transacted' instead of the FU unadjusted quarterly flow, a ~4x overstatement (plus an extra 42nd observation).",
+  "anticipated_by_author": "yes",
+  "knows_but_fails": "no",
+  "confidence": "high",
+  "evidence": "'FA103064103.Q - financial account (net issuance), FU103064103.Q - financial uses'; fa['value'].sum()"
+ },
+ {
+  "case": "z1_corporate_equity_issuance_versus_market_value",
+  "slots": [
+   "net_retirement_quarter_count"
+  ],
+  "primary": "K6",
+  "secondary": null,
+  "mechanism": "Counted negative FU values over all 42 level observations instead of the 41 quarters that support a quarter-over-quarter change (the dropped 2015-Q1 is negative), giving 34 vs 33 and a sum of -1,061,511 vs -1,050,755.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "yes",
+  "confidence": "high",
+  "evidence": "'41 (42 quarterly level observations yield 41 sequential changes)' then fu['value'].sum() over all rows"
+ },
+ {
+  "case": "z1_corporate_equity_issuance_versus_market_value",
+  "slots": [
+   "matched_quarter_count"
+  ],
+  "primary": "K6",
+  "secondary": "K9",
+  "mechanism": "Read 'how many quarters match' as a closeness test with a self-invented 1 pp threshold (29) rather than the count of quarters for which a compounded market return was paired to a revaluation (41).",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "no",
+  "confidence": "medium",
+  "evidence": "matched_quarter_count = int((m2['abs_diff_pct_pts'] <= 1.0).sum())"
+ },
+ {
+  "case": "arcc_pik_income_dividend_nav_stress",
+  "slots": [
+   "q3_after_tax_nii_m",
+   "partial_cash_like_dividend_gap_m"
+  ],
+  "primary": "K1",
+  "secondary": "K5",
+  "mechanism": "Took the USD 349m net-investment-income figure (pre-tax, before the ~USD 11m income/excise tax line) as after-tax NII instead of the USD 338m after-tax line, and the dividend gap (342 minus (NII minus 59 PIK)) inherited the 11m error.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "unclear",
+  "confidence": "medium",
+  "evidence": "# Confirm NetInvestmentIncome is reported net of tax by checking if there's a pre-tax NII variant ... q3_after_tax_nii_m = round(349_000_000.0/1e6, 4)"
+ },
+ {
+  "case": "bank_securities_concentration_outcome_channels",
+  "slots": [
+   "top_fifth_lower_bound_pct"
+  ],
+  "primary": "K4",
+  "secondary": "K9",
+  "mechanism": "Reported the share linearly interpolated at the fractional 80th-percentile rank cutpoint instead of the minimum actual share among the banks in the highest group (the first member above the cutpoint).",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "yes",
+  "confidence": "medium",
+  "evidence": "# The group5 min (first actual bank value above cutpoint) vs interpolated boundary value - these are conceptually distinct but close"
+ },
+ {
+  "case": "bdc_fiscal_label_cross_section_alignment",
+  "slots": [
+   "label_fair_value_mn",
+   "off_date_fair_value_mn",
+   "calendar_fair_value_mn"
+  ],
+  "primary": "K5",
+  "secondary": null,
+  "mechanism": "After joining retained accessions to the schedule, added an extra filter keeping only rows whose row-level report_date equals the filing period end, treating other rows as 'prior-period comparative' holdings, which discarded ~43% of reported fair value the query says to count.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "no",
+  "confidence": "medium",
+  "evidence": "sched_cal_cur = sched_cal[sched_cal['report_date']==sched_cal['period']]; prose: 'prior-period comparative rows, which were excluded'"
+ },
+ {
+  "case": "bis_eer_credit_service_screen",
+  "slots": [
+   "joint_economy_count",
+   "screened_economy_count",
+   "selected_actual_credit_rank",
+   "selected_nominal_eer_decline_rank",
+   "selected_real_eer_decline_rank"
+  ],
+  "primary": "K6",
+  "secondary": "K5",
+  "mechanism": "Built the common population requiring only the private-sector DSR (32 BIS economies) instead of all three DSR sectors including household and non-financial-corporate (17 economies), so the screen admitted two extra passers and every rank was computed in the wrong population.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "no",
+  "confidence": "high",
+  "evidence": "The common set is the 32 economies that have ... the reported private-nonfinancial-sector debt-service ratio (household/NFC DSRs omitted)"
+ },
+ {
+  "case": "corporate_factoring_revolver_cash_waterfall",
+  "slots": [
+   "unfunded_peak_debt_mn",
+   "unfunded_interest_mn",
+   "first_no_factor_breach_month",
+   "day_zero_mar_lot",
+   "day_zero_april_face_mn",
+   "day_zero_total_financing_cost_mn",
+   "end_feb_revolver_mn",
+   "stressed_march_credit_demand_mn",
+   "stressed_first_breach_month",
+   "amend_required_limit_mn",
+   "chosen_final_cash_mn",
+   "chosen_cure"
+  ],
+  "primary": "K6",
+  "secondary": "K9",
+  "mechanism": "Started the waterfall with zero cash, omitting the turn-1 opening cash balance (~USD 1,351m) from the January clearing balance, so January drew 1,525.2 instead of 174.2 (174.2 plus Feb interest 0.8644 plus 1800 minus 1162.2 reproduces the expected 812.8644), inflating every later debt figure, forcing KEEP/KEEP, infeasible FACTOR and zero June cash.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "no",
+  "confidence": "high",
+  "evidence": "The $3,874.00mn owned receivable pool ... Against this, hypothetical outflows ... January 4.49%+2.00% on a zero opening balance (Jan draw 1,525.20 = 2,300 - 774.8)",
+  "reclassified": {
+   "from_primary": "K3",
+   "from_secondary": "K9",
+   "date": "2026-10-25",
+   "reason": "Turn 2 dropped the opening cash established in turn 1. Errors of this kind (a later turn not carrying the earlier turn's state: hmda_pool_acquisition_state_preservation, disaster_household_assistance_versus_insurance, bill_refinancing_settlement_face_cap_replanning) are classed K6; the case-study table also had K6. Aligned for consistency after an external review flagged the mismatch."
+  }
+ },
+ {
+  "case": "energy_garch_ofr_tail_forecast",
+  "slots": [
+   "garch_mean_intercept_pct",
+   "garch_oil_mean_beta",
+   "garch_omega_pct2",
+   "garch_alpha",
+   "garch_beta",
+   "garch_persistence",
+   "garch_training_log_likelihood",
+   "conditional_var_breach_count",
+   "conditional_var_breach_rate_pct",
+   "conditional_gaussian_var_average_loss_pct",
+   "conditional_gaussian_es_average_loss_pct",
+   "kupiec_unconditional_coverage_lr",
+   "kupiec_unconditional_coverage_p_value",
+   "stress_tail_mean_conditional_volatility_pct",
+   "other_days_mean_conditional_volatility_pct",
+   "stress_tail_var_breach_count",
+   "stress_tail_gaussian_es_mean_loss_pct"
+  ],
+  "primary": "K4",
+  "secondary": null,
+  "mechanism": "Fixed the conditional-mean coefficients at the preliminary OLS values (two-step OLS-then-GARCH) instead of estimating mean and variance parameters jointly by Gaussian maximum likelihood with OLS only as the starting point, so beta 0.268 vs 0.437 and every variance parameter and downstream tail statistic differ.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "no",
+  "confidence": "high",
+  "evidence": "mean_a, mean_b = a0, b0; prose: 'the conditional mean ... was fit by preliminary OLS on a WTI-return regressor'"
+ },
+ {
+  "case": "frn_reopening_sofr_financed_credit_limit",
+  "slots": [
+   "second_coupon_usd_thousands",
+   "second_post_payment_loan_usd_thousands"
+  ],
+  "primary": "K3",
+  "secondary": null,
+  "mechanism": "Second-period daily index path overstates the coupon by USD 0.29 (about 1 bp-day), consistent with a Treasury FRN reset convention missed in that quarter (most likely the two-business-day index lockout before 2025-07-31 or own-term bill conversion), and the post-payment loan inherits the 0.29.",
+  "anticipated_by_author": "yes",
+  "knows_but_fails": "unclear",
+  "confidence": "low",
+  "evidence": "accrued over the 92 calendar days ... same daily index-plus-spread ... methodology; coupon 11,215.22 vs expected 11,214.93"
+ },
+ {
+  "case": "hmda_origination_vs_mortgage_transactions",
+  "slots": [
+   "cashout_refinance_rows",
+   "cashout_refinance_bn"
+  ],
+  "primary": "K5",
+  "secondary": null,
+  "mechanism": "Swapped the HMDA loan_purpose codes, treating 31 as cash-out and 32 as ordinary refinance, whereas 31 is refinancing (non-cash-out) and 32 is cash-out refinancing, so the two classes' counts and amounts were exchanged.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "no",
+  "confidence": "high",
+  "evidence": "# Ordinary refinance = loan_purpose 32 (other refinance, non-cash-out)  # Cash-out refinance = loan_purpose 31"
+ },
+ {
+  "case": "industry_entropy_pooling_tail_kelly",
+  "slots": [
+   "stress_threshold",
+   "entropy_divergence",
+   "effective_scenario_count",
+   "posterior_daily_volatility_pct",
+   "posterior_es975_pct",
+   "hitec_es_contribution_pct",
+   "enrgy_es_contribution_pct",
+   "utils_es_contribution_pct",
+   "nodur_es_contribution_pct",
+   "kelly_leverage",
+   "kelly_daily_log_growth_bp",
+   "kelly_es975_pct"
+  ],
+  "primary": "K4",
+  "secondary": null,
+  "mechanism": "With the same 1,258 scenarios and matching prior volatility, the 95th-percentile FSI threshold came out one order statistic low (2.8897 vs 2.8962), i.e. a numpy-style 'lower'/interpolated percentile instead of the lower-inverse smallest x with F(x) >= 0.95, shifting the stress-event set by a day and every entropy-pooling, ES and Kelly output downstream.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "unclear",
+  "confidence": "medium",
+  "evidence": "Scenario count: 1,258 ... Prior daily portfolio volatility: 1.3912% (both accepted) while stress_threshold=2.8897 vs expected 2.8962"
+ },
+ {
+  "case": "insider_disclosure_lineage_market_windows",
+  "slots": [
+   "matched_post_hidden_pct",
+   "selected_post_hidden_pct"
+  ],
+  "primary": "K2",
+  "secondary": null,
+  "mechanism": "Divided hidden volume by total MIDAS trade volume rather than by the MIDAS volume eligible for hidden orders (the measure's applicable denominator), reproducing the author's measured 39.5121/46.1972 wrong pair.",
+  "anticipated_by_author": "yes",
+  "knows_but_fails": "no",
+  "confidence": "high",
+  "evidence": "MIDAS trade-volume figures (actual executed on-exchange volume) as the applicable denominator for hidden-volume share"
+ },
+ {
+  "case": "money_fund_gross_versus_net_flow_trigger",
+  "slots": [
+   "small_asset_days",
+   "beyond_full_assets"
+  ],
+  "primary": "K5",
+  "secondary": null,
+  "mechanism": "The series-day population carried 291 extra zero/near-zero-asset days (including 25 zero-asset nonzero-flow rows yielding infinite ratios) that the pinned latest-filing-per-series-period, series-level construction does not contain, inflating both the sub-USD1m count and the >100% count.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "unclear",
+  "confidence": "low",
+  "evidence": "42. This count includes 25 cases where assets were exactly zero but a nonzero flow was reported ... plus 17 cases with positive assets"
+ },
+ {
+  "case": "nfip_coverage_exhaustion_and_icc_component_split",
+  "slots": [
+   "distinct_cause_code_count",
+   "leading_cause_claim_count"
+  ],
+  "primary": "K5",
+  "secondary": null,
+  "mechanism": "Counted distinct raw string values of cause_of_damage ('4' and '4.0' as separate causes) instead of distinct causes after normalising numeric formatting while keeping letter codes, giving 19 codes and a 133,349 leader rather than 12 and 145,913.",
+  "anticipated_by_author": "yes",
+  "knows_but_fails": "yes",
+  "confidence": "high",
+  "evidence": "As stored, the coded rows take on 19 distinct values ... collapsing those representational duplicates leaves 12 underlying codes"
+ },
+ {
+  "case": "nport_bounded_curve_reverse_stress",
+  "slots": [
+   "unboxed_5y_shock_bp",
+   "unboxed_10y_shock_bp",
+   "boxed_10y_shock_bp",
+   "boxed_first_binding"
+  ],
+  "primary": "K7",
+  "secondary": "K3",
+  "mechanism": "Inverted the stated DV01 sign convention (positive DV01 = gain for a 1bp yield decline) when writing the loss constraint, so the whole minimum-distance shock vector is exactly negated (+70.857 instead of -70.857) and the binding box bound is reported as 5Y_HIGH instead of 5Y_LOW.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "unclear",
+  "confidence": "high",
+  "evidence": "5-year shock component: ~ +70.8570 bp ... 10-year ~ +61.4397 bp; boxed_first_binding = \"5Y_HIGH\""
+ },
+ {
+  "case": "nport_bounded_curve_reverse_stress",
+  "slots": [
+   "required_new_equity_mn"
+  ],
+  "primary": "K4",
+  "secondary": "K9",
+  "mechanism": "Sized the equity injection with the 4-decimal rounded turn-2 distance 11.4468 as the radius instead of the carried unrounded 11.4468114, shifting the result by 0.0004m.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "yes",
+  "confidence": "medium",
+  "evidence": "E_full = (maha_dist*np.sqrt(quad_form))/0.02 - post_redemption_NAV  # using full-precision radius instead of rounded (printed only, not assigned)"
+ },
+ {
+  "case": "pension_smith_wilson_immunization",
+  "slots": [
+   "discount_factor_year40",
+   "discount_factor_year60",
+   "instantaneous_forward_year60_pct",
+   "implied_benefit_growth_pct",
+   "liability_duration_years",
+   "liability_after30_pv_share_pct",
+   "year1_zero_face_usd_bn",
+   "year60_zero_face_usd_bn",
+   "surplus_convexity_usd_bn_year2",
+   "ufr_stress_surplus_usd_bn",
+   "ufr_stress_after30_pv_share_pct"
+  ],
+  "primary": "K4",
+  "secondary": "K3",
+  "mechanism": "Implemented Smith-Wilson in its zero-coupon form with one Wilson kernel per bond maturity (8 zetas at the 8 maturities) rather than the cash-flow form that places kernels at every coupon date weighted by each bond's cash flows, so the curve still prices the 8 par bonds but differs at 40/60 years and shifts every liability, immunisation and UFR-stress figure.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "no",
+  "confidence": "medium",
+  "evidence": "for k in range(len(maturities)): dsum += zeta_new[k]*wk_deriv(t, maturities[k], u_inf_new, alpha)"
+ },
+ {
+  "case": "settlement_cycle_trade_date_fails_alignment",
+  "slots": [
+   "early_peak_settlement_date",
+   "early_peak_failed_shares"
+  ],
+  "primary": "K2",
+  "secondary": null,
+  "mechanism": "Applied the T+1 settlement cycle to a January 2024 trade date although T+2 was in force until 2024-05-28, matching fails on 2024-01-17 instead of 2024-01-18.",
+  "anticipated_by_author": "yes",
+  "knows_but_fails": "no",
+  "confidence": "high",
+  "evidence": "# T+1 settlement; inspect next weekday date. settle=trade+pd.offsets.BDay(1)"
+ },
+ {
+  "case": "settlement_cycle_trade_date_fails_alignment",
+  "slots": [
+   "settlement_for_2024_05_24",
+   "settlement_for_2025_01_08",
+   "settlement_for_2025_10_10"
+  ],
+  "primary": "K2",
+  "secondary": null,
+  "mechanism": "Counted settlement days on a weekday or stock-market trading calendar instead of the depository (Fed-holiday) settlement calendar: Memorial Day 2024-05-27 counted as a settlement day, 2025-01-09 (market closed, DTC settled) skipped, and Columbus Day 2025-10-13 (market open, no settlement) used.",
+  "anticipated_by_author": "yes",
+  "knows_but_fails": "unclear",
+  "confidence": "high",
+  "evidence": "checking the FINRA trading-day list ... 2025-01-08 -> 2025-01-10; 2024-05-24 -> 2024-05-28 while stating 'T+2 applies'"
+ },
+ {
+  "case": "storm_payroll_policy_state_preservation",
+  "slots": [
+   "largest_retained_episode"
+  ],
+  "primary": "K3",
+  "secondary": null,
+  "mechanism": "Capped each occurrence's retained amount at the USD 250k attachment, ignoring that payments above the layer's USD 1.0m exhaustion point revert to the writer (retained = min(paid,250k) + max(0, paid - 1.0m)), so the tie-break among 13 episodes at 250k picked 156912 instead of the episode with the largest above-layer payment.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "yes",
+  "confidence": "medium",
+  "evidence": "# retained is capped at 250,000 for all occurrences with paid>=250000 ... prose: 'attaches at $250,000 and exhausts at $1,000,000'"
+ },
+ {
+  "case": "tips_reference_cpi_lag_inflation_recovery",
+  "slots": [
+   "september_2025_twelve_month_pct"
+  ],
+  "primary": "K3",
+  "secondary": null,
+  "mechanism": "Read the reference CPI dated on the last day of a month (2025-11-28, 2024-12-31) as exactly the index for month M-2, ignoring that only the first-of-month reference equals a single month's index and later days are linear interpolations toward M-1, giving Sep 2025 = 324.718 and Sep 2024 = 315.267 instead of 324.800 and 315.301.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "no",
+  "confidence": "high",
+  "evidence": "Because the reference CPI on the last day of month M equals the CPI-U for month M-2, this equals the CPI-U for September 2025"
+ },
+ {
+  "case": "treasury_dns_inversion_forecast",
+  "slots": [
+   "dns_forecast_level_pct",
+   "dns_forecast_slope_pct",
+   "dns_forecast_curvature_pct",
+   "dns_forecast_curve_rmse_pp",
+   "dns_forecast_beats_random_walk"
+  ],
+  "primary": "K4",
+  "secondary": null,
+  "mechanism": "The VAR transition matrix is reproduced (spectral radius 0.9848 matches) but the one-step forecast c + A*y_last departs from the author's by ~0.4pp in level and curvature, indicating a misaligned lag/intercept or wrong last-state vector in the forecast step, which flips the VAR-vs-random-walk verdict.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "no",
+  "confidence": "low",
+  "evidence": "Transition matrix spectral radius: 0.9848 (matches) while Level 4.4120% vs expected 3.9768 and VAR RMSE 0.3748 vs 0.1152"
+ },
+ {
+  "case": "wti_inventory_hedge_state_preservation",
+  "slots": [
+   "proposal_gross_swap_payments_million"
+  ],
+  "primary": "K3",
+  "secondary": null,
+  "mechanism": "Reported the full fixed-leg notional (q*f*fixed = USD 27.47m) as 'gross swap settlement payments' instead of the sum of monthly net settlement amounts in the months the program pays (fixed above spot), since commodity swaps settle net per period and gross means not offsetting paying months against receiving months.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "no",
+  "confidence": "high",
+  "evidence": "# Gross swap settlement payments = payments made (pay fixed leg) = q*f*fixed"
+ },
+ {
+  "case": "april_odd_lot_short_volume_leaders",
+  "slots": [
+   "full_coverage_common_ticker_count"
+  ],
+  "primary": "K5",
+  "secondary": null,
+  "mechanism": "Read 'both trade and odd-lot volume reported' as strictly positive volume, dropping tickers whose MIDAS row reports a zero (7,757 zero odd-lot rows exist) instead of only dropping null values.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "no",
+  "confidence": "high",
+  "evidence": "prose: 'at least one MIDAS row with positive (non-zero) trade volume and positive odd-lot volume'; author uses dropna only"
+ },
+ {
+  "case": "bank_run_liquidity_equity_frontier",
+  "slots": [
+   "frontier_bindings"
+  ],
+  "primary": "K6",
+  "secondary": "K3",
+  "mechanism": "Fixed repo at its USD 1,000m cap and sold only the residual unencumbered book, instead of jointly optimising sales vs repo (selling tranche 3 at 0.80 yields more cash per book than pledging at 0.8(1-k)), so it never reached the frontier where cash, collateral and the 8.5% capital floor all bind.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "no",
+  "confidence": "high",
+  "evidence": "'repo is maxed ($1000mn ...), ALL remaining unencumbered securities are sold ... Equity/assets ends at 8.909% ... (not binding)'"
+ },
+ {
+  "case": "bdc_commitment_mark_maturity_path",
+  "slots": [
+   "bdc_maturity_schedule_fair_m",
+   "bdc_maturity_funded_count",
+   "bdc_maturity_funded_principal_m",
+   "bdc_maturity_negative_count",
+   "bdc_maturity_negative_fair_m",
+   "bdc_maturity_by_threshold_count",
+   "bdc_maturity_by_threshold_principal_m",
+   "bdc_maturity_by_threshold_fair_m",
+   "bdc_maturity_negative_by_threshold_count",
+   "bdc_maturity_negative_by_threshold_fair_m"
+  ],
+  "primary": "K5",
+  "secondary": null,
+  "mechanism": "Selected schedule rows by accession only, so the 10-Q's comparative 2024-12-31 column (336 rows) was summed together with the 2025-09-30 report-date rows (428) instead of filtering to report_date == 2025-09-30.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "no",
+  "confidence": "high",
+  "evidence": "'sum of all 764 schedule rows' fair values = $3,109,486,225'; accession carries 336 rows dated 2024-12-31 plus 428 dated 2025-09-30"
+ },
+ {
+  "case": "bis_currency_credit_cointegration_branch",
+  "slots": [
+   "no_change_benchmark_rmse_log_points"
+  ],
+  "primary": "K9",
+  "secondary": "K7",
+  "mechanism": "Reported RMSE as 100 x natural-log change (the conventional meaning of 'log points'), whereas the author's contract treats 'log points' as raw log units (0.0402), a 100x scale mismatch the docstring never pins.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "unclear",
+  "confidence": "medium",
+  "evidence": "no_change_benchmark_rmse_log_points = round(4.016188311848155, 4) vs author np.sqrt(np.mean(actual_changes**2)) = 0.04016"
+ },
+ {
+  "case": "cash_flow_statement_restricted_cash_closure",
+  "slots": [
+   "statement_population_count"
+  ],
+  "primary": "K5",
+  "secondary": null,
+  "mechanism": "Counted the cohort by distinct CIK, so a 10-K filed jointly by a parent and its operating partnership was credited once per filer (two CIKs) rather than once per statement as the query's 'count a joint filing once' requires.",
+  "anticipated_by_author": "yes",
+  "knows_but_fails": "no",
+  "confidence": "high",
+  "evidence": "statement_population_count = cohort['cik'].nunique(); docstring convention 5: 'counting by filer would read 3,644 rather than 3,642'"
+ },
+ {
+  "case": "disaster_household_assistance_versus_insured_flood_loss",
+  "slots": [
+   "ihp_county_count",
+   "multiply_designated_county_count",
+   "matched_county_count",
+   "matched_ihp_county_count",
+   "non_ihp_county_paid_mn",
+   "undeclared_county_count",
+   "undeclared_county_paid_mn"
+  ],
+  "primary": "K6",
+  "secondary": null,
+  "mechanism": "Redefined the population in turn 2 as every DR row in the file (10,343 rows, 3,238 counties) instead of carrying forward turn 1's cohort of 2024-incident Flood/Hurricane/Tropical Storm designations, so every flood-claim county appeared 'designated' and the undeclared footprint collapsed to zero.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "no",
+  "confidence": "high",
+  "evidence": "'I took all DR (major disaster) rows with a real county code ... Of the 10,343 such rows, 5,542 carry the individuals-and-households programme'"
+ },
+ {
+  "case": "flood_occurrence_window_reinstatement_treaty",
+  "slots": [
+   "fixed_windows_gross_recovery_mn"
+  ],
+  "primary": "K6",
+  "secondary": "K3",
+  "mechanism": "Settled every candidate 72-hour window from Aug 20 to Oct 27 chronologically as occurrences, exhausting layer and aggregate before Oct 8, instead of settling only the two stipulated fixed-start windows (10 + 8 = 18).",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "no",
+  "confidence": "high",
+  "evidence": "'summing into rolling 72-hour windows for every possible start ... settling those windows in chronological order'; 'why October 8 recovers nothing'"
+ },
+ {
+  "case": "hmda_debt_to_income_encoding_and_denial_reason",
+  "slots": [
+   "ordered_class_count",
+   "unorderable_record_count"
+  ],
+  "primary": "K5",
+  "secondary": "K4",
+  "mechanism": "Treated only the 14 exact-integer codes (36-49) as 'on the ratio scale' and classed the five named ranges (<20% ... >60%) as unorderable alongside NA/Exempt, although the query names the ranges as the second on-scale encoding.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "no",
+  "confidence": "high",
+  "evidence": "exact_integer_vals = [v for v in cats if v.isdigit()]; ordered_class_count = len(exact_integer_vals)"
+ },
+ {
+  "case": "industry_black_litterman_view_risk_budget",
+  "slots": [
+   "equilibrium_hitec_mean_pct",
+   "benchmark_volatility_pct"
+  ],
+  "primary": "K4",
+  "secondary": "K9",
+  "mechanism": "Read 'sample denominator' as the biased N divisor and computed the covariance with ddof=0, whereas the author's sample covariance uses N-1 (ratio 21.7630/21.7543 = sqrt(1259/1258)).",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "no",
+  "confidence": "high",
+  "evidence": "prose: 'computed their sample covariance with the biased (N) denominator'; author: np.cov(R, rowvar=False, ddof=1)"
+ },
+ {
+  "case": "industry_style_attribution_state_preservation",
+  "slots": [
+   "comparison_holdout_return_pct",
+   "comparison_max_drawdown_pct",
+   "original_holdout_return_pct",
+   "original_max_drawdown_pct",
+   "original_worst_factor_pnl_million"
+  ],
+  "primary": "K3",
+  "secondary": "K4",
+  "mechanism": "Computed the program's daily NAV return as HiTec excess return (HiTec minus RF) less the factor-contract payoffs, whereas a NAV fully invested in HiTec plus zero-cost contracts earns the raw HiTec return; subtracting RF daily cut five-year return by ~16pp and shifted the drawdown episode.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "no",
+  "confidence": "high",
+  "evidence": "hedged_ret_pct = hold['hitec_excess'] - b_mkt2*mkt_rf ...; author: r = raw - f @ b[1:] with raw = hitec_pct"
+ },
+ {
+  "case": "leverage_definition_and_goodwill_location",
+  "slots": [
+   "segment_filer_count",
+   "segment_tie_count",
+   "median_largest_segment_share_pct",
+   "single_segment_majority_count"
+  ],
+  "primary": "K9",
+  "secondary": "K6",
+  "mechanism": "Matched segment goodwill only to the 624 positive-equity filers carried from turns 2-3 ('stay with the same filers'), whereas the author matches to every annual filer with an entity goodwill figure (180 matched); turn 4's 'each entity goodwill figure' does not say the population widens.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "no",
+  "confidence": "medium",
+  "evidence": "'to each of the 624 positive-equity filers by filer (cik), period end ... and accession'; 42 = author's 180 restricted to the 624"
+ },
+ {
+  "case": "nfip_compound_poisson_stoploss_capacity",
+  "slots": [
+   "severity_second_moment_million"
+  ],
+  "primary": "K9",
+  "secondary": "K7",
+  "mechanism": "Expressed E[X^2] in (million USD)^2 by dividing USD^2 by 1e12, whereas the author's 'million USD squared' means millions of USD^2 (divide by 1e6); the unit phrase admits both and the docstring does not resolve it.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "unclear",
+  "confidence": "medium",
+  "evidence": "'(1e6)^2 = 1e12 USD^2; second_million = second_usd2 / 1e12'; author: np.dot(z*z,f)*100 with z in 10k lattice units"
+ },
+ {
+  "case": "nport_arrears_default_watchlist_redemption",
+  "slots": [
+   "watchlist_status_rows",
+   "watchlist_arrears_count",
+   "watchlist_arrears_value_m",
+   "watchlist_default_count",
+   "watchlist_default_value_m",
+   "watchlist_union_value_m",
+   "watchlist_original_pct",
+   "watchlist_stress_pct",
+   "watchlist_stress_breach",
+   "watchlist_required_sale_m"
+  ],
+  "primary": "K1",
+  "secondary": "K5",
+  "mechanism": "Equated 'debt-security rows' with asset_category == 'DBT' (1,177 rows), excluding ABS-MBS/ABS-O/ABS-CBDO/LON rows that are debt securities under N-PORT C.9 and that carry all 72 arrears and the one default flag, so the whole watchlist read zero.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "no",
+  "confidence": "high",
+  "evidence": "'1,177 debt-security holdings where both C.9 status fields are populated'; author counts 3,610 rows with flags in {Y,N} regardless of category"
+ },
+ {
+  "case": "pension_discount_rate_remeasurement",
+  "slots": [
+   "tracking_count"
+  ],
+  "primary": "K9",
+  "secondary": "K6",
+  "mechanism": "Measured each rate change against the median Treasury yield change (reading 'within 50 basis points of it' as referring to the median just requested) instead of against each filer's own year-end yield change, which differs for one non-December filer.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "no",
+  "confidence": "medium",
+  "evidence": "tracking_count = ((rate_change_bp - median_yield_change_bp).abs() <= 50).sum(); author: (rate_change - yield_change).abs().le(50) per filer"
+ },
+ {
+  "case": "sba_collateral_seniority_guarantee_loss_frontier",
+  "slots": [
+   "deterministic_senior_loss_mn",
+   "deterministic_junior_loss_mn",
+   "deterministic_lower_loss_book",
+   "stochastic_504_mean_loss_mn",
+   "stochastic_504_worst_loss_mn",
+   "maximum_common_recovery_drop_pp",
+   "boundary_7a_mean_pv_loss_mn"
+  ],
+  "primary": "K3",
+  "secondary": null,
+  "mechanism": "Inverted the loan-to-value definition for 504 collateral: set collateral = 0.90 x (senior + junior principal) instead of principal / 0.90 (a 90% LTV means the loans are 90% of collateral value), understating collateral and overstating every 504 loss and the recovery frontier.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "no",
+  "confidence": "high",
+  "evidence": "collateral_504 = 0.90 * (sen + jun); author: cash = .95*recovery*(a+b)/.9"
+ },
+ {
+  "case": "sba_collateral_seniority_guarantee_loss_frontier",
+  "slots": [
+   "deterministic_lower_loss_book"
+  ],
+  "primary": "K6",
+  "secondary": null,
+  "mechanism": "Compared the 7(a) bank PV loss against the 504 senior plus junior loss, although turn 1 stipulates the bank owns only the senior third-party claim and the SBA junior claim is not the bank's book.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "no",
+  "confidence": "medium",
+  "evidence": "total_504_loss = deterministic_senior_loss_mn + deterministic_junior_loss_mn; if deterministic_7a_pv_loss_mn < total_504_loss: 'SBA7A'"
+ },
+ {
+  "case": "sofr_vasicek_jamshidian_bond_option",
+  "slots": [
+   "risk_neutral_theta_pct",
+   "five_year_discount_factor"
+  ],
+  "primary": "K7",
+  "secondary": null,
+  "mechanism": "Fed percent-unit inputs (r0 = 4.49, sigma = 0.9585, theta in percent) into the Vasicek zero-coupon formula exp(-B r0 + A), which requires decimal rates, so the par calibration drove theta to -2.27% and the five-year discount factor to 0.971 (an impossible ~0.6% yield).",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "no",
+  "confidence": "high",
+  "evidence": "r0 = 4.49; sigma = 0.9585...; return np.exp(-B*r0 + A); author converts rates/100"
+ },
+ {
+  "case": "tips_accretion_stock_versus_daily_increment",
+  "slots": [
+   "tips_issue_row_count",
+   "tips_cusip_count",
+   "tips_outstanding_usd_billions",
+   "cumulative_issued_usd_billions",
+   "unadjusted_mean_absolute_gap_usd_millions",
+   "adjusted_mean_absolute_gap_usd_millions",
+   "largest_adjusted_gap_usd_millions"
+  ],
+  "primary": "K5",
+  "secondary": null,
+  "mechanism": "Kept the 'Total Treasury TIPS' class-total row (whose label sits in the same identifier column as the CUSIPs) among the security-level rows, doubling outstanding, issued and accrued stocks and corrupting every month-to-month stock change downstream.",
+  "anticipated_by_author": "yes",
+  "knows_but_fails": "yes",
+  "confidence": "high",
+  "evidence": "prose 'excluding the file's own published class-total rows' yet 135 rows/54 'CUSIPs' and outstanding exactly 2 x 2133.88"
+ },
+ {
+  "case": "treasury_delivery_basket_ctd_switch",
+  "slots": [
+   "bond1_carried_coupon_value",
+   "bond3_carried_coupon_value",
+   "base_ctd_cusip",
+   "up200_boundary_quote"
+  ],
+  "primary": "K9",
+  "secondary": "K3",
+  "mechanism": "Parsed 'SOFR plus 25 basis points times bid-to-cover' as (SOFR + 25bp) x BTC, giving 11-12% Treasury financing, whereas the author adds 25bp x BTC to SOFR (~5.1%); the wrong carry re-ranks the converted forward costs and moves the CTD and +200bp boundary.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "no",
+  "confidence": "medium",
+  "evidence": "'Bond 1 (91282CBL4, b/c 2.37): 11.2338%'; author: funding = funding_base + .0025*bid_to_cover_ratio"
+ },
+ {
+  "case": "wti_evt_cluster_maximum_layer",
+  "slots": [
+   "threshold_exceedance_count",
+   "initial_threshold_usd",
+   "gpd_shape",
+   "gpd_scale_usd",
+   "marginal_var99_usd",
+   "marginal_es99_usd"
+  ],
+  "primary": "K4",
+  "secondary": "K9",
+  "mechanism": "Mapped 'lower inverse empirical 95th percentile' to numpy method='lower' (floor((n-1)p) order statistic, 1.56) instead of the inverted empirical CDF (ceil(np) order statistic, 1.57), adding two exceedances and shifting the L-moment GPD fit and the VaR/ES.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "no",
+  "confidence": "high",
+  "evidence": "threshold = np.percentile(marked, 95, method='lower') -> 1.56/189; author np.quantile(z,.95,method='inverted_cdf') -> 1.57/187"
+ },
+ {
+  "case": "wti_evt_cluster_maximum_layer",
+  "slots": [
+   "extremal_index"
+  ],
+  "primary": "K4",
+  "secondary": null,
+  "mechanism": "Carried a mis-fitted excess law (shape sign/threshold errors upstream) into the raised VaR, leaving only a handful of widely separated exceedances so every exceedance became its own run cluster and theta collapsed to 1.0 instead of 26/32.",
+  "anticipated_by_author": "no",
+  "knows_but_fails": "no",
+  "confidence": "low",
+  "evidence": "'Raising the threshold to the carried 99% VaR of $6.7355 ... gives 8 exceedances ... Each exceedance is therefore its own cluster' (xi = -1.1243)"
+ }
+]

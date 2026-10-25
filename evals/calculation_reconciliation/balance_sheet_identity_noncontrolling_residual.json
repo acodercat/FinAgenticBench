@@ -1,0 +1,162 @@
+{
+  "name": "balance_sheet_identity_noncontrolling_residual",
+  "module": "evals.calculation_reconciliation.balance_sheet_identity_noncontrolling_residual",
+  "task_family": "calculation_reconciliation",
+  "data_sources": [
+    "sec_financial_statements",
+    "sec_companyfacts"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "turns": [
+        {
+          "query": "Take the standardized statement rows for annual reports on form 10-K whose balance-sheet date is 2024-12-31, excluding amendments and quarterly reports. Report how many such statement observations there are and how many distinct central index keys they cover. A balance sheet foots when total assets equal the reported total of liabilities and equity. Among the observations that report both of those figures, report how many there are, how many agree exactly, and the largest absolute difference in USD anywhere in that set. Explain what your three figures say about the reliability of this identity in the data.",
+          "validator": "validate_footing_identity",
+          "stores": [
+            "annual_statement_observation_count",
+            "distinct_issuer_count",
+            "footing_identity_observation_count",
+            "footing_identity_exact_count",
+            "footing_identity_max_absolute_usd"
+          ],
+          "claims": [
+            {
+              "id": "footing_result",
+              "description": "The response states how large the sample is, how many companies it represents, and how tightly the two sides of the statement track each other.",
+              "mode": "required"
+            },
+            {
+              "id": "observation_versus_issuer_boundary",
+              "description": "The response notes that the two population counts differ, so a per-statement-observation figure and a per-company figure are not the same statistic here.",
+              "mode": "required"
+            },
+            {
+              "id": "footing_interpretation_reasoning",
+              "description": "The response treats near-universal agreement as expected of a statement that is constructed to balance, and reads the handful of exceptions as isolated reporting artefacts rather than evidence about the identity.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Now test what looks like the same identity built from its parts. For the same population, take the statement observations that report total assets, total liabilities and the stockholders' equity line, and compute assets less liabilities less that equity line. Report how many observations qualify, how many leave exactly zero, how many leave a non-zero remainder, and the median of the non-zero remainders in USD. Then identify the two observations with the largest positive remainders, breaking a tie by central index key ascending, and report each company's name as the table records it together with its remainder in USD. Explain why this identity behaves differently from the one in turn 1.",
+          "validator": "validate_parent_equity_residual",
+          "stores": [
+            "parent_identity_observation_count",
+            "parent_identity_exact_count",
+            "parent_identity_residual_count",
+            "median_nonzero_residual_usd",
+            "largest_residual_company",
+            "largest_residual_usd",
+            "largest_residual_runner_up_company",
+            "largest_residual_runner_up_usd"
+          ],
+          "claims": [
+            {
+              "id": "residual_result",
+              "description": "The response reports how often the arithmetic leaves something over, the typical size of what is left, and the two largest cases with their amounts.",
+              "mode": "required"
+            },
+            {
+              "id": "parent_scope_reasoning",
+              "description": "The response identifies the equity line as covering only the parent's owners, so subtracting it leaves whatever equity belongs to outside holders of consolidated subsidiaries.",
+              "mode": "required"
+            },
+            {
+              "id": "not_an_error_boundary",
+              "description": "The response declines to characterize the leftover amounts as reporting errors, since they follow from which claimants each line covers.",
+              "mode": "required"
+            },
+            {
+              "id": "sector_concentration_boundary",
+              "description": "If the response generalises from the largest cases, it notes that they are asset managers whose consolidated funds carry large outside interests, not a cross-section.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Close the largest remainder exactly. For the company you named first in turn 2, look up in the company facts, at the same balance-sheet date, its noncontrolling interests and its redeemable noncontrolling interests carried outside permanent equity. Report both amounts in USD, their sum, and the turn-2 remainder minus that sum. Report the noncontrolling interests as a percent of the remainder. Explain what the closure demonstrates and why the second component sits apart from the first on the balance sheet.",
+          "validator": "validate_residual_closure",
+          "stores": [
+            "largest_residual_minority_interest_usd",
+            "largest_residual_redeemable_interest_usd",
+            "largest_residual_components_total_usd",
+            "largest_residual_closure_difference_usd",
+            "largest_residual_minority_share_pct"
+          ],
+          "claims": [
+            {
+              "id": "closure_result",
+              "description": "The response gives both components, their total, and the amount still unaccounted for after subtracting them.",
+              "mode": "required"
+            },
+            {
+              "id": "exact_closure_reasoning",
+              "description": "The response reads an exact closure as confirming that the leftover was composed of identifiable equity claims rather than measurement noise.",
+              "mode": "required"
+            },
+            {
+              "id": "mezzanine_boundary",
+              "description": "The response explains that, for an SEC registrant, a redeemable noncontrolling interest whose redemption is outside the issuer's control is presented as temporary equity outside permanent stockholders' equity, which is why it falls outside both lines used in turn 2.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Assess what a liquidity screen on this population would rest on. Among the qualifying annual statement observations, report how many present both a current-assets and a current-liabilities subtotal, that count as a percent of all qualifying observations, and how many observations lack at least one of the two. For the observations that lack one, report the most common industry classification code as the table records it and how many carry it. Then, among observations that present both subtotals and report positive current liabilities, report the median ratio of current assets to current liabilities. Restrict to those reporting at least one billion USD of current assets, report how many there are, and identify the highest ratio among them, breaking a tie by central index key ascending, giving the company name, its ratio and its margin over the next observation. Explain what the composition of the excluded group means for any statement made about the median.",
+          "validator": "validate_classified_selection",
+          "stores": [
+            "current_subtotals_present_observation_count",
+            "classified_balance_sheet_share_pct",
+            "current_subtotals_missing_observation_count",
+            "unclassified_leading_sic_code",
+            "unclassified_leading_sic_count",
+            "median_current_ratio",
+            "large_current_asset_observation_count",
+            "large_current_asset_ratio_leader",
+            "large_current_asset_leader_ratio",
+            "large_current_asset_leader_margin"
+          ],
+          "claims": [
+            {
+              "id": "selection_result",
+              "description": "The response reports subtotal availability, what dominates the missing-subtotal group, the central tendency of the positive-denominator ratio and the extreme case above the size floor.",
+              "mode": "required"
+            },
+            {
+              "id": "non_random_exclusion_reasoning",
+              "description": "The response identifies the missing subtotals as a property of issuers whose balance sheets are ordered by liquidity rather than divided into current and non-current, so the excluded group is concentrated in finance and real estate rather than scattered.",
+              "mode": "required"
+            },
+            {
+              "id": "median_scope_boundary",
+              "description": "The response qualifies the central figure as describing observations that present the subtotals and have positive current liabilities, not the whole statement population.",
+              "mode": "required"
+            },
+            {
+              "id": "size_floor_boundary",
+              "description": "If the response presents the extreme ratio as a liquidity finding, it notes that the floor on current assets is what keeps very small registrants out of the comparison.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen SEC standardized financial-statement observations for 10-K reports dated 2024-12-31, with SEC company facts",
+    "facts": [
+      "4,274 annual statement observations cover 4,273 central index keys. 4,168 report both sides of the footing identity and 4,165 agree exactly; the largest absolute difference is 4,000 USD.",
+      "3,516 observations report assets, liabilities and the parent stockholders' equity line. 2,371 leave exactly zero and 1,145 leave a non-zero remainder with a median of 26,100,000 USD. KKR & Co. Inc. has the largest at 38,333,124,000 USD, ahead of Apollo Global Management, Inc. at 13,727,000,000 USD.",
+      "KKR reports 36,747,947,000 USD of noncontrolling interests and 1,585,177,000 USD of redeemable noncontrolling interests at the same date. They sum to 38,333,124,000 USD, closing the remainder exactly, with the permanent component accounting for 95.8647 percent.",
+      "3,096 observations, 72.4380 percent, present both current subtotals; 1,178 do not, led by industry code 6798.0 with 238 observations. Among the 3,095 observations with positive current liabilities, the median current ratio is 1.6604. Of the 687 with at least one billion USD of current assets, QXO, Inc. is highest at 112.8460, 53.640633 ahead of the next observation."
+    ],
+    "known_overclaims": [
+      "Calling the leftover from the parent-equity subtraction a reporting error.",
+      "Closing the leftover with noncontrolling interests alone and ignoring the redeemable portion.",
+      "Quoting the median current ratio as a figure for all filers at the date.",
+      "Reading the highest current ratio as evidence of liquidity strength without regard to the size floor that produced the comparison."
+    ]
+  }
+}

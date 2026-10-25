@@ -1,0 +1,95 @@
+{
+  "name": "hmda_deaton_consumption_credit_welfare",
+  "module": "evals.scenario_analysis.hmda_deaton_consumption_credit_welfare",
+  "task_family": "scenario_analysis",
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "data_sources": [
+    "hmda",
+    "nyfed_reference_rates"
+  ],
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Use the 2024 HMDA physical loan records for Texas originations of conventional, first-lien, owner-occupied, one-unit home-purchase loans. Retain numeric reported gross annual income from USD10,000 through USD500,000 inclusive; weight records equally and preserve their multiplicity. Construct a hypothetical income law with three equally likely states at the empirical inverse-CDF 20th, 50th and 80th income percentiles. Fit a strictly positive CRRA risk-aversion coefficient so that its one-period certainty equivalent is 90 percent of the arithmetic mean of those three states. Report the eligible record count, the three ordered income amounts in USD thousands and the coefficient. Carry the complete income law and preferences forward, and assess the financial scope of this calibration. Use unrounded inputs and state throughout.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "income_record_count",
+            "low_income_usd_thousand",
+            "middle_income_usd_thousand",
+            "high_income_usd_thousand",
+            "crra_risk_aversion"
+          ],
+          "claims": [
+            {
+              "id": "hmda_deaton_consumption_credit_welfare_t1_interpretation",
+              "description": "The response distinguishes the stipulated preference and hypothetical income law from an estimated longitudinal household income process or a population-wide preference estimate.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Use the carried law and CRRA preference in the finite-horizon Deaton income-fluctuation problem. Consumption occurs at annual dates zero through three, with discount factor 0.96 per year and no bequest. Initial cash on hand is 1.2 times the mean of the three income states, with no additional date-zero income. At each later date an independent income draw is received before consumption. Treat these amounts as spendable cash; there are no other cash flows. The constant annual effective saving rate is the arithmetic mean of all published New York Fed SOFR fixings with effective dates in 2024. Maximize expected discounted consumption utility, with strictly positive consumption in every history, nonnegative end-of-date assets at dates zero through two, and zero terminal assets. Report the cash rate in percent, optimal initial consumption and the constant consumption at all four dates giving the same discounted utility, with both consumption amounts in USD thousands. Carry the complete contingent policy and welfare forward, and interpret the role of the borrowing constraint.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "cash_annual_effective_pct",
+            "baseline_initial_consumption_usd_thousand",
+            "baseline_constant_consumption_equivalent_usd_thousand"
+          ],
+          "claims": [
+            {
+              "id": "hmda_deaton_consumption_credit_welfare_t2_interpretation",
+              "description": "The response relates the constrained contingent consumption policy to the inability to transfer future income into low-resource histories, rather than treating expected income as certain.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "In the carried problem, introduce a credit line allowing end-of-date assets at dates zero through two to be as low as minus 25 percent of the original three-state mean income. Borrowing and saving have the same carried annual effective rate. All terminal debt must be repaid, with no default; retain all other preferences, income timing and constraints. Reoptimize the complete contingent policy. Report initial consumption and its four-date constant-consumption equivalent in USD thousands, and the unconditional probability of strictly negative assets at the end of date one. Carry the full credit policy and the preceding no-borrowing welfare forward, and assess the welfare and financing effects of the facility.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "credit_initial_consumption_usd_thousand",
+            "credit_constant_consumption_equivalent_usd_thousand",
+            "year_one_borrowing_probability"
+          ],
+          "claims": [
+            {
+              "id": "hmda_deaton_consumption_credit_welfare_t3_interpretation",
+              "description": "The response connects the welfare improvement to contingent consumption smoothing and distinguishes use of credit in some income histories from borrowing in every history.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "The credit facility now charges a nonnegative upfront fee deducted only from date-zero cash on hand. Keep the credit limit tied to the original income mean, and reoptimize the entire carried credit problem after paying the fee. Find the maximum fee at which its optimized expected utility is at least the second-turn no-borrowing welfare. Report the fee and the unconditional expected positive outstanding debt at the end of date two under the policy at that fee, both in USD thousands. Explain what this charge says about how much the borrower values access to the loan, and what it does not say about lenders.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "maximum_upfront_fee_usd_thousand",
+            "fair_fee_year_two_expected_debt_usd_thousand"
+          ],
+          "claims": [
+            {
+              "id": "hmda_deaton_consumption_credit_welfare_t4_interpretation",
+              "description": "The response interprets the fee as the household willingness to pay for the specified consumption-smoothing opportunity, rather than a lender break-even quote or a guaranteed market price.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen governed dataset_new and expressly stipulated financial scenario.",
+    "facts": [
+      "The response distinguishes the stipulated preference and hypothetical income law from an estimated longitudinal household income process or a population-wide preference estimate.",
+      "The response relates the constrained contingent consumption policy to the inability to transfer future income into low-resource histories, rather than treating expected income as certain.",
+      "The response connects the welfare improvement to contingent consumption smoothing and distinguishes use of credit in some income histories from borrowing in every history.",
+      "The response interprets the fee as the household willingness to pay for the specified consumption-smoothing opportunity, rather than a lender break-even quote or a guaranteed market price."
+    ],
+    "known_overclaims": [
+      "Treating hypothetical preferences, a stochastic-control price or a discount proxy as a directly observed market object or causal estimate."
+    ]
+  }
+}

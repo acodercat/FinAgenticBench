@@ -1,0 +1,147 @@
+{
+  "name": "bis_currency_credit_cointegration_branch",
+  "module": "evals.temporal_path.bis_currency_credit_cointegration_branch",
+  "task_family": "temporal_path",
+  "data_sources": [
+    "bis_effective_exchange_rates",
+    "bis_global_liquidity"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "For USD, EUR and JPY, map each denomination to the United States, euro area and Japan respectively. Compare the BIS broad real effective exchange-rate index (2020=100) at 2019-Q1 end with 2025-Q4 end and select the currency with the largest absolute percentage change, breaking an exact tie by three-letter currency code ascending. Report the screened count, selected exact uppercase three-letter currency token and its BIS reference-area label verbatim, including the two-letter prefix before the colon, followed by its two EER levels and signed change. For that currency, also report total credit to EME non-bank borrowers in 2019-Q1 and 2025-Q4 in the currency's reported millions and the signed percentage change. Carry the selected denomination forward and interpret the relationship and material limits of the two paths.",
+          "validator": "validate_currency_screen",
+          "stores": [
+            "currency_screen_count",
+            "selected_currency_code",
+            "selected_reference_area",
+            "selected_real_eer_start",
+            "selected_real_eer_end",
+            "selected_real_eer_change_pct",
+            "selected_eme_credit_start_mn",
+            "selected_eme_credit_end_mn",
+            "selected_eme_credit_change_pct"
+          ],
+          "claims": [
+            {
+              "id": "currency_credit_relative_change_meaning",
+              "description": "The response recognizes from the reported percentage changes that the selected real-EER decline is much larger than the total-credit decline.",
+              "mode": "required"
+            },
+            {
+              "id": "currency_credit_level_unit_boundary",
+              "description": "The response states that the EER index level and native-currency-million credit level use different level units and therefore are not directly comparable as level magnitudes.",
+              "mode": "required"
+            },
+            {
+              "id": "currency_credit_causality_overclaim",
+              "description": "If the response claims that one screened series caused the other, it states that the comparison does not establish causality.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "For the carried currency, use quarterly BIS international debt securities and bank loans/deposits to EME non-bank borrowers from 2000-Q1 through 2022-Q4. Estimate the Engle-Granger log-level relation with debt securities as the dependent variable and an intercept. Apply a residual ADF regression with an intercept and no augmentation lags, using -3.37 as the fixed rejection boundary. Report the sample boundaries/count, long-run intercept and slope, residual sample standard deviation, residual ADF level coefficient and t statistic, and whether the unit-root null is rejected. Across the full carried credit panel, also report the maximum absolute residual of total credit minus those two components. Carry the diagnostic decision and fitted state forward, and interpret the distinct roles of the residual unit-root diagnostic and the component reconciliation in choosing and describing the next model.",
+          "validator": "validate_cointegration_diagnostic",
+          "stores": [
+            "cointegration_training_start_quarter",
+            "cointegration_training_end_quarter",
+            "cointegration_training_observation_count",
+            "long_run_intercept",
+            "long_run_log_loan_slope",
+            "long_run_residual_std",
+            "residual_adf_coefficient",
+            "residual_adf_t_stat",
+            "residual_adf_rejects_unit_root",
+            "maximum_credit_component_identity_residual_mn"
+          ],
+          "claims": [
+            {
+              "id": "cointegration_branch_meaning",
+              "description": "The response explains that the residual unit-root decision determines whether an equilibrium-error interpretation is supported for the next dynamic model.",
+              "mode": "required"
+            },
+            {
+              "id": "component_identity_meaning",
+              "description": "The response interprets the component identity as a scope and aggregation check rather than evidence of cointegration.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Use the carried test decision to select the training-sample dynamic model. If the residual unit-root null was rejected, estimate an intercept-bearing error-correction regression of debt-security log change on the lagged long-run residual and contemporaneous loan/deposit log change. Otherwise estimate an intercept-bearing first-difference ARDL with one lag of debt-security log change plus contemporaneous and one-quarter-lagged loan/deposit log changes. Report the selected model using the exact canonical branch token defined by its output contract, followed by effective observation count, intercept, branch-specific lag-state coefficient, current and lagged loan-change coefficients, R-squared and maximum absolute unscaled OLS normal-equation moment max|X' residual|. For the error-correction branch, report the structurally absent lagged loan-change coefficient as zero. Carry the fitted coefficients forward and interpret the economic status and limitations of the selected dynamic relation.",
+          "validator": "validate_dynamic_branch",
+          "stores": [
+            "selected_dynamic_model",
+            "dynamic_model_observation_count",
+            "dynamic_intercept",
+            "dynamic_lag_state_coefficient",
+            "dynamic_current_loan_change_coefficient",
+            "dynamic_lagged_loan_change_coefficient",
+            "dynamic_model_r_squared",
+            "dynamic_maximum_normal_equation_moment"
+          ],
+          "claims": [
+            {
+              "id": "dynamic_branch_language",
+              "description": "The response uses equilibrium-correction language only if the residual test supported the error-correction branch; otherwise it describes a first-difference predictive relation.",
+              "mode": "required"
+            },
+            {
+              "id": "dynamic_fit_causality_overclaim",
+              "description": "If the response treats the selected dynamic coefficients as structural causal effects, it states that the fitted relation is descriptive/predictive rather than causal.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Hold the carried coefficients fixed and produce rolling ex-post conditional predictions for 2023-Q1 through 2025-Q4 using the realized model regressors, including the contemporaneous loan/deposit change, for each evaluated quarter. Compare their fitted changes with a zero-change debt-security benchmark. Report the evaluation boundaries/count, both RMSEs in log points and whether the dynamic conditional prediction is lower. Identify the quarter with the largest absolute conditional-prediction error, breaking an exact tie by earlier quarter, and report its signed error as actual minus predicted debt-security log change. Also report the selected area's broad real-EER change from the prior quarter's final month to that quarter's final month. Interpret the conditional comparison, currency overlay and material information-set/sample limits.",
+          "validator": "validate_forecast_and_eer",
+          "stores": [
+            "conditional_test_start_quarter",
+            "conditional_test_end_quarter",
+            "conditional_test_observation_count",
+            "dynamic_conditional_prediction_rmse_log_points",
+            "no_change_benchmark_rmse_log_points",
+            "conditional_prediction_beats_no_change",
+            "largest_conditional_prediction_error_quarter",
+            "largest_conditional_prediction_error_log_points",
+            "same_quarter_real_eer_change_pct"
+          ],
+          "claims": [
+            {
+              "id": "eer_overlay_scope",
+              "description": "The response treats the endpoint-to-endpoint real-EER move as contextual evidence rather than a causal explanation of the credit conditional-prediction error.",
+              "mode": "required"
+            },
+            {
+              "id": "small_test_sample_boundary",
+              "description": "The response identifies the limited 12-quarter evaluation window as a material boundary on broad conditional-prediction performance conclusions.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "The reference maps the three BIS denomination/area pairs, selects the largest absolute 2019-Q1-to-2025-Q4 real-EER change, performs the frozen Engle-Granger residual diagnostic, follows the resulting branch into a dynamic model, and evaluates 2023-Q1 through 2025-Q4 as ex-post conditional predictions against a zero-change benchmark. It does not describe the realized-contemporaneous-regressor exercise as ex-ante forecast superiority, promote an unsupported residual relation to cointegration, or use the EER overlay causally.",
+    "facts": [
+      "Of the three denominations, JPY has the largest absolute 2019-Q1-to-2025-Q4 real effective exchange-rate change: 96.34 to 68.46, a fall of 28.939174 percent, against an EME non-bank credit change of -0.6966 percent from 10,250,326.014 to 10,178,921.836 million dollars.",
+      "The Engle-Granger long-run regression over 2000-Q1 to 2022-Q4, 92 observations, gives an intercept of 10.0526, a log-loan slope of 0.2985 and a residual standard deviation of 0.28452219 percentage points. The maximum credit-component identity residual is 0.001 million dollars.",
+      "The residual ADF coefficient is -0.02863152 with a t statistic of -1.345669, which does not reject a unit root against the fixed finite-sample boundary, so the live branch is a first-difference ARDL rather than an error-correction model.",
+      "That ARDL over 90 observations has an intercept of -0.002222, a lagged-state coefficient of 0.1926, current and lagged loan-change coefficients of 0.0698 and 0.0460, an R-squared of 0.05713985 and a maximum normal-equation moment of zero at the scored precision.",
+      "Over the 12 conditional test quarters the model loses to a no-change benchmark, 0.0409 against 0.0402 log points, an improvement of -0.00075711, and its worst quarter is 2023-Q4 at 0.1112 log points while the real EER moved 1.2307 percent that quarter."
+    ],
+    "known_overclaims": [
+      "Presenting the first-difference branch as a choice rather than as the consequence of a diagnostic that did not reject a unit root.",
+      "Reading the failure to reject as proof that no cointegrating relation exists.",
+      "Describing the ARDL as predictive when it loses to a no-change benchmark over the test window.",
+      "Inferring that exchange-rate depreciation caused the credit change, or the reverse, from these aggregates."
+    ]
+  }
+}

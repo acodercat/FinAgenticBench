@@ -1,0 +1,80 @@
+{
+  "dimensions": [
+    {
+      "id": "scope_and_conventions",
+      "name": "Scope and Financial Conventions",
+      "weight": 1.5,
+      "description": "Does the answer respect the requested entity, filing, period, knowledge cutoff, unit and financial convention?",
+      "anchors": {
+        "1": "Misunderstands the task or uses the wrong entity, filing, period, cutoff, unit, or transaction/accounting meaning.",
+        "2": "Addresses the task but misses at least one material scope or convention constraint that can change the conclusion.",
+        "3": "Uses the correct core scope and conventions, with only minor imprecision that does not change the conclusion.",
+        "4": "Accurately states and consistently respects all material scope, period, unit, filing and convention constraints.",
+        "5": "Meets level 4 and identifies a genuinely relevant ambiguity or boundary condition without inventing one or changing the task."
+      }
+    },
+    {
+      "id": "analytical_method",
+      "name": "Analytical Method",
+      "weight": 2.0,
+      "description": "Is the financial or accounting method appropriate, internally consistent and sufficiently explained?",
+      "anchors": {
+        "1": "Uses a fundamentally invalid method, formula, comparison basis, or causal inference.",
+        "2": "Uses a relevant-looking method but omits a material adjustment, denominator, period alignment, transaction-code distinction, or assumption check.",
+        "3": "Uses the correct method and reaches a defensible computation, but explains the method or its validity conditions only minimally.",
+        "4": "Uses and clearly explains the appropriate method, including the material assumptions and transformations needed for this case.",
+        "5": "Meets level 4 and concisely tests a relevant alternative interpretation, sensitivity, or reconciliation that materially strengthens the analysis."
+      }
+    },
+    {
+      "id": "evidence_grounding",
+      "name": "Evidence Grounding and Traceability",
+      "weight": 1.5,
+      "description": "Are conclusions tied to the correct computed evidence and identifiable source context without fabricated support?",
+      "anchors": {
+        "1": "Provides no usable evidence, contradicts the verified facts, or fabricates a source, value, or filing detail.",
+        "2": "Cites some relevant values but leaves a material claim unsupported or attaches evidence to the wrong filing, period, field, or entity.",
+        "3": "States the verified core values and links them to the requested source context, but traceability or reconciliation is thin.",
+        "4": "Every material conclusion is traceable to the relevant computed value and source context, with no unsupported factual additions.",
+        "5": "Meets level 4 and resolves a genuine evidence conflict, amendment, footnote qualification, or cross-source discrepancy explicitly and correctly."
+      }
+    },
+    {
+      "id": "interpretation_and_calibration",
+      "name": "Interpretation and Calibration",
+      "weight": 2.0,
+      "description": "Does the answer explain what the result means, and avoid claiming more than the evidence supports?",
+      "anchors": {
+        "1": "Gives no meaningful interpretation or draws a conclusion contradicted by the verified result.",
+        "2": "Restates numbers with little context, or makes a materially overstated, causal, predictive, or normative claim unsupported by the evidence.",
+        "3": "Provides a basically correct interpretation but omits an important limitation or comparison needed to calibrate the conclusion.",
+        "4": "Interprets the result in the correct financial context and states the major limitation on what can be concluded.",
+        "5": "Meets level 4 and draws a non-obvious but well-supported implication while clearly separating fact, inference and uncertainty."
+      }
+    },
+    {
+      "id": "communication",
+      "name": "Decision-useful Communication",
+      "weight": 1.0,
+      "description": "Is the final answer clear, concise, complete and appropriate to the requested deliverable?",
+      "anchors": {
+        "1": "No usable final answer, or the conclusion is disconnected from the analysis.",
+        "2": "A conclusion is present but a requested deliverable is missing, unclear, or buried in distracting content.",
+        "3": "Clearly reports the requested result, but the synthesis is generic or slightly incomplete.",
+        "4": "Presents a concise, complete and well-supported answer with units, labels and qualifications where material.",
+        "5": "Meets level 4 and organizes the answer so a reader can immediately distinguish verified facts, interpretation and decision-relevant limitations."
+      }
+    }
+  ],
+  "channel_weights": {
+    "programmatic_verification": 0.6,
+    "response_quality": 0.25,
+    "claim_coverage": 0.15
+  },
+  "gates": {
+    "programmatic_failure_max_composite": 40.0,
+    "required_claim_majority_missed_max_composite": 75.0,
+    "dependency_trigger": 2,
+    "downstream_cap": 3
+  }
+}

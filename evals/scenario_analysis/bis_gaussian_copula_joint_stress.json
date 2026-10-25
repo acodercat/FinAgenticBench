@@ -1,0 +1,138 @@
+{
+  "name": "bis_gaussian_copula_joint_stress",
+  "module": "evals.scenario_analysis.bis_gaussian_copula_joint_stress",
+  "task_family": "scenario_analysis",
+  "data_sources": [
+    "bis_credit_gap",
+    "bis_debt_service",
+    "bis_effective_exchange_rates"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Build a balanced country-quarter panel from BIS private-non-financial-sector credit gaps (actual minus trend, all lenders), reported private-sector debt-service ratios, and broad real effective exchange rates. Represent each quarter by the March, June, September, or December EER observation, as applicable, and define year-over-year real-EER depreciation as the negative of the ordinary percentage change from that month one year earlier. Use 2020-Q1 through 2024-Q4 as one pooled training sample and retain only economies having all 20 training quarters plus 2025-Q4. For each feature separately, convert pooled training observations to normal scores using average ranks and plotting positions based on rank minus one half divided by sample size. Fit the sample correlation matrix of those three Gaussian-score columns. Report training rows/countries, its three off-diagonal correlations, and its 2-norm condition number. Explain how the marginal transformation affects what the fitted dependence model implies about raw levels, discuss what pooling country-quarters implies for inference across economies and time, and carry the fitted marginals and correlation matrix forward.",
+          "validator": "validate_copula_fit",
+          "stores": [
+            "copula_training_observation_count",
+            "copula_training_country_count",
+            "gap_dsr_gaussian_correlation",
+            "gap_depreciation_gaussian_correlation",
+            "dsr_depreciation_gaussian_correlation",
+            "copula_correlation_condition_number"
+          ],
+          "claims": [
+            {
+              "id": "copula_marginal_boundary",
+              "description": "The response explains that empirical ranks remove the raw marginal scales while the Gaussian-score correlation models dependence, without asserting raw multivariate normality.",
+              "mode": "required"
+            },
+            {
+              "id": "pooled_panel_boundary",
+              "description": "The response recognizes that pooled country-quarters are treated as observations and that serial/cross-country dependence limits classical sampling claims.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Score every retained economy at 2025-Q4 using the carried empirical marginals. For a target value, use the midpoint of the counts strictly below and no greater than it divided by the training row count, clipped to the two plotting-position endpoints, before applying the normal quantile. Construct the standardized GLS common-mean z-statistic under equal latent loadings and the fitted Gaussian correlation. Rank scores descending, ties by economy name ascending. Report the scored count, leader as its exact two-letter BIS borrower-area code, its three raw stress features, three Gaussian scores, common-stress score, standard-normal upper-tail probability, and its score margin over the runner-up. Explain the statistical and financial scope of that tail probability under the pooled copula construction.",
+          "validator": "validate_joint_stress",
+          "stores": [
+            "joint_stress_country_count",
+            "joint_stress_leader",
+            "leader_credit_gap_pp",
+            "leader_private_dsr_pct",
+            "leader_real_eer_depreciation_pct",
+            "leader_gap_z",
+            "leader_dsr_z",
+            "leader_depreciation_z",
+            "leader_common_stress_score",
+            "leader_common_stress_upper_tail_probability",
+            "leader_score_margin"
+          ],
+          "claims": [
+            {
+              "id": "common_direction_theory",
+              "description": "The response derives the generalized least-variance equal-direction score under the fitted correlation rather than averaging the three z-scores mechanically.",
+              "mode": "required"
+            },
+            {
+              "id": "tail_probability_scope",
+              "description": "The response treats the normal upper tail as a model-implied index calibration, not a literal country default or crisis probability.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Decompose the carried leader's score into one additive contribution per Gaussian feature using the fitted common-direction coefficients, and report all three contributions plus the absolute residual between their sum and the score. Then use the partitioned fitted Gaussian correlation to derive the conditional distribution of the DSR normal score given that economy's credit-gap and depreciation normal scores. Report conditional mean, conditional standard deviation, standardized DSR residual, and its conditional upper-tail probability. Compare the conditional DSR tail with the joint score, explain their distinct meanings, and discuss how the additive contributions should be interpreted.",
+          "validator": "validate_conditional_decomposition",
+          "stores": [
+            "leader_gap_score_contribution",
+            "leader_dsr_score_contribution",
+            "leader_depreciation_score_contribution",
+            "leader_contribution_sum_residual",
+            "leader_conditional_dsr_z_mean",
+            "leader_conditional_dsr_z_std",
+            "leader_conditional_dsr_standardized_residual",
+            "leader_conditional_dsr_upper_tail_probability"
+          ],
+          "claims": [
+            {
+              "id": "conditional_normal_reasoning",
+              "description": "The response correctly distinguishes a conditional residual in one coordinate from the portfolio-like common-direction score across all coordinates.",
+              "mode": "required"
+            },
+            {
+              "id": "contribution_not_causation",
+              "description": "The response treats additive score contributions as an algebraic decomposition and not as causal effects.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Form a coherent marginal shock by setting each raw feature to its pooled-training 95th percentile, using the linear sample-quantile convention. Transform those three values with the same carried empirical marginal rule and score them with the same fitted common direction. Report the three raw scenario values, scenario score and upper-tail probability, and scenario tail probability divided by the observed leader tail probability. Explain how fitted dependence and the projection affect interpretation relative to the marginal tail probabilities, and discuss the status and limitations of this constructed scenario.",
+          "validator": "validate_joint_scenario",
+          "stores": [
+            "scenario_credit_gap_pp",
+            "scenario_private_dsr_pct",
+            "scenario_real_eer_depreciation_pct",
+            "scenario_common_stress_score",
+            "scenario_common_stress_upper_tail_probability",
+            "scenario_tail_probability_ratio"
+          ],
+          "claims": [
+            {
+              "id": "dependent_joint_tail_reasoning",
+              "description": "The response explains that correlated marginal shocks and a one-dimensional projection are not an independence product of three marginal tail probabilities.",
+              "mode": "required"
+            },
+            {
+              "id": "scenario_not_forecast",
+              "description": "The response labels the constructed triple-quantile point as a stress scenario rather than a forecast for any economy.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "The reference rebuilds a 640-row balanced pooled panel, estimates rank-Gaussian dependence, derives the precision-weighted common direction and conditional-normal decomposition, then applies the frozen transform to a joint marginal stress point.",
+    "facts": [
+      "The balanced pooled training panel holds 640 observations across 32 economies. The Gaussian-copula correlations are -0.1161 between credit gap and DSR, 0.1682 between gap and depreciation and 0.0828 between DSR and depreciation, with a correlation condition number of 1.5605.",
+      "Across the 32 scored economies the joint-stress leader is JP, with a credit gap of 6.7837 percentage points, a private DSR of 15.5 percent and real effective depreciation of 5.4420 percent.",
+      "Its Gaussian scores are 0.9906, 0.0490 and 1.1428, giving a common stress score of 1.130678 and an upper-tail probability of 0.12909537, ahead of the runner-up by 0.34715. The three score contributions, 0.590661, 0.030872 and 0.509145, reconcile to the score with a residual of 0.0.",
+      "Conditioning DSR on the other two features gives a mean of -0.0121 and a standard deviation of 0.9878, so the leader's standardized residual is 0.061867 and its conditional upper-tail probability 0.4753: the leader is unremarkable on DSR once the other two are known.",
+      "The stress scenario raises the credit gap to 19.21154 percentage points, DSR to 30.11 percent and depreciation to 10.9049 percent, lifting the common stress score to 2.750395 and cutting the tail probability to 0.00297618, a score increase of 1.619717 and a probability ratio of 0.023054."
+    ],
+    "known_overclaims": [
+      "Reading the Gaussian copula's tail probabilities as observed frequencies; the dependence structure is assumed, not tested, and a Gaussian copula has no tail dependence.",
+      "Treating the leader's high unconditional score as evidence of DSR stress, when its conditional DSR residual is 0.061867.",
+      "Presenting the scenario as a forecast or a supervisory scenario rather than a stated hypothetical.",
+      "Inferring a causal channel among credit gap, debt service and exchange-rate depreciation from a correlation matrix."
+    ]
+  }
+}

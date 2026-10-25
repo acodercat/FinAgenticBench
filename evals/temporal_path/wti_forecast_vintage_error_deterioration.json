@@ -1,0 +1,94 @@
+{
+  "name": "wti_forecast_vintage_error_deterioration",
+  "module": "evals.temporal_path.wti_forecast_vintage_error_deterioration",
+  "task_family": "temporal_path",
+  "data_sources": [
+    "eia_steo_vintages",
+    "eia_bulk_wti"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Evaluate the EIA Short-Term Energy Outlook WTI spot-average forecasts published on 2024-01-04 and 2024-04-04 against the EIA PET.RWTC.M monthly Cushing WTI spot-price observations, using only their common strictly future target months from May through December 2024. Define signed forecast error as forecast minus actual and evaluate accuracy in absolute USD-per-barrel error. Report the target-month count, each vintage's mean absolute error, and the number of months in which the April vintage has the lower absolute error. Carry both vintages forward and explain what this comparison establishes about the later vintage.",
+          "validator": "validate_vintage_accuracy",
+          "stores": [
+            "common_future_target_month_count",
+            "january_vintage_mean_absolute_error_usd_per_barrel",
+            "april_vintage_mean_absolute_error_usd_per_barrel",
+            "april_lower_absolute_error_month_count"
+          ],
+          "claims": [
+            {
+              "id": "later_vintage_accuracy_result",
+              "description": "The response interprets the later forecast origin's poorer result as evidence that a forecast revision need not improve ex-post accuracy over a selected evaluation window.",
+              "mode": "required"
+            },
+            {
+              "id": "forecast_actual_vintage_boundary",
+              "description": "The response distinguishes the two immutable publication-date forecast vintages from the later current-revised PET monthly and daily observation snapshots, without treating a later STEO value as an earlier forecast or the PET snapshots as unrevisable real-time truth.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Find the month with the largest April-minus-January increase in absolute error, resolving an exact tie by the earlier target month, and report that month together with its two forecasts and its monthly actual price. Carry the selected month forward and explain the limits of reading one month's deterioration.",
+          "validator": "validate_deterioration_month",
+          "stores": [
+            "largest_absolute_error_deterioration_month",
+            "selected_month_january_forecast_usd_per_barrel",
+            "selected_month_april_forecast_usd_per_barrel",
+            "selected_month_actual_usd_per_barrel"
+          ],
+          "claims": [
+            {
+              "id": "evaluation_scope_limitation",
+              "description": "The response states that eight monthly WTI targets from one forecast comparison window do not establish the STEO's general forecasting quality across horizons, commodities or vintages.",
+              "mode": "required"
+            },
+            {
+              "id": "revision_causality_boundary",
+              "description": "If the response attributes the deterioration to a specific model change, information shock, forecaster intent or causal driver, it states that the two forecast panels and realized-price series alone do not identify that cause.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "For that selected calendar month use PET.RWTC.D to report the count of nonmissing daily observations and the daily low and high, without synthesizing observations for dates absent from the daily series. Explain what the daily range adds to the monthly comparison and how the two series differ as measures.",
+          "validator": "validate_daily_dispersion",
+          "stores": [
+            "selected_month_daily_observation_count",
+            "selected_month_daily_low_usd_per_barrel",
+            "selected_month_daily_high_usd_per_barrel"
+          ],
+          "claims": [
+            {
+              "id": "monthly_daily_measure_boundary",
+              "description": "The response explains that the selected month's PET.RWTC.D high-low range describes within-month observed price dispersion hidden by the PET.RWTC.M monthly average; it is not another monthly forecast error, a return, or by itself a volatility estimator.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "EIA January and April 2024 STEO publication workbooks and the cutoff-filtered PET.RWTC.M and PET.RWTC.D current bulk snapshots",
+    "facts": [
+      "The common strictly future May-December window contains eight monthly targets.",
+      "January-vintage MAE is 3.951 USD per barrel; April-vintage MAE is 10.929, an increase of 6.978, and April has lower absolute error in zero months.",
+      "August 2024 has the largest deterioration. The January forecast is 77.50, the April forecast is 87.50 and PET.RWTC.M is 76.68 USD per barrel; signed errors are +0.82 and +10.82, increasing absolute error by 10.00.",
+      "August has 22 reported PET.RWTC.D observations. Its daily low is 72.76, its daily high is 81.45 and the high-low range is 8.69 USD per barrel.",
+      "The forecast workbooks are immutable publication vintages. PET.RWTC.M and PET.RWTC.D are current revised series snapshots downloaded in 2026 and are used as reproducible retrospective comparators."
+    ],
+    "known_overclaims": [
+      "Substituting a later STEO history or revised forecast for one of the two fixed forecast origins.",
+      "Treating percentage error, actual-minus-forecast sign or April as an eligible target month under the stated conventions.",
+      "Treating absent calendar dates as zero-price or imputed daily observations, or calling the daily high-low range a forecast error, return or complete volatility estimate.",
+      "Generalizing eight WTI months to overall forecast quality or inventing a causal reason for the revision's performance."
+    ]
+  }
+}

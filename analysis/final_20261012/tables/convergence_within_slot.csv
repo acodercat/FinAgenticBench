@@ -1,0 +1,4 @@
+higher_tier,lower_tier,higher_rate,lower_rate,diff,ci_lo,ci_hi,n_slots,n_higher_gt,n_higher_lt
+strong,weak,0.522275,0.371729,0.150546,0.082894,0.216566,562,227,78
+strong,mid,0.531968,0.503383,0.028586,-0.026712,0.081891,548,156,102
+mid,weak,0.367214,0.299377,0.067837,0.038276,0.098067,1142,353,141

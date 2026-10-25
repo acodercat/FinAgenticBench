@@ -1,0 +1,138 @@
+{
+  "name": "volatility_time_scaling_autocorrelation_regimes",
+  "module": "evals.comparison_ranking.volatility_time_scaling_autocorrelation_regimes",
+  "task_family": "comparison_ranking",
+  "data_sources": [
+    "ken_french_10_industry_portfolios",
+    "ken_french_daily_factors"
+  ],
+  "case_type": "baseline",
+  "difficulty": "hard",
+  "judge_reference": {
+    "source": "Frozen Kenneth French daily 10-industry portfolio returns and daily research factors through 2025-12-31. The annualisations, the ratios between them and the Sharpe ratios are analytic constructions rather than published statistics.",
+    "facts": [
+      "Scaling a daily standard deviation by the square root of 252 is exact only if daily returns are serially uncorrelated. From 1963 through 1999 the daily market return, the factor table's excess return plus its risk-free return, has a lag-one autocorrelation of 0.1681, and the annualised volatility is 0.1319 from daily returns against 0.1516 from compounded calendar-month returns: positive serial correlation makes multi-day moves larger than independent days would, so square-root scaling understates risk.",
+      "From 2000 through 2025 the autocorrelation is -0.0834 and the ordering reverses, 0.1966 from daily returns against 0.1567 from monthly returns: negative serial correlation makes square-root scaling overstate risk. The direction of the gap follows the sign of the autocorrelation in each window; the reversal is a change in the return process, not a calculation error.",
+      "Across the ten industry portfolios every ratio of monthly-scaled to daily-scaled volatility is above one in the earlier window, the utilities portfolio highest at 1.4213. In the later window only one industry stays above one and the utilities portfolio is lowest at 0.7766, so the same industry shows the largest distortion in both windows in opposite directions and the bias belongs to the period rather than to the industry.",
+      "The factor table's market column is already an excess return and is used as it stands for the daily Sharpe ratio. The market Sharpe ratio is 0.5192 annualised from daily data against 0.4699 from monthly data in the earlier window, and 0.4088 against 0.4675 in the later one: the daily annualisation inherits the volatility bias with the opposite sign, so a report should annualise from lower-frequency returns or correct for the autocorrelation."
+    ]
+  },
+  "conversations": [
+    {
+      "turns": [
+        {
+          "query": "From the factor table take the daily market return as market excess return plus risk-free return, converted from percent to decimals, and use these simple returns throughout. For trading days from 1963-01-01 through 1999-12-31, report the lag-one autocorrelation of daily returns, the Pearson correlation of each day's return with the previous trading day's, and two annualised volatilities: the sample standard deviation, with an n minus 1 divisor, of daily returns times the square root of 252, and of calendar-month returns compounded from the daily returns times the square root of 12. Explain what must hold for the two to agree, and what their gap says about successive daily returns.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "early_market_autocorrelation",
+            "early_market_daily_scaled_volatility",
+            "early_market_monthly_scaled_volatility"
+          ],
+          "claims": [
+            {
+              "id": "sqrt_time_needs_uncorrelated_returns",
+              "mode": "required",
+              "description": "States that scaling a daily standard deviation by the square root of the number of trading days is exact only when daily returns are serially uncorrelated."
+            },
+            {
+              "id": "positive_autocorrelation_understates",
+              "mode": "required",
+              "description": "Reads the monthly-scaled figure exceeding the daily-scaled one as positive serial correlation in daily returns, which square-root scaling ignores and so understates annual risk."
+            },
+            {
+              "id": "stale_prices_source",
+              "mode": "optional",
+              "description": "Attributes positive daily autocorrelation in a broad index to stale or nonsynchronous prices of thinly traded constituents."
+            }
+          ]
+        },
+        {
+          "query": "Repeat all three measurements for every trading day from 2000-01-01 through 2025-12-31, under exactly the same conventions. Compare the ordering of the two annualised figures with the earlier window and explain what determines which of them is the larger.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "late_market_autocorrelation",
+            "late_market_daily_scaled_volatility",
+            "late_market_monthly_scaled_volatility"
+          ],
+          "claims": [
+            {
+              "id": "negative_autocorrelation_overstates",
+              "mode": "required",
+              "description": "Reads the daily-scaled figure exceeding the monthly-scaled one in the later window as negative serial correlation, under which square-root scaling overstates annual risk."
+            },
+            {
+              "id": "sign_of_correlation_sets_the_direction",
+              "mode": "required",
+              "description": "Ties the direction of the gap in each window to the sign of the autocorrelation measured in that window, so the reversal reflects a change in the return process rather than an inconsistency in the calculation."
+            },
+            {
+              "id": "short_horizon_reversal",
+              "mode": "optional",
+              "description": "Names short-horizon reversal, for example from liquidity provision or bid-ask bounce, as a source of negative daily autocorrelation."
+            }
+          ]
+        },
+        {
+          "query": "Apply the same two annualisations to each of the ten industry portfolios, whose returns are already total returns, and take each industry's monthly-scaled volatility divided by its daily-scaled volatility. For the 1963 to 1999 window report the industry with the largest ratio and that ratio; for the 2000 to 2025 window, the industry with the smallest ratio, that ratio, and how many ratios exceed one. Break ties by source column label ascending. Explain what in a portfolio's daily return behaviour pushes its ratio furthest from one, and what the two windows say about which part belongs to the industry and which to the period.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "early_largest_ratio_industry",
+            "early_largest_ratio",
+            "late_smallest_ratio_industry",
+            "late_smallest_ratio",
+            "late_ratio_above_one_count"
+          ],
+          "claims": [
+            {
+              "id": "ratio_tracks_serial_correlation",
+              "mode": "required",
+              "description": "Explains that the ratios furthest from one belong to portfolios with strong serial correlation in their daily returns, above one where that correlation is positive and below one where it is negative."
+            },
+            {
+              "id": "same_industry_both_extremes",
+              "mode": "required",
+              "description": "Observes that the same industry carries the largest distortion in both windows but in opposite directions, so the direction of the bias belongs to the period while its size may reflect how the industry's constituents trade."
+            },
+            {
+              "id": "lone_exception",
+              "mode": "optional",
+              "description": "Notes that in the later window only one industry keeps a ratio above one."
+            },
+            {
+              "id": "compounding_near_one",
+              "mode": "optional",
+              "description": "Notes that a ratio just above one can come from compounding daily returns within each month rather than from serial correlation, as for the one industry that stays above one in the later window."
+            }
+          ]
+        },
+        {
+          "query": "Finally put the market into a Sharpe ratio in each window, annualised two ways. From daily data, take the factor table's market excess return as the daily excess return and annualise its mean times 252 over its sample standard deviation times the square root of 252. From monthly data, take each calendar month's excess return as the compounded market return in the month less the compounded risk-free return in the month, and annualise its mean times 12 over its sample standard deviation times the square root of 12. Report all four ratios. Explain which annualisation a performance report should prefer in each window and why.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "early_daily_sharpe",
+            "early_monthly_sharpe",
+            "late_daily_sharpe",
+            "late_monthly_sharpe"
+          ],
+          "claims": [
+            {
+              "id": "sharpe_bias_opposes_volatility_bias",
+              "mode": "required",
+              "description": "Explains that the daily-annualised Sharpe ratio is biased opposite to the volatility bias: overstated when daily returns are positively autocorrelated and understated when they are negatively autocorrelated."
+            },
+            {
+              "id": "prefer_lower_frequency",
+              "mode": "optional",
+              "description": "Recommends annualising from lower-frequency returns, or adjusting for autocorrelation, before quoting an annual Sharpe ratio."
+            },
+            {
+              "id": "means_differ_too",
+              "mode": "optional",
+              "description": "Notes that the annualised means also differ between the daily and the compounded monthly construction, so the Sharpe ratios move by less than the volatilities do."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

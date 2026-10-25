@@ -1,0 +1,92 @@
+{
+  "name": "jpm_standardized_advanced_cet1",
+  "module": "evals.comparison_ranking.jpm_standardized_advanced_cet1",
+  "task_family": "comparison_ranking",
+  "data_sources": [
+    "ffiec_call_reports_capital",
+    "ffiec_nic_structure",
+    "fed_stress_tests"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Using the retained 2025-Q3 FFIEC Call Report for JPMorgan Chase Bank, N.A., compare its standardized-approach and advanced-approaches common equity tier 1 risk-based capital measures. Report the bank's RSSD ID, its common equity tier 1 capital, each approach's risk-weighted assets, and both resulting ratios. Carry the bank forward and explain what drives the gap between the two ratios.",
+          "validator": "validate_bank_capital",
+          "stores": [
+            "bank_rssd_id",
+            "cet1_capital_billion_usd",
+            "standardized_rwa_billion_usd",
+            "advanced_rwa_billion_usd",
+            "standardized_cet1_ratio_pct",
+            "advanced_cet1_ratio_pct"
+          ],
+          "claims": [
+            {
+              "id": "bank_denominator_interpretation",
+              "description": "The response attributes the bank's approach gap to distinct risk-weighted-asset denominators applied to the same reported common equity tier 1 numerator.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Use the current FFIEC NIC structure snapshot observed on 2026-08-13 to identify that bank's immediate parent. Report the parent's RSSD ID, legal name and NIC entity-type code. Carry the parent forward and explain how it relates to the Call Report filer.",
+          "validator": "validate_parent_identity",
+          "stores": [
+            "parent_rssd_id",
+            "parent_legal_name",
+            "parent_nic_entity_type"
+          ],
+          "claims": [
+            {
+              "id": "legal_entity_hierarchy",
+              "description": "The response treats the Call Report bank as a subsidiary of the separately identified holding-company stress respondent rather than as the same legal entity.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Find that parent in the 2025 Federal Reserve Supervisory Severely Adverse stress-test results. Report the disclosure's actual-ratio date and the parent's actual and projected-minimum common equity tier 1 ratios. Explain what the projected minimum represents and how these observations relate to the bank ratios from the first turn.",
+          "validator": "validate_stress_disclosure",
+          "stores": [
+            "stress_actual_as_of_date",
+            "parent_stress_actual_cet1_ratio_pct",
+            "parent_stress_projected_minimum_cet1_ratio_pct"
+          ],
+          "claims": [
+            {
+              "id": "stress_projection_semantics",
+              "description": "The response treats the supervisory minimum as a conditional scenario outcome rather than an observed deterioration.",
+              "mode": "required"
+            },
+            {
+              "id": "period_path_separation",
+              "description": "The response treats the bank's later Call Report ratios and the parent's earlier stress-test actual ratio as separate observations rather than one continuous entity-level path.",
+              "mode": "required"
+            },
+            {
+              "id": "capital_strength_boundary",
+              "description": "If the response ranks capital strength or predicts the bank's path, it qualifies that conclusion because the comparisons differ in legal entity, observation date, denominator framework and scenario status.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "FFIEC 2025-Q3 Call Report capital extract, current NIC structure observed 2026-08-13, and Federal Reserve 2025 supervisory stress-test results",
+    "facts": [
+      "The Call Report bank is RSSD 852218. A current NIC relationship-level-1 row maps it to immediate parent JPMorgan Chase & Co., RSSD 1039502, entity type FHD; joining RSSD 852218 directly to the stress results returns no row.",
+      "Bank CET1 capital is $291.288 billion. Standardized and advanced-approaches RWA are $1,856.46605 billion and $1,737.022 billion, yielding 15.6904566% and 16.7693904%, a 1.0789338 percentage-point gap.",
+      "The matched parent stress row is actual as of 2024-12-31: 15.7% actual CET1 and 14.2% projected minimum, so minimum minus actual is -1.5 percentage points."
+    ],
+    "known_overclaims": [
+      "Treating the bank and holding company as the same legal entity because their CET1 ratios are numerically close.",
+      "Treating the parent's projected stress minimum as an observed later bank ratio or as proof that one bank denominator approach is safer."
+    ]
+  }
+}

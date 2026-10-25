@@ -1,0 +1,60 @@
+{
+  "name": "nport_lending_reinvestment_redemption_bridge",
+  "module": "evals.scenario_analysis.nport_lending_reinvestment_redemption_bridge",
+  "task_family": "scenario_analysis",
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "data_sources": ["sec_nport", "sec_nport_lending_cohort", "nyfed_reference_rates"],
+  "conversations": [{
+    "id": "main",
+    "turns": [
+      {
+        "query": "For SEC N-PORT series S000011112 at the September 30, 2025 report date, select the latest original NPORT-P filed no later than December 31, 2025, breaking same-filing-date ties by accession descending. Use the matching complete holding and securities-lending schedule. Report its exact accession, net assets in USD millions, holding-row count, count of holdings with a positive value reported on loan, and total reported on-loan value in USD millions. Explain what value on loan measures relative to a fund holding's reported market value.",
+        "validator": "validate_turn_1",
+        "stores": ["selected_accession", "net_assets_m", "holding_count", "loaned_holding_count", "loan_value_m"],
+        "claims": [
+          {"id": "nport_lending_t1_portion", "mode": "required", "description": "The response recognizes that the value on loan is a portion of already reported holdings rather than an additional fund asset."}
+        ]
+      },
+      {
+        "query": "Carry that filing and its holding IDs forward. For reported common-equity holdings, determine the value not currently on loan, counting any unloaned portion of a partly loaned holding as available. Separately total investments flagged as cash-collateral reinvestment and non-cash collateral treated as a fund asset. Report the three amounts in USD millions. Interpret the collateral-reinvestment number's relationship to immediately spendable cash and to the full collateral received by the fund.",
+        "validator": "validate_turn_2",
+        "stores": ["unloaned_equity_value_m", "cash_collateral_reinvestment_m", "non_cash_collateral_asset_m"],
+        "claims": [
+          {"id": "nport_lending_t2_cash_scope", "mode": "required", "description": "The response distinguishes reported cash-collateral reinvestment assets from unrestricted cash and from the total amount of cash collateral received."}
+        ]
+      },
+      {
+        "query": "Run a retrospective stress after the selected filing is public, freezing its report-date balances and lending status as a hypothetical starting state. Stress an immediate redemption of 80 percent of the carried report-date net assets. Assume all of the unloaned, unrestricted common-equity value identified in turn 2 can be sold immediately at its reported value; add only the fund-level cash not elsewhere reported. Securities currently on loan cannot be sold, and flagged cash-collateral-reinvestment or non-cash collateral assets are unavailable to pay this redemption. There are no other sources of cash at this step. Report the redemption and any remaining funding gap in USD millions. Explain the saleability assumption and why the collateral-reinvestment value is excluded here.",
+        "validator": "validate_turn_3",
+        "stores": ["redemption_m", "immediate_funding_gap_m"],
+        "claims": [
+          {"id": "nport_lending_t3_liquidity_limit", "mode": "required", "description": "The response identifies reported holding value as an assumed sale price in the hypothetical stress, not evidence of actual immediately executable market liquidity."}
+        ]
+      },
+      {
+        "query": "Keep the retrospective redemption, equity sales and lent positions fixed. At that hypothetical stress time, after publication of the 2025-09-30 effective-date SOFR fixing, assume a separate 30-day unsecured bridge advances exactly the remaining gap at that fixing plus 200 basis points, simple ACT/360, with no fees. Mark cash-collateral reinvestment down 10%; no collateral is returned and no other asset or liability changes. Leave the borrowing outstanding and accrue 30 calendar days of interest from bridge start, using unrounded carried amounts. Report SOFR, bridge interest, markdown and post-redemption NAV. Interpret the NAV effects and what reported collateral fields establish about real borrowing or collateral-return capacity.",
+        "validator": "validate_turn_4",
+        "stores": ["sofr_fixing_pct", "bridge_interest_m", "reinvestment_markdown_m", "ending_nav_m"],
+        "claims": [
+          {"id": "nport_lending_t4_nav", "mode": "required", "description": "The response recognizes that the new bridge principal creates offsetting cash and liability, while redemption, investment markdown and accrued financing interest reduce net assets under the stipulated scenario."},
+          {"id": "nport_lending_t4_scope", "mode": "required", "description": "The response gives a material limitation of treating the hypothetical unsecured bridge and frozen reported sale values as actual fund liquidity or collateral-return capacity."}
+        ]
+      }
+    ]
+  }],
+  "judge_reference": {
+    "source": "Frozen SEC N-PORT report and its complete selected-accession holdings/lending schedule plus the New York Fed SOFR fixing; all redemption, sale, markdown and bridge terms are hypothetical.",
+    "facts": [
+      "Loan value is a portion of already reported equity holdings. Cash-collateral-reinvestment assets are not unrestricted cash or a complete cash-collateral-received balance.",
+      "The third-turn funding gap depends on preserving the unloaned part of partially lent positions and excluding separately flagged collateral investments.",
+      "Borrowing principal is offset by a liability; markdown and accrued interest reduce NAV. The reported fields cannot establish actual market saleability or borrowing availability."
+    ],
+    "known_overclaims": [
+      "Adding the value on loan to reported holding values as a new asset.",
+      "Excluding an entire partly loaned position from the eligible unloaned-equity sale amount.",
+      "Treating cash-collateral reinvestment as freely spendable cash or total collateral received.",
+      "Calling the hypothetical bridge an observed facility or counting its principal as an increase in NAV."
+    ]
+  }
+}

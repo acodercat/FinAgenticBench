@@ -1,0 +1,52 @@
+{
+  "name": "nport_arrears_default_watchlist_redemption",
+  "module": "evals.risk_screening.nport_arrears_default_watchlist_redemption",
+  "task_family": "risk_screening",
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "data_sources": ["sec_nport_holding_details", "sec_nport"],
+  "conversations": [{
+    "id": "main",
+    "turns": [
+      {
+        "query": "Within the supplied selected holding-detail cohort, find the original N-PORT filing public by December 31, 2025 with positive net assets and the most debt-security rows with both C.9 status fields populated. Break a tie by lower accession. Give its accession, report date and qualifying row count.",
+        "validator": "validate_turn_1",
+        "stores": ["watchlist_status_rows", "watchlist_accession", "watchlist_report_date"],
+        "claims": []
+      },
+      {
+        "query": "For that filing, report the holding count and reported value separately for each flag, plus their overlapping holding count. Explain what these flags and values measure.",
+        "validator": "validate_turn_2",
+        "stores": ["watchlist_arrears_count", "watchlist_arrears_value_m", "watchlist_default_count", "watchlist_default_value_m", "watchlist_overlap_count"],
+        "claims": [
+          {"id": "watchlist_flag_distinction", "mode": "required", "description": "The response distinguishes an interest payment in arrears or legally deferred from a security currently in default; neither flag substitutes for the other."},
+          {"id": "watchlist_value_boundary", "mode": "required", "description": "The response interprets the reported holding values as market values of flagged positions, not the amount of overdue interest or unpaid principal."}
+        ]
+      },
+      {
+        "query": "Combine the two flags without double counting. Report the watchlist's total reported value and share of the same filing's net assets. Does it exceed a hypothetical internal limit of 0.41%? Explain the denominator choice.",
+        "validator": "validate_turn_3",
+        "stores": ["watchlist_union_value_m", "watchlist_original_pct", "watchlist_original_breach"],
+        "claims": [{"id": "watchlist_nav_denominator", "mode": "required", "description": "The response identifies fund net assets as the denominator for this hypothetical portfolio-concentration screen and interprets the measured union exposure against it."}]
+      },
+      {
+        "query": "Use the largest of that filing's three reported monthly gross redemptions as a hypothetical one-time outflow. Fund it by selling only non-watchlist assets at reported marks; hold other marks fixed. Recheck the 0.41% limit, then find the minimum additional watchlist value to sell at those marks, retaining those proceeds as cash. Report the outflow, pre-sale watchlist share, limit decision and sale value. Explain the scenario's evidentiary limit.",
+        "validator": "validate_turn_4",
+        "stores": ["watchlist_stress_redemption_m", "watchlist_stress_pct", "watchlist_stress_breach", "watchlist_required_sale_m"],
+        "claims": [{"id": "watchlist_hypothetical_boundary", "mode": "required", "description": "The response treats the redemption-sized outflow and sales as hypothetical stress assumptions, not observed same-day flows or executable sale prices."}]
+      }
+    ]
+  }],
+  "judge_reference": {
+    "source": "SEC source-native N-PORT C.9 debt-security flags and holding values within the supplied selected holding-detail cohort, joined to the same accession's fund-reported net assets and three monthly gross-redemption amounts.",
+    "facts": [
+      "The selected holding-detail cohort contains two matched original filings; 0002071691-25-004164 has the most debt-security rows with both C.9 status fields populated (3,610), reporting for 2025-08-31.",
+      "Seventy-two arrears/deferment rows have 183.15228433 million USD reported value; one distinct default row has 25 million USD. The 73-row union has 208.15228433 million USD value, 0.4055999635 percent of fund net assets, below 0.41 percent.",
+      "The largest monthly gross redemption is 759.10084520 million USD. A same-sized hypothetical outflow paid from non-watchlist assets lifts the union share to 0.4116895250 percent, above the limit. Selling 0.8542322824 million USD of flagged holdings at reported marks and keeping proceeds in cash restores it exactly."
+    ],
+    "known_overclaims": [
+      "Treating an arrears/deferment flag as a default or a market value as an overdue coupon amount.",
+      "Calling the hypothetical same-day outflow and mark-priced sales observed transactions, or the internal threshold a regulatory rule."
+    ]
+  }
+}

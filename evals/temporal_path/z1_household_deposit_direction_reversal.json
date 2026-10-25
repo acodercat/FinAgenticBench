@@ -1,0 +1,128 @@
+{
+  "name": "z1_household_deposit_direction_reversal",
+  "module": "evals.temporal_path.z1_household_deposit_direction_reversal",
+  "task_family": "temporal_path",
+  "data_sources": [
+    "fed_z1_vintages",
+    "fdic_bankfind"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "The Financial Accounts of the United States are republished as complete vintages: each release restates every earlier quarter, and one series is printed in several statement tables of the same release with the same value. Work only with rows whose frequency field is Q, and treat the statement table as a label rather than a key, so that a vintage and quarter identify one observation. Take households and nonprofit organizations' checkable deposits and currency, series FL153020005.Q. Select as the target the most recent quarter that at least four release vintages have published, which is the newest quarter whose restatement history is long enough to read. Report how many distinct vintages the table holds, how many distinct statement tables carry this series, the selected quarter end, the release date of the earliest vintage covering it, the release date of the newest vintage, and the selected quarter's level in each of those two vintages in USD millions. Carry the quarter, both vintages and both levels forward, and explain what it means for one quarter to hold two published levels.",
+          "validator": "validate_vintage_population",
+          "stores": [
+            "z1_vintage_count",
+            "series_statement_table_count",
+            "target_quarter_end",
+            "first_publishing_vintage_date",
+            "newest_vintage_date",
+            "first_published_level_usd_millions",
+            "current_level_usd_millions"
+          ],
+          "claims": [
+            {
+              "id": "vintage_restatement_meaning",
+              "description": "The response explains that the two levels are the same quarter restated by a later release rather than two different quarters or a correction of an error.",
+              "mode": "required"
+            },
+            {
+              "id": "statement_table_scope",
+              "description": "The response states that the repeated statement tables carry the same observation, so counting rows would overstate the number of observations.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "A quarterly change is defined inside a single vintage: both quarters are read from the same release, never one quarter from the release that introduced it and the other from an earlier release. Take as the prior quarter the one immediately before the carried target in this series. Report the target-minus-prior change read inside the earliest covering vintage, the same change read inside the newest vintage, and whether the two changes carry opposite signs. Interpret what a reader who followed the releases quarter by quarter would have concluded about the direction, and what the current release supports.",
+          "validator": "validate_within_vintage_direction",
+          "stores": [
+            "first_published_quarterly_change_usd_millions",
+            "current_quarterly_change_usd_millions",
+            "published_direction_reversed"
+          ],
+          "claims": [
+            {
+              "id": "within_vintage_reading",
+              "description": "The response attributes each change to the single release it was read from, and treats both as valid readings of their own vintage.",
+              "mode": "required"
+            },
+            {
+              "id": "revision_not_error_boundary",
+              "description": "If the response characterises the change of sign as a mistake in the earlier release, it states that a restatement is the normal product of later source data rather than evidence of an error.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Bring in the FDIC quarterly financial series for insured institutions, which is reported once per quarter end and is not organised into vintages. For the two quarter ends carried forward, report the number of reporting institutions at each, total deposits at the target quarter end in USD millions, and the target-minus-prior change in total deposits in USD millions. Interpret the direction this second series shows, and state what its population covers that the household series does not.",
+          "validator": "validate_deposit_reading",
+          "stores": [
+            "bankfind_prior_quarter_institution_count",
+            "bankfind_target_quarter_institution_count",
+            "bankfind_target_quarter_total_deposits_usd_millions",
+            "bankfind_deposit_change_usd_millions"
+          ],
+          "claims": [
+            {
+              "id": "holder_sector_boundary",
+              "description": "The response distinguishes the balances one holder sector owns from the balances every depositor has placed at insured institutions, and names at least one category inside the second measure and outside the first.",
+              "mode": "required"
+            },
+            {
+              "id": "institution_count_reasoning",
+              "description": "The response treats the fall in the reporting institution count as a change in the reporting population rather than as deposits leaving the system.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Compare the three readings. Report which of the two Financial Accounts readings agrees in direction with the deposit series, as one of first-published, current or neither. Then report the newest-minus-earliest revision to the target quarter's level and the same revision to the prior quarter's level, both in USD millions. Explain what makes the direction change, and state the limits of using the deposit series to decide which household reading is correct.",
+          "validator": "validate_reconciliation",
+          "stores": [
+            "reading_matching_bankfind_direction",
+            "target_quarter_revision_usd_millions",
+            "prior_quarter_revision_usd_millions"
+          ],
+          "claims": [
+            {
+              "id": "unequal_revision_result",
+              "description": "The response explains that the direction changes because the two quarters were revised by different amounts, not because either quarter alone moved.",
+              "mode": "required"
+            },
+            {
+              "id": "arbitration_boundary",
+              "description": "The response states that the deposit series measures a different population, so its direction leaves open which household reading is correct.",
+              "mode": "required"
+            },
+            {
+              "id": "causal_attribution_boundary",
+              "description": "If the response attributes the revision to a named economic event or to a specific source correction, it states that the vintage table records the restatement without recording its cause.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen Federal Reserve Z.1 vintage table and FDIC BankFind quarterly institution financials",
+    "facts": [
+      "The table holds seven vintages from 2024-03-07 to 2025-09-11. Series FL153020005.Q is printed in four statement tables of each release with the same value, so 819 rows hold 273 distinct vintage-quarter observations. The most recent quarter published by at least four vintages is 2024-Q3; 2024-Q4 is covered by three and 2024-Q2 by five.",
+      "The earliest vintage covering 2024-Q3 is 2024-12-12, which puts the level at 4,689,894 million. The 2025-09-11 vintage puts the same quarter at 4,448,321 million.",
+      "Read inside the 2024-12-12 release the quarter is a rise of 114,760 million; read inside the 2025-09-11 release it is a fall of 68,796 million. Differencing across vintages instead, one quarter from each release that introduced it, would give 134,577 million and is not a quarterly change.",
+      "The direction turns because 2024-Q3 was revised down by 241,573 million while 2024-Q2 was revised down by only 58,017 million.",
+      "FDIC insured institutions numbered 4,610 at 2024-06-30 and 4,589 at 2024-09-30. Total deposits were 19,182,974.678 million at the target quarter end, a rise of 262,470.957 million, which agrees in direction with the first published household reading."
+    ],
+    "known_overclaims": [
+      "Treating the revised level as a correction of an error in the earlier release.",
+      "Using the deposit series to declare one of the two household readings correct, when the two measure different populations.",
+      "Reading the fall in the number of reporting institutions as deposits leaving the banking system.",
+      "Attributing the restatement to a named economic event that the vintage table does not record."
+    ]
+  }
+}

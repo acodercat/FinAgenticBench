@@ -1,0 +1,110 @@
+{
+  "name": "bank_cet1_growth_attribution_capacity",
+  "module": "evals.calculation_reconciliation.bank_cet1_growth_attribution_capacity",
+  "task_family": "calculation_reconciliation",
+  "data_sources": [
+    "ffiec_call_reports_capital",
+    "nyfed_reference_rates"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Compare retained FFIEC reports at March 31, 2024 and September 30, 2025 by bank RSSD. Require consolidated capital reporting, no CBLR election, positive standardized risk-weighted assets, and at least USD10 billion of reported CET1 capital at both endpoints. Rank banks by the signed increase in standardized CET1 ratio computed from the amounts, breaking ties by RSSD numerically ascending. Report eligible count, leader's RSSD and ending ratio. Discuss endpoint comparability. Retain unrounded inputs throughout.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "eligible_bank_count",
+            "selected_bank_rssd",
+            "ending_cet1_pct"
+          ],
+          "claims": [
+            {
+              "id": "entity_continuity",
+              "description": "The response recognizes that matching bank identifiers establishes an entity-level comparison but cannot establish an unchanged business perimeter.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "For that bank, apply an exact two-factor replacement Shapley decomposition to its ending-minus-starting standardized CET1 ratio. The factors are CET1 capital and standardized risk-weighted assets, with the starting endpoint as baseline and the ending endpoint as target. Report each factor's signed contribution. Explain how the method divides the ratio move between the numerator and denominator pieces across both dates, and what that does not prove about management.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "capital_contribution_bp",
+            "rwa_contribution_bp"
+          ],
+          "claims": [
+            {
+              "id": "symmetric_decomposition",
+              "description": "The response explains that the decomposition splits one ratio change into a capital effect and a risk-weighted-asset effect measured symmetrically across both endpoints, so neither factor is evaluated only at the other's starting level.",
+              "mode": "required"
+            },
+            {
+              "id": "causal_attribution",
+              "description": "If the response presents these contributions as causal effects of management actions, it identifies the decomposition as a mechanical endpoint attribution rather than causal evidence.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "From that bank's September position, originate USD20 billion of loans on October 1, 2025, funded entirely by liabilities. Principal stays outstanding through December 31 inclusive. Loans earn fixed 6%; funding costs SOFR plus 100 basis points, using each calendar day's latest effective fixing. Both accrue simple ACT/360 interest without compounding. Tax net interest income at 25%, with symmetric loss relief, and retain it in zero-risk-weight cash. Each loan dollar adds one dollar of standardized risk-weighted assets. Existing capital and exposures otherwise stay fixed; there are no other income, costs or distributions. Report total funding expense and year-end CET1 ratio. Explain how the profit this new book retains and the extra exposure it adds each pull on the capital ratio, compared with where it started.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "funding_expense_mn",
+            "proforma_cet1_pct"
+          ],
+          "claims": [
+            {
+              "id": "financing_effect",
+              "description": "The response explains that retained after-tax net interest adds CET1, while the lending expansion lowers the ratio from the reported September position.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Use that bank's March 31, 2024 computed CET1 ratio as a hypothetical internal minimum tested only on December 31, 2025. Vary the loan amount under the same fourth-quarter financing, earnings and risk-weight assumptions. Report maximum additional lending without new external capital, and minimum additional CET1 instead required for the USD20 billion plan. New external CET1 proceeds remain in zero-risk-weight cash earning no interest. Explain what stops the lending total from going higher under this floor, what the extra capital figure restores, and whether either answers what regulators permit.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "maximum_new_loans_bn",
+            "additional_cet1_for_plan_bn"
+          ],
+          "claims": [
+            {
+              "id": "capacity_mechanism",
+              "description": "The response explains the lending limit as the point where retained after-tax margin stops offsetting the ratio dilution from added risk-weighted assets, and the additional CET1 as the amount that restores the stipulated floor at the fixed plan size.",
+              "mode": "required"
+            },
+            {
+              "id": "regulatory_boundary",
+              "description": "If the response calls the lending capacity legally permitted, it distinguishes the stipulated internal test from a full assessment of regulatory and balance-sheet constraints.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen governed FFIEC capital reports and NY Fed SOFR effective-date fixings",
+    "facts": [
+      "eligible_bank_count: 29",
+      "selected_bank_rssd: 722777",
+      "ending_cet1_pct: 19.50399330746406",
+      "capital_contribution_bp: 179.87161999792013",
+      "rwa_contribution_bp: 170.31891141590606",
+      "funding_expense_mn: 255.15",
+      "proforma_cet1_pct: 14.960475277799477",
+      "maximum_new_loans_bn: 14.399294415134815",
+      "additional_cet1_for_plan_bn: 0.8854099728354778",
+      "The response recognizes that matching bank identifiers establishes an entity-level comparison but cannot establish an unchanged business perimeter.",
+      "The response attributes the improvement jointly to higher CET1 capital and lower risk-weighted assets.",
+      "The response explains that retained after-tax net interest adds CET1, while the lending expansion lowers the ratio from the reported September position.",
+      "The response concludes that the proposed lending exceeds internally supported capacity and requires additional CET1 despite the observed ratio improvement."
+    ],
+    "known_overclaims": [
+      "Attributing causal management effects or full legal lending capacity."
+    ]
+  }
+}

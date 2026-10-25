@@ -1,0 +1,162 @@
+{
+  "name": "diluted_share_antidilution_and_eps_numerator",
+  "module": "evals.calculation_reconciliation.diluted_share_antidilution_and_eps_numerator",
+  "task_family": "calculation_reconciliation",
+  "data_sources": [
+    "sec_financial_statements",
+    "sec_companyfacts"
+  ],
+  "case_type": "baseline",
+  "difficulty": "hard",
+  "judge_reference": {
+    "source": "Frozen SEC financial-statement extracts for annual filings with period ends in calendar 2024, and the frozen company-fact set covering the 500 largest filers. The antidilution checks, the numerator recomputation and the antidilutive-overhang comparison are analytic constructions rather than reported statistics.",
+    "facts": [
+      "4,257 filers report net income, positive basic and diluted weighted-average share counts, and both EPS figures; 2,111 report a net loss. The antidilution inclusion test uses income from continuing operations, so net loss alone does not establish that every potential share must be excluded. Of the net-loss filers, 2,042 have equal counts and 67 have diluted counts above basic; the latter can be consistent if continuing operations is positive.",
+      "A diluted share count cannot fall below the basic count; five non-loss filers report that ordering. Sixteen filers report total diluted EPS above basic EPS, which cannot by itself establish an antidilution violation because income from continuing operations controls the potential-share test. Among non-loss filers with diluted counts above basic, the median increment is 0.9474%.",
+      "Basic EPS starts from parent income available to common after preferred dividends and participating allocations; the diluted numerator may additionally adjust for assumed conversions. Net income divided by reported diluted shares misses the reported diluted EPS by at least USD 0.02 for 689 filers, median miss USD 0.1998, with the recomputed value above reported for 529. The basic-side quotient misses for 625. Shared numerator differences and share-count scale/sign tagging can affect both; these counts do not isolate one cause.",
+      "340 of the population appear in the large-filer fact set. Reading only facts whose period ends on the filer's own period end and runs between 350 and 380 days, 201 report an income total including the noncontrolling portion, and for 166 of those it differs from the parent figure by more than a dollar; 152 report the noncontrolling amount itself. The per-share numerator starts from the parent figure, not the consolidated total; the net income already in hand is that parent figure for every one of the 340, so the noncontrolling share does not explain the third turn's gap. A filing carries the same concept for several comparative periods, so a fact has to be pinned by the period it covers as well as by the filing it comes from.",
+      "158 overlap filers disclose an antidilutive amount, median 0.278% of basic shares. Thirty-nine disclose excluded shares exceeding the current diluted-to-basic gap: this is potential dilution outside the current denominator, not guaranteed future entry. Whether it enters depends on security terms, price and earnings. Seven report a share-based increment above the total count gap, which requires checking reporting scope and period rather than declaring a component impossible in all circumstances."
+    ]
+  },
+  "conversations": [
+    {
+      "turns": [
+        {
+          "query": "Select original full-year Form 10-Ks ending in calendar 2024, one per filer by latest report date, filing date, then accession. Keep reports with fiscal-year net income, positive weighted-average basic and diluted shares, and basic and diluted EPS; count each filer separately even on a joint report. Report eligible count, loss-filer count and, among loss filers, counts with equal share denominators and with diluted shares above basic. Take every median in this task with linear interpolation. Interpret the diluted-share rule for loss years against those counts.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "eps_filer_count",
+            "loss_filer_count",
+            "loss_diluted_equals_basic_count",
+            "loss_diluted_above_basic_count"
+          ],
+          "claims": [
+            {
+              "id": "antidilution_rule_named",
+              "mode": "required",
+              "description": "Names the antidilution requirement: potential common shares enter the diluted count only where they reduce the per-share figure measured on income from continuing operations, so a year with a loss from continuing operations admits none and the diluted count equals the basic count."
+            },
+            {
+              "id": "loss_exception_is_inconsistent",
+              "mode": "required",
+              "description": "States that a filer reporting a diluted count above the basic one in a loss year is inconsistent with that requirement unless its income from continuing operations was positive, since that is the figure the test is applied to."
+            },
+            {
+              "id": "exceptions_are_a_small_tail",
+              "mode": "optional",
+              "description": "Observes that the great majority of loss filers do set the two counts equal, so the exceptions are a small tail rather than a competing practice."
+            }
+          ]
+        },
+        {
+          "query": "Among the population's filers with net income at or above zero, report how many show a diluted share count below the basic one and how many show the two equal. Across the whole population, report how many show a diluted per-share figure above the basic one. Among filers with net income at or above zero and a diluted count above the basic, report the median of diluted less basic count over basic count, in percent. Explain which way the diluted count and the diluted per-share figure may each move against their basic counterparts, and what the median says about the dilution carried.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "profit_diluted_below_basic_count",
+            "profit_diluted_equals_basic_count",
+            "diluted_eps_above_basic_eps_count",
+            "median_dilution_increment_pct"
+          ],
+          "claims": [
+            {
+              "id": "diluted_count_cannot_fall_below_basic",
+              "mode": "required",
+              "description": "States that a diluted share count can never fall below the basic count, since potential shares are added and never removed, so the filers reporting that are inconsistent."
+            },
+            {
+              "id": "diluted_figure_not_more_favourable",
+              "mode": "required",
+              "description": "The response applies the antidilution direction test to income from continuing operations; total-net-income diluted EPS can move the other way when potential shares are dilutive on that control measure."
+            },
+            {
+              "id": "median_increment_is_small",
+              "mode": "optional",
+              "description": "Reads the median increment as small, so that for the typical filer dilution moves the share count by around a percent rather than materially."
+            }
+          ]
+        },
+        {
+          "query": "Divide reported net income by the reported diluted share count and compare the unrounded quotient with the reported diluted per-share figure. Report how many filers differ by two cents or more, the median size of that difference among them, and how many have the recomputed value above the reported one. Repeat on the basic side, net income over basic shares against the reported basic figure, and report how many differ by two cents or more. Explain what the numerator of a per-share figure is, and what comparing the two sides indicates about where the discrepancy arises.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "diluted_numerator_gap_count",
+            "median_diluted_numerator_gap_usd",
+            "recomputed_above_reported_count",
+            "basic_numerator_gap_count"
+          ],
+          "claims": [
+            {
+              "id": "numerator_is_income_available_to_common",
+              "mode": "required",
+              "description": "The response distinguishes the basic numerator, income attributable to the parent available to common after preferred dividends and participating-security allocations, from a diluted numerator that may require after-tax interest or other adjustments for assumed conversions."
+            },
+            {
+              "id": "basic_side_limits_dilution_explanation",
+              "mode": "required",
+              "description": "The response notes that substantial misses on both basic and diluted sides cannot be explained solely by the incremental potential-share denominator. Numerator differences and share-count scale/sign tagging can affect both; aggregate miss counts do not isolate one cause."
+            },
+            {
+              "id": "rounding_cannot_explain_it",
+              "mode": "optional",
+              "description": "Notes that the reported per-share figures are themselves rounded, so a difference of this size cannot be explained by rounding."
+            },
+            {
+              "id": "scale_and_sign_tagging",
+              "mode": "optional",
+              "description": "Notes that part of the misses come from share counts or per-share figures tagged at the wrong scale or with the wrong sign rather than from the numerator."
+            }
+          ]
+        },
+        {
+          "query": "Report how many of the population appear in the separate fact set covering the largest filers. Reading only facts from the filer's own annual report whose period ends on its period end and runs 350 to 380 days, report how many report an income total struck before any portion is attributed to noncontrolling interests, how many of those differ by more than one dollar from the net income in hand, and how many report the noncontrolling amount as one undivided figure, whether or not its parts are also reported. Explain which income measure belongs in the per-share numerator and why both the period end and its length must be pinned.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "overlap_filer_count",
+            "consolidated_income_reported_count",
+            "consolidated_differs_count",
+            "noncontrolling_reported_count"
+          ],
+          "claims": [
+            {
+              "id": "parent_figure_is_the_numerator",
+              "mode": "required",
+              "description": "States that the per-share numerator starts from the amount attributable to the parent, not the consolidated total, so the noncontrolling share is removed before the division."
+            },
+            {
+              "id": "facts_need_the_period_pinned",
+              "mode": "required",
+              "description": "States that a filing carries the same concept for several comparative periods, so a fact has to be pinned by the period it covers as well as by the filing it comes from."
+            }
+          ]
+        },
+        {
+          "query": "Keeping the same period pin, report how many of the population disclose securities excluded from the diluted computation as antidilutive, counting a disclosed zero, and the median of that amount as a percentage of basic shares. Report how many excluded more shares than their whole diluted-less-basic difference. Among filers disclosing the increment from share-based payment arrangements, report how many show an increment larger than that whole difference. Explain what makes a security antidilutive, what an exclusion larger than the admitted increment says about securities outstanding, and what a component increment exceeding the total gap would have to mean.",
+          "validator": "validate_turn_5",
+          "stores": [
+            "antidilutive_disclosure_count",
+            "median_antidilutive_share_of_basic_pct",
+            "antidilutive_above_increment_count",
+            "share_based_increment_above_total_count"
+          ],
+          "claims": [
+            {
+              "id": "antidilutive_exclusion_explained",
+              "mode": "required",
+              "description": "Explains that securities are excluded as antidilutive when including them would not reduce the per-share figure, typically because the exercise price sits above the market price or because the year is a loss year."
+            },
+            {
+              "id": "overhang_outside_the_denominator",
+              "mode": "required",
+              "description": "The response reads an excluded amount larger than the current diluted-to-basic gap as potential dilution outside the present denominator, without claiming it must enter in a future period; inclusion depends on security terms, market price and earnings conditions."
+            },
+            {
+              "id": "component_cannot_exceed_the_total",
+              "mode": "optional",
+              "description": "States that a single component's increment cannot exceed the total increment, so the filers reporting that are internally inconsistent or are measuring the two over different periods."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

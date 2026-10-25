@@ -1,0 +1,108 @@
+{
+  "name": "foreign_holdings_issuance_calendar_stock_bridge",
+  "task_family": "calculation_reconciliation",
+  "data_sources": [
+    "treasury_tic",
+    "treasury_dts_public_debt",
+    "treasury_auctions"
+  ],
+  "difficulty": "medium",
+  "case_type": "baseline",
+  "module": "evals.calculation_reconciliation.foreign_holdings_issuance_calendar_stock_bridge",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Across 2024, select the month with the largest increase in TIC total foreign Treasury holdings; break ties by earlier month. Among countries reported at both endpoints, report the month and counts with positive and negative holdings changes.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "selected_month",
+            "increasing_country_count",
+            "decreasing_country_count"
+          ],
+          "claims": [
+            {
+              "id": "breadth_versus_magnitude",
+              "description": "The response reads the two country counts as the breadth of the move across the countries reported at both endpoints, separate from the size of the aggregate holdings change.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "For that month, aggregate Daily Treasury Statement marketable debt transactions, retaining all reported issue categories, including inflation-protected principal increments. Report the observation-day count and net reported marketable issuance. Explain how this month's figure differs in construction from the auction totals carried from the earlier turn, and whether every dollar in it is cash raised.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "debt_transaction_day_count",
+            "net_marketable_issues_bn"
+          ],
+          "claims": [
+            {
+              "id": "net_issuance_vs_awards",
+              "description": "The response explains that reported marketable issuance nets redemptions, whereas auction awards are gross issues.",
+              "mode": "required"
+            },
+            {
+              "id": "inflation_increment_boundary",
+              "description": "If the response describes the DTS net amount as net cash raised, it qualifies that description because the included inflation-protected principal increments are not cash auction proceeds.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Report the same month’s foreign-holdings increase as a percentage of that net issuance. Within the matched-country cohort, report the largest increasing and decreasing labels and their signed changes; break ties alphabetically. Explain what else besides buying at auction can move these reported holdings, and whether the country labels tell you who ultimately owns the securities.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "holdings_to_net_issuance_pct",
+            "increasing_country",
+            "increasing_country_change_bn",
+            "decreasing_country",
+            "decreasing_country_change_bn"
+          ],
+          "claims": [
+            {
+              "id": "absorption_identification",
+              "description": "The response explains at least one material non-primary-issuance contribution to holdings changes, such as valuation changes or secondary-market transfers, that limits interpretation of the computed ratio as issuance absorption.",
+              "mode": "required"
+            },
+            {
+              "id": "country_owner_boundary",
+              "description": "If the response interprets country contributions as investor nationality, it distinguishes reported residence or custody location from ultimate beneficial ownership.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "For Treasury auctions issued during that month, including reopenings, report total accepted principal and its share maturing within 366 days of issue. Report the corresponding preceding-month share. Interpret what this supply-side maturity comparison establishes about foreign investors’ maturity preferences.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "issued_accepted_principal_bn",
+            "selected_short_maturity_share_pct",
+            "previous_short_maturity_share_pct"
+          ],
+          "claims": [
+            {
+              "id": "maturity_mix_composition",
+              "description": "The response treats the two short-maturity shares as the composition of gross issuance, so a shift in the mix is a different statement from a change in the amount issued.",
+              "mode": "required"
+            },
+            {
+              "id": "foreign_tenor_identification",
+              "description": "The response explains that aggregate foreign holdings and the issuance maturity mix do not identify foreign investors’ maturity allocation.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen governed runtime tables declared by this case",
+    "facts": [
+      "TIC selects August 2024, with 31 increasing and 6 decreasing country labels. Holdings increase is 183.2 USD billions.",
+      "DTS includes 22 dates and reported marketable issues net of redemptions of 233.478 USD billions, including inflation-principal increments.",
+      "Cayman Islands increases 44.1 USD billions; Canada decreases 12.4. The holdings/net-issuance ratio is descriptive, not an identified primary-purchase share.",
+      "Issued accepted principal is 2403.4333969 USD billions. Short-maturity shares are 92.3121632146% and 77.6772188016%."
+    ]
+  }
+}

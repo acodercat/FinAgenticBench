@@ -1,0 +1,137 @@
+{
+  "name": "sofr_average_compounding_and_bill_basis",
+  "module": "evals.calculation_reconciliation.sofr_average_compounding_and_bill_basis",
+  "task_family": "calculation_reconciliation",
+  "data_sources": [
+    "nyfed_reference_rates",
+    "treasury_yield_curve"
+  ],
+  "case_type": "baseline",
+  "difficulty": "hard",
+  "judge_reference": {
+    "source": "Frozen New York Fed reference-rate history and Treasury daily par yield curve observations through 2025. The recomputed averages, their gap from a simple average and the spreads to the curve are analytic constructions; the published averages are used only as the target the calculation must reproduce.",
+    "facts": [
+      "748 publication dates from 2023 through 2025 carry all three averages. Each daily SOFR rate earns simple interest over the calendar days until the next business day, so a Friday rate covers the weekend in one step, interest compounds only between business days, the year has 360 days, and a window opening on a non-business day starts on the preceding business day's rate. Rounded half up to five decimals this reproduces every published average; compounding every calendar day, a 365-day year, or a simple day-weighted average reproduces none. The unrounded 2025-12-31 averages are 3.7865938 percent on the 30-day window and 4.1999627 percent on the 180-day window.",
+      "The compounded average exceeds the simple day-weighted average by a median 0.9102 basis points on the 30-day window and 5.8227 on the 180-day window, at most 7.0790. The difference is interest on interest and grows with the window and with the level of rates.",
+      "The first cut in the target range falls on 2024-09-19. Before it the 30-day average stands a median 18.626 basis points below the curve's 1-month point raw and 11.232 below once restated to a 365-day year; from that date on it stands 0.262 above raw and 6.313 above restated. SOFR accrues on a 360-day year and the curve's bill yields on 365 days, which is worth about five days' interest; the change of sign reflects an average of rates already fixed against a yield that prices the month ahead.",
+      "After the first cut on 2024-09-19, the 30-day window first holds only rates fixed on or after the cut on 2024-10-21 and the 180-day window on 2025-03-18. On 2024-10-21 the published 30-day average stands 45.488 basis points below the published 180-day average, because the longer window still holds pre-cut rates: an average compounded in arrears lags a policy change by roughly its window, so a loan resetting on the 180-day average keeps paying the old rate for months."
+    ]
+  },
+  "conversations": [
+    {
+      "turns": [
+        {
+          "query": "The reference-rate table publishes 30-, 90- and 180-day SOFR averages. Take the publication dates from 2023-01-01 through 2025-12-31 carrying all three, and report how many there are. Each average covers the calendar days from that many days before the publication date to the day before it. Find how the daily SOFR rates are combined over a window so that your result, rounded half up to five decimals, reproduces every published average on those dates, and report its unrounded 30-day and 180-day averages for 2025-12-31. Take every median in this task with linear interpolation. Explain the calculation and why no simpler reading reproduces the published figures.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "publication_date_count",
+            "unrounded_30_day_average_pct",
+            "unrounded_180_day_average_pct"
+          ],
+          "claims": [
+            {
+              "id": "simple_across_gaps_compound_on_business_days",
+              "mode": "required",
+              "description": "States that each daily rate earns simple interest over the calendar days until the next business day, so a Friday rate covers the weekend in one step, and that interest compounds only from one business day to the next."
+            },
+            {
+              "id": "actual_360",
+              "mode": "required",
+              "description": "States that the averages accrue on a 360-day year."
+            },
+            {
+              "id": "weekend_compounding_fails",
+              "mode": "optional",
+              "description": "Notes that compounding every calendar day, or using a 365-day year, misses the published figures in the last decimals."
+            }
+          ]
+        },
+        {
+          "query": "For every one of those publication dates and for the 30-day and 180-day windows, also compute the simple average in which every calendar day of the window carries the daily rate that applies to it, and take your own unrounded reproducing average, not the published five-decimal figure, less that simple average in basis points. Report the median of that difference for the 30-day window and for the 180-day window, and the largest difference for the 180-day window, taking medians with linear interpolation. Explain what the difference measures and what makes it larger.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "median_premium_30_day_bp",
+            "median_premium_180_day_bp",
+            "max_premium_180_day_bp"
+          ],
+          "claims": [
+            {
+              "id": "interest_on_interest",
+              "mode": "required",
+              "description": "Explains that the difference is interest earned on interest already accrued within the window."
+            },
+            {
+              "id": "grows_with_window_and_rates",
+              "mode": "required",
+              "description": "Explains that the difference grows with the length of the window and with the level of rates."
+            },
+            {
+              "id": "matters_for_loan_resets",
+              "mode": "optional",
+              "description": "Notes that a loan or swap resetting on a compounded average pays this difference over one quoting a simple average."
+            },
+            {
+              "id": "square_of_rate",
+              "mode": "optional",
+              "description": "Approximates the difference as roughly the square of the rate times the window length in years, halved."
+            }
+          ]
+        },
+        {
+          "query": "In the same table's effective federal funds rows, report the first date from 2023-01-01 through 2025-12-31 whose target-range upper bound is below that of the previous reported date. Set each publication date's published 30-day average against the Treasury par curve's 1-month point on that date, as a raw difference, the average less the curve point, and as a restated difference with the average first expressed as a simple rate on a 365-day year. Report the median of each, separately before that first cut and on or after it. Explain what the restatement changes and why it is needed, and what else separates a 30-day average from a one-month bill yield.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "first_cut_date",
+            "median_raw_spread_before_bp",
+            "median_adjusted_spread_before_bp",
+            "median_raw_spread_after_bp",
+            "median_adjusted_spread_after_bp"
+          ],
+          "claims": [
+            {
+              "id": "basis_360_versus_365",
+              "mode": "required",
+              "description": "Explains that SOFR accrues on a 360-day year while the curve states bill yields on a 365-day basis, so the raw comparison understates SOFR by roughly five days' interest."
+            },
+            {
+              "id": "backward_versus_forward",
+              "mode": "required",
+              "description": "Explains that the 30-day average is built from rates already fixed over the past month while the one-month bill yield prices the month ahead, so once the policy rate starts to fall the average stands above the bill yield."
+            },
+            {
+              "id": "bill_supply",
+              "mode": "optional",
+              "description": "Mentions that bill supply and demand can move bill yields relative to repo rates independently of the rate path."
+            }
+          ]
+        },
+        {
+          "query": "Return to the date of that first cut. Using the window you established in the first turn, find the first publication date whose 30-day window is covered entirely by SOFR rates fixed on or after the date of the cut, and the first whose 180-day window is. On the first of those two dates, report the published 30-day average less the published 180-day average in basis points. Explain what the two dates say about how quickly each average passes a change in the policy rate through, and what that difference means for a loan whose rate resets on one of these averages.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "first_clean_30_day_date",
+            "first_clean_180_day_date",
+            "thirty_less_180_day_on_clean_date_bp"
+          ],
+          "claims": [
+            {
+              "id": "average_lags_by_its_window",
+              "mode": "required",
+              "description": "Explains that an average compounded in arrears keeps carrying rates fixed before a policy change until its whole window has passed, so it lags the change by roughly the length of its window."
+            },
+            {
+              "id": "longer_window_still_carries_old_rates",
+              "mode": "required",
+              "description": "Reads the gap between the two averages on the first date as the 180-day average still holding rates fixed before the cut, so a borrower on the longer average keeps paying the old rate for months after the cut."
+            },
+            {
+              "id": "lag_cuts_both_ways",
+              "mode": "optional",
+              "description": "Notes that the same lag delays the benefit of a cut and the cost of a rise."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

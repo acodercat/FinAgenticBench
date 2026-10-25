@@ -1,0 +1,47 @@
+config tiers:
+  strong 84.0% DeepSeek V4 Pro thinking   model-tier=top
+  strong 83.3% Gemini 3.8 Flash thinking
+  strong 82.2% GPT-6 Luna thinking   model-tier=top
+  strong 79.8% Claude Sonnet 5.5 thinking   model-tier=top
+  mid    72.1% Claude Sonnet 5.5 non-thinking   model-tier=top
+  mid    70.9% Qwen3.8 Flash thinking   model-tier=lower
+  mid    70.1% GLM-5.3 thinking
+  mid    62.8% DeepSeek V4 Flash thinking   model-tier=lower
+  mid    62.3% Qwen3.8-27B thinking   model-tier=lower
+  weak   59.2% DeepSeek V4 Pro non-thinking   model-tier=top
+  weak   58.8% DeepSeek V4 Flash non-thinking   model-tier=lower
+  weak   58.8% GPT-6 Luna non-thinking   model-tier=top
+  weak   47.9% Qwen3.8-27B non-thinking   model-tier=lower
+  weak   47.6% Qwen3.8 Flash non-thinking   model-tier=lower
+{'strong': ['DeepSeek V4 Pro T', 'Gemini 3.8 Flash T', 'GPT-6 Luna T', 'Claude Sonnet 5.5 T'], 'mid': ['Claude Sonnet 5.5 N', 'GLM-5.3 T', 'Qwen3.8 Flash T', 'Qwen3.8-27B T', 'DeepSeek V4 Flash T'], 'weak': ['DeepSeek V4 Flash N', 'DeepSeek V4 Pro N', 'GPT-6 Luna N', 'Qwen3.8 Flash N', 'Qwen3.8-27B N'], 'topT': ['DeepSeek V4 Pro T', 'GPT-6 Luna T', 'Claude Sonnet 5.5 T'], 'topN': ['DeepSeek V4 Pro N', 'GPT-6 Luna N', 'Claude Sonnet 5.5 N'], 'lowT': ['DeepSeek V4 Flash T', 'Qwen3.8 Flash T', 'Qwen3.8-27B T'], 'lowN': ['DeepSeek V4 Flash N', 'Qwen3.8 Flash N', 'Qwen3.8-27B N']}
+variable wrong (any)                                 per 1000 set vars            S   30.7 M   78.4 W  126.8 | weak->strong -76% [-81%,-70%] | N->T -49% [-55%,-43%] | lowT vs topN -15% [-29%,+5%] | small->large -34% [-42%,-25%]
+  shared wrong value (>=3 configs)                   per 1000 set vars            S   20.0 M   36.1 W   37.4 | weak->strong -46% [-60%,-31%] | N->T -23% [-35%,-7%] | lowT vs topN -3% [-23%,+25%] | small->large -39% [-52%,-22%]
+  other wrong value (not shared by >=3 configs)      per 1000 set vars            S   10.7 M   42.3 W   89.5 | weak->strong -88% [-91%,-85%] | N->T -62% [-68%,-56%] | lowT vs topN -22% [-39%,+1%] | small->large -31% [-40%,-21%]
+  shape: far off >10%                                per 1000 set vars            S   12.0 M   35.3 W   60.5 | weak->strong -80% [-87%,-72%] | N->T -51% [-60%,-42%] | lowT vs topN -3% [-28%,+34%] | small->large -40% [-50%,-27%]
+  shape: 1-10% off                                   per 1000 set vars            S    4.1 M    9.2 W   15.8 | weak->strong -74% [-86%,-59%] | N->T -47% [-60%,-33%] | lowT vs topN +4% [-19%,+32%] | small->large -32% [-47%,-12%]
+  shape: near miss 0.1-1%                            per 1000 set vars            S    4.5 M    8.3 W   12.4 | weak->strong -64% [-78%,-49%] | N->T -45% [-58%,-30%] | lowT vs topN -34% [-52%,-10%] | small->large -8% [-34%,+26%]
+  shape: near miss <0.1% (rounding/convention)       per 1000 set vars            S    3.7 M    8.9 W   11.3 | weak->strong -67% [-77%,-58%] | N->T -49% [-63%,-35%] | lowT vs topN -48% [-64%,-30%] | small->large -20% [-41%,+4%]
+  shape: convention factor (12/4/360/252/2)          per 1000 set vars            S    2.0 M    4.9 W    7.5 | weak->strong -73% [-85%,-59%] | N->T -44% [-58%,-29%] | lowT vs topN -17% [-41%,+16%] | small->large -26% [-46%,-2%]
+  shape: power-of-ten scale                          per 1000 set vars            S    0.7 M    3.0 W    4.2 | weak->strong -83% [-98%,-62%] | N->T -33% [-61%,-6%] | lowT vs topN +87% [-21%,+360%] | small->large -64% [-84%,-25%]
+  shape: sign flip                                   per 1000 set vars            S    0.3 M    0.7 W    0.8 | weak->strong -62% [-100%,+47%] | N->T -44% [-87%,+50%] | lowT vs topN +1% [-77%,+275%] | small->large -51% [-82%,-4%]
+  shape: off by one (count)                          per 1000 set vars            S    1.0 M    1.4 W    2.9 | weak->strong -66% [-84%,-44%] | N->T -57% [-71%,-38%] | lowT vs topN -49% [-72%,-7%] | small->large -31% [-56%,+7%]
+  shape: small count diff (2-5)                      per 1000 set vars            S    0.9 M    2.3 W    3.5 | weak->strong -76% [-87%,-62%] | N->T -55% [-71%,-40%] | lowT vs topN -25% [-64%,+24%] | small->large -26% [-45%,+14%]
+  shape: string/token                                per 1000 set vars            S    0.7 M    2.6 W    4.7 | weak->strong -84% [-95%,-72%] | N->T -57% [-71%,-44%] | lowT vs topN -25% [-59%,+36%] | small->large -35% [-53%,-7%]
+  shape: string: date                                per 1000 set vars            S    0.4 M    1.0 W    1.5 | weak->strong -75% [-95%,-62%] | N->T -48% [-79%,-29%] | lowT vs topN -11% [-70%,+51%] | small->large -40% [-56%,-10%]
+variable not set                                     per 1000 vars                S   11.5 M   13.4 W   33.9 | weak->strong -66% [-77%,-53%] | N->T -61% [-71%,-49%] | lowT vs topN +52% [-1%,+142%] | small->large +12% [-12%,+47%]
+turn: variables_not_set                              per 1000 turns               S   15.0 M   20.1 W   48.3 | weak->strong -69% [-77%,-60%] | N->T -56% [-64%,-46%] | lowT vs topN +56% [+17%,+112%] | small->large +29% [+5%,+56%]
+turn: budget exhausted (max_steps)                   per 1000 turns               S   10.6 M    3.7 W   33.8 | weak->strong -69% [-78%,-57%] | N->T -89% [-94%,-82%] | lowT vs topN +54% [-7%,+230%] | small->large +69% [+30%,+123%]
+turn: output_limit                                   per 1000 turns               S    0.0 M    0.9 W    0.2 | weak->strong -100% [-100%,-100%] | N->T +300% [+167%,+500%] | lowT vs topN +nan% [+nan%,+nan%] | small->large -100% [-100%,-100%]
+turn: lossy_snapshot                                 per 1000 turns               S    2.2 M    0.3 W    1.2 | weak->strong +80% [-26%,+744%] | N->T +56% [-33%,+650%] | lowT vs topN -71% [-100%,+50%] | small->large +380% [+50%,+1800%]
+turn: wrong after previous turn wrong                per 1000 turns w/ prev wrong S  645.8 M  734.6 W  778.4 | weak->strong -17% [-29%,-6%] | N->T -6% [-12%,-0%] | lowT vs topN +1% [-6%,+7%] | small->large -5% [-11%,+0%]
+turn: wrong after previous turn correct              per 1000 turns w/ prev pass  S   39.1 M   94.3 W  149.2 | weak->strong -74% [-78%,-69%] | N->T -46% [-51%,-41%] | lowT vs topN -11% [-23%,+3%] | small->large -18% [-26%,-9%]
+delivery: computed but not delivered                 per 1000 wrong numeric vars  S   79.7 M   46.1 W   30.5 | weak->strong +161% [+45%,+351%] | N->T +80% [+17%,+175%] | lowT vs topN +190% [+63%,+467%] | small->large +175% [+87%,+340%]
+delivery: near-name variable instead of contract name per 1000 vars                S    1.2 M    1.6 W    2.1 | weak->strong -43% [-65%,-12%] | N->T -9% [-49%,+63%] | lowT vs topN +40% [-44%,+211%] | small->large +145% [+41%,+357%]
+delivery: phantom completion                         per 1000 turns               S    0.1 M    0.7 W    0.2 | weak->strong -38% [-100%,+150%] | N->T +400% [+40%,+1300%] | lowT vs topN +nan% [+nan%,+nan%] | small->large -67% [-100%,+0%]
+self-check present, among wrong turns                per 1000 wrong turns         S   39.8 M   56.5 W   50.8 | weak->strong -22% [-58%,+24%] | N->T -3% [-30%,+33%] | lowT vs topN +67% [+8%,+179%] | small->large +29% [-3%,+77%]
+turn wrong, given an explicit self-check             per 1000 checked turns       S   70.3 M  220.1 W  381.3 | weak->strong -82% [-91%,-70%] | N->T -56% [-67%,-41%] | lowT vs topN -23% [-48%,+23%] | small->large -34% [-49%,-15%]
+turn wrong, given no self-check                      per 1000 unchecked turns     S   64.3 M  144.7 W  226.6 | weak->strong -72% [-77%,-66%] | N->T -46% [-52%,-40%] | lowT vs topN -18% [-28%,-6%] | small->large -32% [-38%,-25%]
+self-check visibly failed, among wrong checked turns per 1000 wrong turns with checks S   76.9 M  238.1 W  349.7 | weak->strong -78% [-100%,-45%] | N->T -34% [-65%,+1%] | lowT vs topN +2% [-54%,+140%] | small->large -10% [-39%,+30%]
+no visible check failure, among wrong checked turns  per 1000 wrong turns with checks S  923.1 M  761.9 W  650.3 | weak->strong +42% [+21%,+67%] | N->T +17% [-1%,+39%] | lowT vs topN -1% [-22%,+35%] | small->large +5% [-12%,+26%]
+-> analysis/final_20261012/tables/defects_by_tier.csv
+-> analysis/final_20261012/tables/defects_by_tier_tests.csv

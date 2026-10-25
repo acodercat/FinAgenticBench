@@ -1,0 +1,137 @@
+{
+  "name": "bank_holding_structure_transitive_control",
+  "module": "evals.comparison_ranking.bank_holding_structure_transitive_control",
+  "task_family": "comparison_ranking",
+  "data_sources": [
+    "ffiec_nic_ownership",
+    "ffiec_nic_institutions"
+  ],
+  "case_type": "baseline",
+  "difficulty": "hard",
+  "judge_reference": {
+    "source": "FFIEC National Information Center current structure files: the parent-and-offspring relationship records and the institution identifier records.",
+    "facts": [
+      "The relationship file carries 35,922 rows with 3 repeated parent-and-offspring pairs; the direct controlled graph contains 34,159 entities, of which 3,599 appear only as a parent.",
+      "Four groups holding nine entities in total are mutually reachable, so traversal needs a visited set.",
+      "The median filtered top-level entity has 1 direct controlled offspring and 2 reachable entities, and 38.1773 percent reach beyond their direct offspring.",
+      "Morgan Stanley reports 73 direct controlled offspring and reaches 4,129 entities in total, a ratio of 56.5616, over a structure 11 shortest-path levels deep.",
+      "Respectively 2, 2 and 1 descendants of Morgan Stanley, Goldman Sachs and Truist carry a nonmissing FDIC certificate; certificate presence is not asserted to prove current insurance status.",
+      "The relationship level column reads 1 on 35,868 rows and another value on 54; level 1 is direct while the other rows already describe indirect relationships.",
+      "The leader's direct controlled graph is widest at derived level 4 with 2,090 entities and has 3 entities at level 11.",
+      "20 of the leader's descendants appear in no institution record.",
+      "The file is a current snapshot; graph edges require both a direct relationship level and a controlled status rather than the mere presence of a relationship row."
+    ],
+    "known_overclaims": [
+      "Treating every relationship status as controlled or treating already-indirect relationship rows as one-step edges.",
+      "Reading the source relationship level as the root-relative shortest-path depth of an entity.",
+      "Treating a nonmissing FDIC certificate as proof of current deposit-insurance status.",
+      "Treating the descendant count as a measure of company size or banking activity.",
+      "Adding descendant counts across top-level parents, when an entity reachable from two parents is counted under each."
+    ]
+  },
+  "conversations": [
+    {
+      "turns": [
+        {
+          "query": "Using the FFIEC NIC ownership relationship file, first report how many rows the full file carries and how many repeat a parent-and-offspring pair already present. Build a directed graph from parent RSSD identifier to offspring RSSD identifier using distinct pairs only where the relationship level equals 1 and the control indicator equals 1. Report how many distinct entities appear as either endpoint in that graph and how many appear as a parent but never as an offspring. Then determine whether the graph contains cycles: report how many groups of two or more entities are mutually reachable from one another and how many entities those groups hold in total. Briefly explain the traversal implication of any cycles and the scope of calling a parent-only entity top-level.",
+          "validator": "validate_graph_shape",
+          "stores": [
+            "edge_rows",
+            "duplicate_pairs",
+            "entity_count",
+            "top_level_count",
+            "cyclic_groups",
+            "entities_on_cycles"
+          ],
+          "claims": [
+            {
+              "id": "cycle_consequence",
+              "description": "The response explains that a cycle-safe traversal records visited entities so each reachable identifier is counted once and the walk terminates.",
+              "mode": "required"
+            },
+            {
+              "id": "top_level_reading",
+              "description": "The response treats parent-only entities as top-level only within the filtered current snapshot, not as proof that they have no owner in an absolute legal sense.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "For every entity that appears as a parent but never as an offspring in that filtered graph, follow the relationships transitively to find every entity reachable from it, counting each reachable entity once however many paths lead to it and excluding the starting entity itself. Rank them by total entities reached, breaking ties on the lower RSSD identifier. Using the institution identifier file for names, report the leader's legal name, how many direct offspring it reports, how many entities it reaches in total, the second divided by the first, and how many levels deep its structure runs, where an entity's level is the fewest relationships separating it from the top-level entity, so that a direct offspring sits at level 1. Then across all those top-level entities report the median direct offspring count and the median total reached, and the percentage that reach more entities than they have direct offspring. Interpret what the direct and transitive counts reveal and what legal-entity reach does not measure.",
+          "validator": "validate_transitive_reach",
+          "stores": [
+            "leader_name",
+            "leader_direct_offspring",
+            "leader_descendants",
+            "leader_ratio",
+            "leader_depth",
+            "median_direct_offspring",
+            "median_descendants",
+            "deeper_structure_share_pct"
+          ],
+          "claims": [
+            {
+              "id": "reach_interpretation",
+              "description": "The response explains that direct offspring and transitive reach answer different structural questions, compares the leader with the median profile, and treats a count of legal entities as a structural measure rather than a measure of company size or banking activity.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Now compare legal-entity reach with an identifier-table linkage. For the top-level entity found in the previous turn, report how many of the entities it reaches have a nonmissing FDIC certificate in the institution record. Then take the second and third ranked top-level entities by total reached and, for each, report its legal name, how many entities it reaches, and how many have a nonmissing FDIC certificate. Explain what certificate presence does and does not establish from this current identifier snapshot.",
+          "validator": "validate_fdic_linkage",
+          "stores": [
+            "leader_fdic_linked",
+            "second_name",
+            "second_descendants",
+            "second_fdic_linked",
+            "third_name",
+            "third_descendants",
+            "third_fdic_linked"
+          ],
+          "claims": [
+            {
+              "id": "certificate_boundary",
+              "description": "The response treats a nonmissing FDIC certificate as an identifier-table linkage flag.",
+              "mode": "required"
+            },
+            {
+              "id": "certificate_insurance_boundary",
+              "description": "If the response reads a nonmissing FDIC certificate as evidence of insurance status, it states that the identifier table records a linkage flag rather than an entity's current deposit-insurance status.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Finally examine the relationship level column in the full source file. Report how many rows carry the value 1 and how many carry any other value. Explain how the source relationship level differs from a root-relative graph depth. Then, using the shortest-distance depths derived from the direct controlled graph for the top-level entity identified earlier, report which derived level holds the most of the entities it reaches and how many sit there, and how many sit at its deepest level. Last, report how many of the entities it reaches have no record in the institution identifier file, and interpret the scope of that identifier gap.",
+          "validator": "validate_derived_depth",
+          "stores": [
+            "base_level_rows",
+            "other_level_rows",
+            "widest_level",
+            "widest_level_count",
+            "deepest_level_count",
+            "unlisted_descendants"
+          ],
+          "claims": [
+            {
+              "id": "level_grain",
+              "description": "The response explains that source level 1 denotes a direct relationship while other source levels already represent indirect relationships, whereas derived depth is the shortest path from the selected root through direct controlled edges.",
+              "mode": "required"
+            },
+            {
+              "id": "identity_gap_boundary",
+              "description": "The response interprets an unmatched reachable identifier as a coverage gap between the two declared current tables.",
+              "mode": "required"
+            },
+            {
+              "id": "identity_gap_existence_boundary",
+              "description": "If the response treats an unmatched reachable identifier as evidence about the legal entity itself, it states that the gap describes table coverage rather than the entity's existence.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

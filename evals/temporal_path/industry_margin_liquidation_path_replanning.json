@@ -1,0 +1,60 @@
+{
+  "name": "industry_margin_liquidation_path_replanning",
+  "module": "evals.temporal_path.industry_margin_liquidation_path_replanning",
+  "task_family": "temporal_path",
+  "data_sources": ["ken_french_10_industry_portfolios", "nyfed_reference_rates"],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [{
+    "id": "main",
+    "turns": [
+      {
+        "query": "Analyze a hypothetical financed account using the Ken French value-weighted ten-industry daily total-return table and New York Fed SOFR as constructed return-index assets. From only the 2021-01-01 through 2021-12-31 daily industry observations, rank the ten published industry percent-return columns by descending sample standard deviation (ddof=1); exact ties use the ascending canonical industry token. Freeze the top three in that rank order. At the start of 2022-01-01 create USD10m equity and gross industry assets equal to 2.50 times equity, funded by opening debt equal to the difference between those gross assets and that equity. Set each selected industry total-return price index to 1 and buy equal initial dollar amounts, with divisible units; do not rebalance daily or add separate dividends to total returns. Replay through 2023-12-29, with each published return applied only on its trading date. Capitalize debt interest on every calendar day from January 1, including nontrading days, by taking the NY Fed SOFR fixing with the latest Effective Date on or before that day and adding 200 basis points, compounded daily on ACT/360. On each trading date, apply that day's return to existing units, then that day's debt interest, then measure equity divided by current asset value. For this first diagnostic, hold all units and allow the ratio to fall without a maintenance action. Report the three exact canonical industry tokens, opening debt in USD millions, and the lowest observed trading-day equity ratio in percent with its first date. Explain how the selected return paths and calendar debt accrual jointly move account equity.",
+        "validator": "validate_turn_1",
+        "stores": ["industry_1", "industry_2", "industry_3", "initial_loan_mn", "unliquidated_low_margin_pct", "unliquidated_low_margin_day"],
+        "claims": [{"id": "diagnostic_margin_path", "description": "The response interprets its selected industries and measured low-ratio date using the return-unit assets and calendar-financed debt, rather than treating leverage as a fixed return multiplier.", "mode": "required"}]
+      },
+      {
+        "query": "Starting again from the turn-1 frozen industries, initial units, opening debt and daily date/rate path, impose a 30% maintenance equity-to-assets ratio on trading dates. A ratio strictly below 30% after that day's return and interest requires an immediate compulsory sale of all three currently held industry units in their existing proportions. Sell exactly enough gross market value that, after a 0.2% fee on gross sale value has reduced equity and only the net proceeds have repaid debt that day, the equity ratio equals 40%. Sold units never come back and the remaining units are not reset to equal dollars; future returns apply to the survivors. On a nontrading date, accrue interest but perform no margin check or sale. Mark the path insolvent if equity is nonpositive, if the required sale would exceed the whole position, or if its net proceeds would exceed outstanding debt. Use full unrounded state. Report the first compulsory-sale date, cumulative gross compulsory-sale value and terminal account equity at 2023-12-29, in USD millions where numeric. Explain how the actual forced sale changes later return participation and debt interest.",
+        "validator": "validate_turn_2",
+        "stores": ["first_liquidation_day", "cumulative_liquidation_mn", "liquidation_terminal_equity_mn"],
+        "claims": [{"id": "forced_sale_state", "description": "The response ties its reported forced-sale timing and amount to the resulting unit reduction, fee, debt repayment and later terminal equity.", "mode": "required"}]
+      },
+      {
+        "query": "At the first margin-call decision identified in turn 2, fork from the exact state before that day's compulsory sale, after that day's returns and interest. Instead of selling immediately, add the smallest one-time outside cash amount that directly repays debt and raises that day's equity-to-assets ratio to the 30% maintenance boundary; no units are bought and there is no injection fee. This branch retains all pre-call units. Afterwards use the same 30% maintenance, 40% sale restoration and 0.2% sale fee if a later trading-day call arises; no further outside cash is allowed. To compare investor wealth, grow the original outside injection from the calendar day after its payment through 2023-12-29 using the daily unspread latest-effective-date SOFR on ACT/360, compounded daily, and subtract that terminal outside-cash value from terminal account equity. Report the minimum injection, the exact number of subsequent compulsory-sale events and this injection-adjusted terminal equity, in USD millions where numeric. Explain what changed in financing and terminal investor wealth on this branch.",
+        "validator": "validate_turn_3",
+        "stores": ["minimum_equity_injection_mn", "post_injection_sale_count", "injected_adjusted_terminal_equity_mn"],
+        "claims": [{"id": "injection_wealth_attribution", "description": "The response interprets its calculated injection and later sales using the preserved units, reduced borrowing and terminal opportunity cost of outside cash.", "mode": "required"}]
+      },
+      {
+        "query": "Continue the actual injected branch of turn 3, preserving its selected industries, units, outside repayment, debt and any prior trading decisions. From 2023-03-01 onward, raise maintenance to 35% on trading dates while retaining the 40% after-sale restoration target, 0.2% fee, daily SOFR+200bp debt financing and prohibition on further outside cash. Earlier days retain 30% maintenance. Apply the new rule only to dates on or after March 1; never restore sold units or re-run the first injection using later information. Report the first compulsory-sale date under this tightened continuation, cumulative gross compulsory sales under the tightened rule, and injection-adjusted terminal equity using the same outside-cash SOFR opportunity cost. Explain how the later rule changes the held units and terminal wealth.",
+        "validator": "validate_turn_4",
+        "stores": ["tightened_first_sale_day", "tightened_cumulative_sale_mn", "tightened_adjusted_terminal_equity_mn"],
+        "claims": [{"id": "tightened_rule_effect", "description": "The response relates its newly measured sale date and amount to the 35% rule acting on the actual post-injection holdings and financed balance.", "mode": "required"}]
+      },
+      {
+        "query": "For a retrospective capacity comparison, keep the top-three industries and all historical returns, rates, fees and maintenance calendar already fixed, but make a new initial account for every leverage point from 1.00 through 4.00 inclusive in exact 0.05 increments. Each account starts with USD10m own equity, gross assets equal to that candidate multiple of equity, equal initial dollar units and the balancing opening loan. Replay each full 2022-01-01 through 2023-12-29 path using 30% maintenance before 2023-03-01, 35% from then on, 40% compulsory-sale restoration, proportional units and the 0.2% gross-sale fee; allow no outside injection at any leverage. An eligible candidate must retain positive equity and require zero compulsory sales over the entire replay. Among eligible candidates choose the one with highest unadjusted terminal account equity; on an exact tie choose lower starting leverage. Report the integer number of eligible grid points, the best starting leverage and its terminal equity in USD millions. Explain how the selected leverage compares with neighboring grid choices under this zero-sale mandate and what this historical comparison can establish.",
+        "validator": "validate_turn_5",
+        "stores": ["no_sale_leverage_count", "best_no_sale_leverage", "best_no_sale_terminal_equity_mn"],
+        "claims": [{"id": "grid_mandate_interpretation", "description": "The response uses its actual eligible grid result to distinguish no-sale mandate compliance from solvency or post-liquidation terminal wealth.", "mode": "required"}]
+      }
+    ]
+  }],
+  "judge_reference": {
+    "source": "Frozen Ken French value-weighted daily ten-industry total returns and NY Fed SOFR, under a hypothetical collateral/margin account and retrospective rule replay.",
+    "facts": [
+      "2021 sample-volatility order selects Durbl, Enrgy and HiTec. The original 2.50x account has USD15m opening debt; without sale its lowest margin is 29.871265839% on 2023-01-03.",
+      "The original 30% maintenance path first sells on 2023-01-03, gross USD5.651345304m and ends with USD10.491886571m equity.",
+      "The minimum first-call outside repayment is USD0.028587327m. It avoids later sales under the original rule and produces USD11.661506558m terminal equity after subtracting compounded outside capital.",
+      "On the injected path, 35% maintenance from March 2023 triggers a USD3.285864810m compulsory sale on 2023-03-09 and yields USD11.259793269m adjusted terminal equity.",
+      "In the no-injection no-sale mandate grid, 27 of 61 candidates qualify; 2.30x has the largest eligible terminal equity, USD11.618901001m. The next 2.35x candidate has a compulsory sale and is ineligible."
+    ],
+    "known_overclaims": [
+      "Treating the synthetic industry return portfolios as ETF transaction prices or adding dividends a second time.",
+      "Charging financing interest only on trading days.",
+      "Applying gross sale proceeds to debt without subtracting the 0.2% fee.",
+      "Restoring sold units when returns rebound or changing past injection under the later rule.",
+      "Treating outside cash repayment as investment gain or admitting a forced-sale grid path under the zero-sale mandate."
+    ]
+  }
+}

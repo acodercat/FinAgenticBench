@@ -1,0 +1,110 @@
+{
+  "name": "storm_damage_nfip_claim_grain_bridge",
+  "module": "evals.risk_screening.storm_damage_nfip_claim_grain_bridge",
+  "task_family": "risk_screening",
+  "data_sources": [
+    "noaa_storm_events",
+    "fema_nfip"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Run a retrospective 2024 state-month screen across the 50 states and the District of Columbia using NOAA Storm Events detail rows. Group every event row by the calendar month of its begin timestamp, sum only reported property-damage amounts, adding neither crop damage nor a zero for rows that report no damage, and select the state-month with the largest sum; resolve an exact tie by state name and then month alphabetically. Report the selected state name, USPS abbreviation and month, the count of all NOAA event rows, the count of rows reporting property damage, and the property damage. Carry the selection forward and explain how the damage-reporting rule shapes it.",
+          "validator": "validate_damage_selection",
+          "stores": [
+            "noaa_damage_leader_state_name",
+            "noaa_damage_leader_state_usps",
+            "noaa_damage_leader_month",
+            "noaa_selected_event_row_count",
+            "noaa_reported_property_damage_row_count",
+            "noaa_property_damage_usd_billions"
+          ],
+          "claims": [
+            {
+              "id": "unreported_damage_handling",
+              "description": "The response states that rows without a reported damage amount are left out of the sum rather than counted as zero, so the selected state-month reflects reported damage only.",
+              "mode": "required"
+            },
+            {
+              "id": "retrospective_vintage_boundary",
+              "description": "If the response presents the results as information known during 2024, it states that both frozen artifacts are later retrospective snapshots and not strict 2024 as-known vintages.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Use all NFIP claim records whose state and date-of-loss calendar month match that selection. Report the physical claim-record count and the sum of reported policy counts. Among nonblank flood-event labels identify the event with the largest summed policy count, resolving an exact tie alphabetically, and report its label, policy count and share of policy count across all matching records, including records with blank event labels in the denominator. Carry these records forward and explain the record-versus-policy grain and what the event label covers.",
+          "validator": "validate_claim_population",
+          "stores": [
+            "nfip_claim_record_count",
+            "nfip_represented_policy_count",
+            "nfip_dominant_named_flood_event",
+            "nfip_dominant_event_policy_count",
+            "nfip_dominant_event_policy_share_pct"
+          ],
+          "claims": [
+            {
+              "id": "claim_record_policy_grain",
+              "description": "The response explains that an NFIP physical record can carry policyCount greater than one, so record count and represented policy count are distinct populations and event shares here are policy-count weighted.",
+              "mode": "required"
+            },
+            {
+              "id": "flood_event_label_scope",
+              "description": "The response characterizes the dominant floodEvent result as a source-label distribution limited to the matching NFIP record population.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "For those same records report the aggregate signed net building, contents and ICC claim payments, the aggregate reported building-plus-contents insurance coverage, and their ratio. Explain what this ratio aggregates and how these payments relate to the NOAA damage figure you carried forward.",
+          "validator": "validate_payment_coverage",
+          "stores": [
+            "nfip_total_net_claim_payment_usd_billions",
+            "nfip_total_reported_coverage_usd_billions",
+            "nfip_net_payment_to_coverage_pct"
+          ],
+          "claims": [
+            {
+              "id": "damage_payment_nonreconciliation",
+              "description": "The response explains that NOAA property-damage estimates and signed NFIP net insurance payments cover different measurement populations and therefore do not form an accounting reconciliation with expected equality.",
+              "mode": "required"
+            },
+            {
+              "id": "coverage_ratio_aggregation_meaning",
+              "description": "The response explains that the aggregate payment-to-coverage ratio is denominator-weighted across the selected records and is distinct from a simple average of record-level payment-to-coverage ratios.",
+              "mode": "required"
+            },
+            {
+              "id": "payment_coverage_overclaim_boundary",
+              "description": "If the response calls the selected-record payment-to-coverage ratio conditional loss severity, an uninsured-loss share, coverage adequacy or a portfolio-wide insurance loss rate, it states that the two aggregate fields alone do not establish that interpretation.",
+              "mode": "conditional"
+            },
+            {
+              "id": "storm_causality_boundary",
+              "description": "If the response infers that the NOAA event rows caused every matching NFIP loss or attributes the cross-source dollar difference to a specific mechanism, it states that shared state-month timing alone does not establish that causal mapping.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "NOAA 2024 Storm Events detail file and OpenFEMA NFIP claims with 2024 dates of loss",
+    "facts": [
+      "Florida in 2024-09 is the unique leading state-month, with 264 NOAA rows, 261 reported property-damage values and 5.107543900 billion USD of reported property damage.",
+      "The matching NFIP population has 55,067 physical records representing policyCount 117,036. Hurricane Helene leads named events with policyCount 115,932, or 99.0567 percent of all matching policyCount.",
+      "Signed net building, contents and ICC payments total 6.49153364553 billion USD; building-plus-contents coverage totals 28.885395200 billion USD; the aggregate ratio is 22.4734 percent.",
+      "NOAA property damage, NFIP floodEvent labels, signed net payments and reported coverage have different source-defined meanings and do not form an accounting identity."
+    ],
+    "known_overclaims": [
+      "Counting claim records as policies or weighting the dominant event by rows instead of policyCount.",
+      "Adding crop damage, selecting by NFIP open month, replacing signed net payments with gross payments or dropping negative net values.",
+      "Calling the cross-source dollar difference uninsured loss, claim severity, event attribution or a causal disaster impact estimate."
+    ]
+  }
+}

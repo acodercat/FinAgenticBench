@@ -1,0 +1,131 @@
+{
+  "name": "treasury_cash_buffer_control_band_calibration",
+  "module": "evals.scenario_analysis.treasury_cash_buffer_control_band_calibration",
+  "task_family": "scenario_analysis",
+  "data_sources": [
+    "treasury_dts_operating_cash",
+    "nyfed_reference_rates"
+  ],
+  "case_type": "baseline",
+  "difficulty": "medium",
+  "judge_reference": {
+    "source": "Frozen Daily Treasury Statement operating cash lines for calendar 2024 and 2025 with the Federal Reserve Bank of New York published reference rates, and the explicitly stipulated control-band contract.",
+    "facts": [
+      "The window carries 501 business days across calendar 2024 and 2025 on which the opening balance, total deposits, total withdrawals and closing balance are all published.",
+      "The daily net flow averages 208.1218 million dollars with a sample standard deviation of 37,597.6367 million dollars; the closing balance on the last day is 872,853 million dollars.",
+      "At a 3.6400 percent rate converted to a daily basis over three hundred and sixty days, a one million dollar transfer cost and a zero lower limit, the return point is 21,887.416 million dollars and the upper limit three times that, 65,662.248.",
+      "The mean closing balance is 705,267.2974 million dollars, and the transfer cost that would lift three times the return point to it is 1,239.12 million dollars.",
+      "The five-day variance ratio is 0.6753 and the twenty-day ratio 0.7230, against the 1.0000 that serial independence requires.",
+      "The first of the month carries the most negative mean net flow at -66,627.8571 million dollars across 14 observations, 3.93 times the next most negative day, the third at -16,943.4444.",
+      "The closing balance ranges from 260,807 million dollars on 2025-06-12 to 1,000,632 million dollars, and on 38 of the 501 days a single day's net flow exceeds the full 65,662.248 million dollar distance between the control limits.",
+      "Reading the rate as annual rather than daily returns a return point of 3,076.7603; a three-hundred-sixty-five-day basis returns 21,988.2811; the standard deviation of the balance level rather than the daily flow returns 61,205.6266; a population standard deviation returns 21,872.8438; the overnight financing rate of 3.8700 percent returns 21,444.9299.",
+      "The largest single-day net inflow in the window is 184,784 million dollars on 2025-04-15."
+    ],
+    "known_overclaims": [
+      "Reading the calibrated band as a policy the Treasury operates or ought to operate; the transfer cost and the lower control limit are stipulated inputs, not observed ones.",
+      "Presenting the implied transfer cost as a cost the Treasury incurs, rather than the figure this model would require in order to rationalise the balance the account actually held.",
+      "Presenting the variance ratios or the calendar-day means as a significance test; no standard errors are computed and the rolling sums overlap.",
+      "Reading the window's smallest closing balance as a statutory floor or as evidence about the debt limit; the 2023 drawdown lies outside this window.",
+      "Attributing the calendar-day pattern to a specific payment or tax programme, which the cash statement's four summary lines do not identify."
+    ]
+  },
+  "conversations": [
+    {
+      "turns": [
+        {
+          "query": "The Daily Treasury Statement publishes the Treasury General Account under four lines: an opening balance, total deposits, total withdrawals and a closing balance. Take every business day in calendar 2024 and 2025 on which all four are published. Define that day's net cash flow as total deposits less total withdrawals, reading the withdrawals figure as the positive magnitude the file stores rather than as a signed amount. Report how many such days there are, the mean daily net flow, the sample standard deviation of the daily net flow taken with one degree of freedom, and the closing balance on the last of those days. Every cash figure is in millions of dollars.",
+          "validator": "validate_flow_calibration",
+          "stores": [
+            "business_day_count",
+            "mean_daily_net_flow_usd_millions",
+            "net_flow_standard_deviation_usd_millions",
+            "final_closing_balance_usd_millions"
+          ],
+          "claims": [
+            {
+              "id": "net_flow_definition",
+              "mode": "required",
+              "description": "Each day's movement is the inflow line minus the outflow line, and the outflow line holds a positive magnitude even though its label carries a minus sign."
+            },
+            {
+              "id": "drift_is_small",
+              "mode": "conditional",
+              "description": "If the response compares the mean daily net flow with its standard deviation, the mean is a small fraction of one standard deviation."
+            }
+          ]
+        },
+        {
+          "query": "Now treat that account as the cash reservoir of a Miller-Orr control-band policy: the balance is left alone inside a band and returned to a single point at either edge, and the band minimises expected transfer cost plus expected forgone interest over an indefinite horizon. Put the lower control limit at zero, one transfer's fixed cost at one million dollars, and the dispersion of the daily net flow at the carried standard deviation of that flow. Take the holding cost from the effective federal funds rate published for the window's last day, not from any other overnight rate, and put it on a daily basis over a three-hundred-sixty-day year. Report that rate in percent unconverted, the optimal return point above the lower limit, the mean closing balance, and the fixed transfer cost that would instead place the optimal upper limit at that mean.",
+          "validator": "validate_control_band",
+          "stores": [
+            "holding_cost_rate_pct",
+            "control_band_return_point_usd_millions",
+            "mean_closing_balance_usd_millions",
+            "implied_transfer_cost_usd_millions"
+          ],
+          "claims": [
+            {
+              "id": "band_versus_balance",
+              "mode": "required",
+              "description": "An upper limit set by trading a transfer fee against forgone interest lands an order of magnitude beneath the cash this reservoir actually carried, placing its ordinary level outside anything such a policy would produce."
+            },
+            {
+              "id": "inversion_reading",
+              "mode": "conditional",
+              "description": "If the response interprets the implied transfer cost, it is the cost per transfer that a transaction-cost rationale would need in order to justify the observed balance, not a recommended policy."
+            }
+          ]
+        },
+        {
+          "query": "That policy is optimal only if the daily net flows are serially independent with no drift, so test the premise. For a horizon of five business days, and again of twenty, form every overlapping rolling sum of that many consecutive daily net flows inside the window, take its sample variance with one degree of freedom, and divide by the horizon times that same one-degree-of-freedom variance of the daily net flow; serial independence puts the result at one. Then group the daily net flows by the calendar day of the month on which they fall and report which calendar day carries the most negative mean, breaking a tie by the earlier day, together with that mean.",
+          "validator": "validate_maintained_assumption",
+          "stores": [
+            "short_horizon_variance_ratio",
+            "long_horizon_variance_ratio",
+            "largest_outflow_calendar_day",
+            "largest_outflow_calendar_day_mean_usd_millions"
+          ],
+          "claims": [
+            {
+              "id": "variance_ratio_below_one",
+              "mode": "required",
+              "description": "Both ratios land beneath unity, so multi-day aggregates disperse less than independent increments would make them: the series pulls back toward its centre instead of accumulating."
+            },
+            {
+              "id": "calendar_seasonality",
+              "mode": "required",
+              "description": "Position in the monthly payment and tax calendar predicts a large share of each day's movement, a regularity the derivation of this policy assumes away."
+            }
+          ]
+        },
+        {
+          "query": "Finally, hold the band against what the account actually did over the same window. Report the smallest closing balance, the date it occurred on, and the largest closing balance. Then count the business days whose net cash flow, taken in absolute value, was larger than the whole distance from the lower control limit to the upper one.",
+          "validator": "validate_observed_behaviour",
+          "stores": [
+            "minimum_closing_balance_usd_millions",
+            "minimum_closing_balance_date",
+            "maximum_closing_balance_usd_millions",
+            "days_single_flow_exceeds_band_count"
+          ],
+          "claims": [
+            {
+              "id": "observed_range_scale",
+              "mode": "required",
+              "description": "Between its low and its high the reservoir swung by several hundred billion dollars, many multiples of the span such a policy would permit."
+            },
+            {
+              "id": "single_day_overruns_the_band",
+              "mode": "required",
+              "description": "On a substantial minority of days one day's movement alone exceeds the full distance between the two control limits, so the policy would be driven from edge to edge within a single day."
+            },
+            {
+              "id": "window_excludes_debt_limit_trough",
+              "mode": "conditional",
+              "description": "If the response places the window in context, calendar 2024 and 2025 sits outside the 2023 debt-limit drawdown, so the minimum reported here is a working balance rather than a statutory floor."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

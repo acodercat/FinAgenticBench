@@ -1,0 +1,142 @@
+{
+  "name": "money_fund_maturity_liquidity_limits",
+  "module": "evals.comparison_ranking.money_fund_maturity_liquidity_limits",
+  "task_family": "comparison_ranking",
+  "data_sources": [
+    "sec_nmfp_series_filings",
+    "sec_nmfp_liquidity"
+  ],
+  "case_type": "baseline",
+  "difficulty": "hard",
+  "judge_reference": {
+    "source": "SEC Form N-MFP money market fund series filings and the daily liquid asset reports filed with them, at the 2025-06-30 report date.",
+    "facts": [
+      "Counting each fund once by keeping the latest filing for its series identifier gives 309 funds; keeping every filing would give 322 because 13 amendments restate a filing already present.",
+      "Median weighted average maturity is 31 days against a maximum of 59, and median weighted average life 58 days against a maximum of 116; no fund exceeds the 60-day or 120-day cap and none reports a life below its maturity.",
+      "The life-minus-maturity difference has a median of 30 days and a maximum of 102; government funds run a median 49 days across 227 funds, prime funds 19, and the 25 funds in the broad tax exempt category 0.",
+      "The gap is wide for government funds because agency floating rate notes reset often but mature far out, and zero for tax exempt funds because the variable rate demand notes they hold carry a put usable for both measures.",
+      "Across the whole liquidity file 449 rows, 0.5950 percent, report zero weekly liquid assets in both dollars and percent; 81 of the 317 series carry at least one, a zero is a median 0.8734 percent of an affected series own observations, their median reading when positive is 84.7400 percent, and only 1 series reports zero throughout, so these are gaps in the record.",
+      "All 309 funds carry a liquidity row dated the report date, 2 of which are these zeros, leaving 307 with a median 84.0000 percent weekly and 71.8200 percent daily liquid assets.",
+      "Taken raw, 18 funds sit below the 25 percent daily minimum and 2 below the 50 percent weekly one; dropping the zero rows leaves 16 and 0.",
+      "Of the 16, 14 are tax exempt funds, which the rule does not subject to the daily minimum, leaving 2 that it does; both report 100.0000 percent weekly liquid assets, which the definitions allow because short agency discount notes count as weekly but not as daily liquid assets, though what those funds hold is not shown.",
+      "The minimums condition what a fund may acquire rather than setting a level it must hold, so an observation below one is not by itself a violation."
+    ],
+    "known_overclaims": [
+      "Reporting funds below the daily minimum as rule breaches without excluding tax exempt funds or the zero-valued rows.",
+      "Treating the life-minus-maturity difference as unused headroom under the caps rather than as a description of what the portfolio holds.",
+      "Reading a zero weekly liquid asset figure from a government fund as a position rather than as a missing observation.",
+      "Counting a fund twice when an amendment restates a filing already present at the same report date."
+    ]
+  },
+  "conversations": [
+    {
+      "turns": [
+        {
+          "query": "Using the SEC Form N-MFP series filings, take every filing with a report date of 2025-06-30 that carries a series identifier, and keep one filing per series: the one with the latest filing date, breaking a tie on the greatest accession. Report how many funds result. Report the median and the maximum weighted average maturity in days, and how many funds exceed the 60-day cap. Report the median and maximum weighted average life in days, and how many exceed the 120-day cap. Finally define each fund's gap as its weighted average life minus its weighted average maturity and report the smallest gap in the population. Briefly explain why the filing-selection rule matters and how the two maturity measures should be interpreted.",
+          "validator": "validate_maturity_caps",
+          "stores": [
+            "filing_count",
+            "median_maturity_days",
+            "maximum_maturity_days",
+            "over_maturity_cap",
+            "median_life_days",
+            "maximum_life_days",
+            "over_life_cap",
+            "minimum_gap_days"
+          ],
+          "claims": [
+            {
+              "id": "maturity_measure_interpretation",
+              "description": "The response treats weighted average maturity and weighted average life as distinct regulatory measures and interprets the observed gap without claiming that the aggregate fields reveal the securities causing it.",
+              "mode": "required"
+            },
+            {
+              "id": "filing_selection_reason",
+              "description": "The response explains that latest-per-series selection prevents multiple accessions for one series and report date from being counted as separate funds.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Describe the gap across the population and by fund category. Report the median and the maximum gap in days. Then, using the fund category field exactly as reported, report how many funds fall in the category named Government and their median gap in days, the median gap of the funds in the category named Prime, and how many funds fall in the category named Other Tax Exempt together with their median gap, gaps. Interpret what these category summaries establish without assigning unobserved security holdings or causes.",
+          "validator": "validate_gap_composition",
+          "stores": [
+            "median_gap_days",
+            "maximum_gap_days",
+            "government_filings",
+            "government_gap_days",
+            "prime_gap_days",
+            "tax_exempt_filings",
+            "tax_exempt_gap_days"
+          ],
+          "claims": [
+            {
+              "id": "category_gap_boundary",
+              "description": "The response describes differences in the reported maturity-life gap across categories while acknowledging that the two aggregate sources do not identify the security holdings or mechanisms producing those differences.",
+              "mode": "required"
+            },
+            {
+              "id": "gap_is_not_headroom",
+              "description": "The response states that the gap describes what a portfolio holds rather than measuring unused room under the caps, so two funds at the same maturity can carry very different exposure.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Turn to the daily liquid asset reports. Across the whole liquidity file, report how many rows carry a weekly liquid asset amount of exactly zero and that count as a percentage of the file. Then join the funds from the first turn to the liquidity rows dated 2025-06-30 on the accession, and report how many funds match and how many of the matched rows carry that zero amount. Drop those rows and report how many funds remain and their median weekly liquid asset percentage. Explain what this zero-row screen can and cannot establish.",
+          "validator": "validate_liquidity_screen",
+          "stores": [
+            "zero_liquidity_rows",
+            "zero_liquidity_share_pct",
+            "matched_filings",
+            "zero_rows_at_date",
+            "screened_filings",
+            "median_weekly_liquid_pct"
+          ],
+          "claims": [
+            {
+              "id": "zero_screen_boundary",
+              "description": "The response presents dropping exact-zero weekly amounts as an explicit sensitivity screen.",
+              "mode": "required"
+            },
+            {
+              "id": "zero_provenance_boundary",
+              "description": "If the response characterizes a particular zero, it states that the source shows neither whether it is missing, nor erroneous, nor a genuine reported position.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Now count apparent shortfalls against the 25 percent daily and 50 percent weekly minimums. On the screened funds report the median daily liquid asset percentage. Report how many funds fall below the daily minimum before the zero rows are dropped and how many after. Of those remaining, report how many belong to either the category named Other Tax Exempt or the category named Single State, and how many belong to neither. For the funds belonging to neither, report the lowest weekly liquid asset percentage among them. Finally report how many screened funds fall below the weekly minimum. Explain how Rule 2a-7 applies to these categories and what a point-in-time reading below a threshold can establish.",
+          "validator": "validate_minimum_tests",
+          "stores": [
+            "median_daily_liquid_pct",
+            "below_daily_raw",
+            "below_daily_screened",
+            "below_daily_tax_exempt",
+            "below_daily_subject",
+            "subject_minimum_weekly_pct",
+            "below_weekly_screened"
+          ],
+          "claims": [
+            {
+              "id": "regulatory_application",
+              "description": "The response explains that tax-exempt money market funds are not subject to the daily liquid asset acquisition test and that the daily and weekly percentage tests condition acquisitions, so a point-in-time observation below a threshold is not by itself proof of a violation.",
+              "mode": "required"
+            },
+            {
+              "id": "liquidity_measure_scope",
+              "description": "The response recognizes that daily and weekly liquid assets are different qualifying sets, so divergent percentages are not inherently contradictory.",
+              "mode": "required"
+            },
+            {
+              "id": "holdings_inference_boundary",
+              "description": "If the response names specific holdings behind either measure, it states that the aggregate fields identify none.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

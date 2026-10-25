@@ -1,0 +1,16 @@
+{
+  "built_at": "2026-08-26T09:06:56.035478+00:00",
+  "cutoff": "2025-12-31",
+  "window_start": "2019-01-01",
+  "rows": {
+    "treasury_rates.yield_curve": 1750,
+    "cftc_cot.financial_futures": 39732,
+    "bis.effective_exchange_rates": 10752,
+    "bis.global_liquidity": 936,
+    "bis.otc_derivatives": 1232,
+    "fdic.bank_financials": 136161,
+    "fdic_sod.branches": 562931,
+    "ncua_call_reports.institutions": 138107,
+    "finra_short_volume.daily": 5172619
+  }
+}

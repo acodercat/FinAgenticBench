@@ -1,0 +1,6 @@
+signal,coverage,cov_lo,cov_hi,p_correct_given_agree,pc_lo,pc_hi,n
+"same model, 2 runs agree (thinking)",0.924983,0.911057,0.937287,0.982574,0.975515,0.988111,90019
+"2 vendors agree (1 run each, thinking)",0.902711,0.883103,0.920072,0.991882,0.986649,0.995831,99343
+3 vendors agree,0.887598,0.863448,0.909305,0.997413,0.993929,0.999472,76200
+3 runs identical (thinking),0.8961,0.877699,0.912026,0.988924,0.983163,0.9933,29721
+"difference: 2 vendors minus same model, P(correct|agree)",,,,0.009308,0.006533,0.01266,

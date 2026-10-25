@@ -1,0 +1,157 @@
+{
+  "name": "bis_var_generalized_connectedness",
+  "module": "evals.scenario_analysis.bis_var_generalized_connectedness",
+  "task_family": "scenario_analysis",
+  "data_sources": [
+    "bis_global_liquidity",
+    "ofr_market_stress"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Build a quarterly panel with BIS total credit (loans and debt securities, all lenders) to non-bank borrowers in emerging-market and developing economies for USD, EUR, and JPY, plus the calendar-quarter arithmetic mean of daily OFR Financial Stress Index values. Compute each currency's quarter-over-quarter log growth times 100 using the immediately preceding calendar-quarter level from the full BIS series, then retain transformed observations from 2001-Q1 through 2024-Q4. Order the four variables USD growth, EUR growth, JPY growth, OFR FSI. Estimate an intercept-bearing unrestricted VAR(2) by equation-by-equation OLS. Estimate innovation covariance from the residual cross-product divided by the number of VAR regression observations, not residual degrees of freedom. Report panel and regression counts, companion spectral radius, 2-norm condition numbers of the intercept-and-lag design and innovation covariance, and the maximum absolute sample normal-equation moment. Explain the statistical status of the stationarity and conditioning diagnostics, discuss the material scope limitations of combining the four series in one fitted system, and carry the VAR and innovation covariance forward.",
+          "validator": "validate_var",
+          "stores": [
+            "connectedness_quarter_count",
+            "var_estimation_observation_count",
+            "var_spectral_radius",
+            "var_design_condition_number",
+            "innovation_covariance_condition_number",
+            "maximum_ols_normal_moment"
+          ],
+          "claims": [
+            {
+              "id": "var_diagnostic_scope",
+              "description": "The response interprets stability, conditioning, and OLS moments as model diagnostics rather than proof of structural identification.",
+              "mode": "required"
+            },
+            {
+              "id": "pooled_system_scope",
+              "description": "The response discusses the limitations of combining currency-denominated aggregate credit growth with a market-stress index in one reduced-form system.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Using the carried VAR, compute the Pesaran-Shin generalized forecast-error variance decomposition at an eight-quarter forecast horizon, using moving-average horizons zero through seven and the full innovation covariance. Row-normalize the resulting decomposition. Report the complete 4-by-4 matrix in percent, with each requested name read as source-to-target, plus the maximum absolute normalized row-sum residual and the Diebold-Yilmaz total connectedness index. Explain the distinction between generalized shares and orthogonalized Cholesky shares and the interpretive scope of the row normalization.",
+          "validator": "validate_gfevd",
+          "stores": [
+            "gfevd_usd_to_usd_pct",
+            "gfevd_eur_to_usd_pct",
+            "gfevd_jpy_to_usd_pct",
+            "gfevd_ofr_to_usd_pct",
+            "gfevd_usd_to_eur_pct",
+            "gfevd_eur_to_eur_pct",
+            "gfevd_jpy_to_eur_pct",
+            "gfevd_ofr_to_eur_pct",
+            "gfevd_usd_to_jpy_pct",
+            "gfevd_eur_to_jpy_pct",
+            "gfevd_jpy_to_jpy_pct",
+            "gfevd_ofr_to_jpy_pct",
+            "gfevd_usd_to_ofr_pct",
+            "gfevd_eur_to_ofr_pct",
+            "gfevd_jpy_to_ofr_pct",
+            "gfevd_ofr_to_ofr_pct",
+            "gfevd_maximum_row_sum_residual",
+            "total_connectedness_index_pct"
+          ],
+          "claims": [
+            {
+              "id": "generalized_order_boundary",
+              "description": "The response explains how generalized FEVD handles correlated innovations without imposing a recursive variable ordering.",
+              "mode": "required"
+            },
+            {
+              "id": "normalization_boundary",
+              "description": "The response explains why generalized rows require normalization and treats the normalized shares as a descriptive allocation under the fitted system.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "From the carried row-normalized decomposition, for each node report directional connectedness received from other nodes and transmitted to other nodes, and compute transmitted minus received net connectedness. Select the greatest net transmitter, ties in the stated node order. Also identify the largest off-diagonal directed edge, ties by target order then source order, and report source, target, and share. Identify every reported node using exactly one lower-case token from usd, eur, jpy, or ofr. Interpret the network direction and discuss what these inferred spillovers establish about transmission and causality.",
+          "validator": "validate_directional",
+          "stores": [
+            "usd_from_others_pct",
+            "usd_to_others_pct",
+            "eur_from_others_pct",
+            "eur_to_others_pct",
+            "jpy_from_others_pct",
+            "jpy_to_others_pct",
+            "ofr_from_others_pct",
+            "ofr_to_others_pct",
+            "net_transmitter",
+            "largest_directed_edge_source",
+            "largest_directed_edge_target",
+            "largest_directed_edge_pct"
+          ],
+          "claims": [
+            {
+              "id": "directional_network_meaning",
+              "description": "The response correctly distinguishes a source-to-target FEVD contribution, directional totals, and net connectedness.",
+              "mode": "required"
+            },
+            {
+              "id": "connectedness_causality_boundary",
+              "description": "The response treats the fitted network as reduced-form predictive connectedness.",
+              "mode": "required"
+            },
+            {
+              "id": "connectedness_structural_channel_boundary",
+              "description": "If the response describes a transmission channel between the nodes, it states that a reduced-form decomposition does not identify a structural causal channel.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Shock the carried net-transmitter node by one positive innovation standard deviation and compute its Pesaran-Shin generalized impulse response over horizons zero through eight using the full carried innovation covariance. Report the shock node using the same exact lower-case node token, its size, OFR-FSI impact response, the earliest horizon with greatest absolute OFR response and its signed value, cumulative responses over all nine horizons for each ordered node, and the horizon-eight OFR response. Explain how correlated contemporaneous innovations affect a generalized impulse response and the evidentiary limits of interpreting this estimated shock response as a forecast or policy experiment.",
+          "validator": "validate_girf",
+          "stores": [
+            "girf_shock_node",
+            "girf_shock_size",
+            "girf_ofr_impact_response",
+            "girf_ofr_peak_absolute_horizon",
+            "girf_ofr_peak_absolute_response",
+            "girf_cumulative_usd_response",
+            "girf_cumulative_eur_response",
+            "girf_cumulative_jpy_response",
+            "girf_cumulative_ofr_response",
+            "girf_terminal_ofr_response"
+          ],
+          "claims": [
+            {
+              "id": "generalized_impulse_meaning",
+              "description": "The response explains that the generalized response conditions on a node innovation while retaining contemporaneous covariance rather than zeroing all correlated innovation responses.",
+              "mode": "required"
+            },
+            {
+              "id": "impulse_scope_boundary",
+              "description": "The response limits the shock path to the fitted historical reduced-form system rather than a structural intervention or guaranteed forecast.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "The reference independently estimates the four-node VAR(2), row-normalized eight-quarter generalized FEVD, directional Diebold-Yilmaz network, and nine-horizon generalized impulse response from frozen BIS and OFR panels.",
+    "facts": [
+      "The three credit series are BIS total credit, loans plus debt securities from all lenders, to non-bank borrowers in emerging-market and developing economies, one each for dollar-, euro- and yen-denominated lending, alongside the quarterly mean OFR Financial Stress Index.",
+      "On the VAR(2) estimated over 2001-Q1 through 2024-Q4 the decomposition keeps 78.8363 percent of the dollar forecast error at home and 91.1030 percent of the yen; total connectedness across the four nodes is 18.1924 percent.",
+      "Dollar credit growth is the net transmitter at 7.3174 percentage points. The euro is the largest net receiver at -17.6226, taking 22.2167 percent of its variance from the others while sending 4.5941.",
+      "The largest single directed edge runs from the stress index into dollar credit growth at 14.3627 percent, not between two currencies.",
+      "Each decomposition row is normalized to sum to 100 percent and the reported row-sum residual is zero at the scored precision. The innovation covariance condition number is 10.9757 and the maximum OLS normal moment is zero at the scored precision, so the generalized weights are not read off a near-singular matrix."
+    ],
+    "known_overclaims": [
+      "Reading the decomposition as a causal identification; it is order-invariant but not structural.",
+      "Presenting the generalized impulse responses as the effect of one shock holding the other series fixed; they are generalized rather than orthogonalized.",
+      "Treating the shares as a property of the system rather than of this estimated sample.",
+      "Separating exchange-rate valuation effects from the growth series, which measures nominal quarter-end credit."
+    ]
+  }
+}

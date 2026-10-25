@@ -1,0 +1,137 @@
+{
+  "name": "reg_cf_offering_cap_and_reg_d_follow_on",
+  "module": "evals.temporal_path.reg_cf_offering_cap_and_reg_d_follow_on",
+  "task_family": "temporal_path",
+  "data_sources": [
+    "sec_form_c",
+    "sec_form_d"
+  ],
+  "case_type": "baseline",
+  "difficulty": "hard",
+  "judge_reference": {
+    "source": "Frozen SEC Regulation Crowdfunding Form C filings from 2019 and Form D notices from July 2020, both through 2025. The ceilings, counts and follow-on shares are analytic constructions rather than published statistics.",
+    "facts": [
+      "Before 2021-03-15, 2,124 original offerings state a maximum; the highest is 1,070,000 dollars and 636 state exactly that. From that date through 2025, 6,729 do; the highest is 5,000,000 and 391 state exactly that. These are the Regulation Crowdfunding twelve-month limits before and after the 2021 amendments, and the bunching shows the ceiling bounding the stated maximum, which is the most an issuer may accept if oversubscribed and usually far above its target. The first offering above the old limit was filed on 2021-05-11.",
+      "Among offerings filed from 2020-07-01 through 2024-12-31, 15.67 percent of those at the limit before the change were followed within 365 days by an original Form D notice from the same issuer, against 6.83 percent below it; after the change 12.50 against 5.36. Issuers stating the ceiling more often also raise money through Regulation D private placements, under either cap, though the gap can reflect which issuers choose to state the ceiling.",
+      "Of the 618 distinct issuers that filed an earlier-period offering at the 1,070,000 ceiling, 81 later filed an offering above it; of the 1,346 whose earlier offerings never stated the ceiling, 95 did. Capped issuers returned above the old limit at 13.11 against 7.06 percent, close to twice the rate, which fits a limit that held some back but can also reflect differences between the two groups."
+    ]
+  },
+  "conversations": [
+    {
+      "turns": [
+        {
+          "query": "Take the original crowdfunding offering statements, Form C filings that are not amendments, progress updates, annual reports or withdrawals, filed from 2019-01-01 through 2021-03-14 and stating a maximum offering amount. Count every such filing as filed, including an issuer's filings on the same day even where their contents match. Report how many there are, the highest maximum any of them states in dollars, and how many state exactly that highest maximum. Explain what rule that highest maximum reflects, and what the number of filings stating exactly that amount tells you.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "pre_change_filing_count",
+            "pre_change_highest_maximum_usd",
+            "pre_change_at_highest_count"
+          ],
+          "claims": [
+            {
+              "id": "twelve_month_cap",
+              "mode": "required",
+              "description": "Identifies the highest maximum as the Regulation Crowdfunding limit on what an issuer may raise in twelve months, 1.07 million dollars."
+            },
+            {
+              "id": "ceiling_bounds_the_maximum",
+              "mode": "required",
+              "description": "Reads the filings stating exactly the limit as issuers setting the most they may accept at the legal ceiling."
+            },
+            {
+              "id": "maximum_is_oversubscription_cap",
+              "mode": "optional",
+              "description": "Notes that the stated maximum is the most an issuer may accept if oversubscribed, and usually sits far above the target it aims for."
+            },
+            {
+              "id": "maximum_alone_proves_no_constraint",
+              "mode": "conditional",
+              "description": "If the response says the ceiling held these issuers back, it adds that a stated maximum at the ceiling cannot by itself show that they would have raised more."
+            }
+          ]
+        },
+        {
+          "query": "Now take the same kind of filings from 2021-03-15 through 2025-12-31, counted the same way. Report how many there are, the highest maximum any of them states in dollars, and how many state exactly that highest maximum. Then report the filing date of the first of them whose maximum exceeds the earlier period's highest. Explain what changed between the two periods and why the first filing above the earlier ceiling came when it did.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "post_change_filing_count",
+            "post_change_highest_maximum_usd",
+            "post_change_at_highest_count",
+            "first_filing_above_old_highest"
+          ],
+          "claims": [
+            {
+              "id": "limit_raised_to_five_million",
+              "mode": "required",
+              "description": "States that the 2021 amendments, effective 2021-03-15, raised the limit to 5 million dollars, which is the later period's highest maximum."
+            },
+            {
+              "id": "adoption_lag",
+              "mode": "optional",
+              "description": "Notes that issuers took some weeks after the effective date before offering above the old limit."
+            }
+          ]
+        },
+        {
+          "query": "Return to both periods' filings dated from 2020-07-01, where the Form D record here begins, through 2024-12-31, so each has a full year of that record after it. A filing counts as followed if the same issuer, matched by CIK, filed an original Form D notice, not an amendment, on or within 365 days after the Form C filing date. Within each period, split the filings into those stating exactly that period's highest maximum and the rest, and report each group's percentage followed, counting filings rather than issuers. Explain what the gap between the groups suggests about issuers stating the ceiling, and whether the ceiling change altered it.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "pre_change_capped_follow_on_pct",
+            "pre_change_uncapped_follow_on_pct",
+            "post_change_capped_follow_on_pct",
+            "post_change_uncapped_follow_on_pct"
+          ],
+          "claims": [
+            {
+              "id": "form_d_marks_a_private_placement",
+              "mode": "required",
+              "description": "Connects a Form D notice to a private placement under Regulation D, and reads the higher rate among filings at the ceiling as those issuers more often also raising money privately."
+            },
+            {
+              "id": "gap_persists_under_both_ceilings",
+              "mode": "required",
+              "description": "Observes that the gap between filings at the ceiling and the others persists under both ceilings."
+            },
+            {
+              "id": "rule_506_uncapped",
+              "mode": "optional",
+              "description": "Notes that an offering under Rule 506 of Regulation D carries no dollar limit."
+            },
+            {
+              "id": "selection_caveat",
+              "mode": "conditional",
+              "description": "If the response attributes the gap to the ceiling pushing issuers into private placements, it notes that the gap can also reflect which issuers choose to state the ceiling."
+            }
+          ]
+        },
+        {
+          "query": "Follow the earlier period's issuers, matched by CIK, into the later period, using the full periods and the filings counted in the first two turns rather than the narrower window of the previous turn. Report how many distinct issuers filed an earlier-period offering stating exactly the earlier ceiling, and how many of them later filed a later-period offering whose maximum exceeds that ceiling. Then report how many distinct issuers filed earlier-period offerings none of which stated the ceiling, and how many of them later filed such an offering. Explain what comparing the two groups shows, and what else could produce the difference.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "capped_issuer_count",
+            "capped_issuers_returning_above_count",
+            "uncapped_issuer_count",
+            "uncapped_issuers_returning_above_count"
+          ],
+          "claims": [
+            {
+              "id": "capped_issuers_return_above_more_often",
+              "mode": "required",
+              "description": "Observes that issuers who stated the earlier ceiling came back above it at close to twice the rate of the others."
+            },
+            {
+              "id": "most_do_not_return",
+              "mode": "optional",
+              "description": "Notes that most issuers in either group filed no further original offering statement in the later period, so the comparison rests on the minority who did."
+            },
+            {
+              "id": "group_difference_caveat",
+              "mode": "conditional",
+              "description": "If the response concludes that the earlier ceiling held those issuers back, it acknowledges that other differences between the two groups could also produce the gap."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

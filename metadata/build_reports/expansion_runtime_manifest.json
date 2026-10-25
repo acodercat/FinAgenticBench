@@ -1,0 +1,167 @@
+{
+  "benchmark_cutoff": "2025-12-31",
+  "builder": "python -m scripts.ingest.build.build_expansion_runtime",
+  "privacy": "HMDA runtime data excludes applicant identifiers and geographic fields; SBA runtime data excludes borrower names and addresses.",
+  "files": {
+    "rtdsm/revisions.csv.gz": {
+      "rows": 3423,
+      "bytes": 46319,
+      "sha256": "768006cdb33d42c4e1f067a5908ba998b40582c1b66098875c35d9bbaab7bcf6"
+    },
+    "fed_stress_tests/results_2025.csv.gz": {
+      "rows": 23,
+      "bytes": 1472,
+      "sha256": "110337f0e498db33f1eb578b510ddcdc557e50e91cfff8632a4200cc4072d437"
+    },
+    "sec_nmfp/series_filings.csv.gz": {
+      "rows": 3633,
+      "bytes": 247211,
+      "sha256": "a2acb40039ae61c5408d57c52c54eaeb7b24747f3f2341f8cfc5eb83483d4191"
+    },
+    "sec_nport/fund_reports.csv.gz": {
+      "rows": 26527,
+      "bytes": 3167024,
+      "sha256": "af02682e30be841f138414e229f8792e838ad1ed460ce59926dba0804641b55d"
+    },
+    "hmda/lar_2024_top5.csv.gz": {
+      "rows": 730764,
+      "bytes": 4508423,
+      "sha256": "0259d6cfba62837064d85b4bf615518203273a89f816c07f70b00dae44d8411b"
+    },
+    "sec_notes/apple_fy2025_numeric.csv.gz": {
+      "rows": 969,
+      "bytes": 28681,
+      "sha256": "0a46f09ebae62735c068c9991a6dc492b8acc21ea47477dd90e0fdcb1afc36cd"
+    },
+    "nyfed_rates/reference_rates.csv.gz": {
+      "rows": 7494,
+      "bytes": 57090,
+      "sha256": "6ee326c3ad638782595c43c498fde3174bfdb3c1bf3936d30a37005cb683fbf6"
+    },
+    "treasury_auctions/auctions.csv.gz": {
+      "rows": 10802,
+      "bytes": 1266807,
+      "sha256": "5b86a2f57e00dd3c19811fd422f8a399152281df30af72c5ef919a9d37cf2055"
+    },
+    "treasury_rates/yield_curve.csv.gz": {
+      "rows": 1249,
+      "bytes": 22917,
+      "sha256": "bd1f24f8216a19fab2f198c818c69fc66381311157bf68e5855e290f4a45da80"
+    },
+    "sec_form_c/filings_2025.csv.gz": {
+      "rows": 3886,
+      "bytes": 229985,
+      "sha256": "7e822cd33415ce0e39768b5c66fa2fe815bdd9d155aa483ca84c6ed66195b0f6"
+    },
+    "sec_form_d/filings_2025.csv.gz": {
+      "rows": 56519,
+      "bytes": 2104948,
+      "sha256": "d9cf5252d16d03147930e6cc525d4e768c14f76bb56cac1d33c57e067b093cd0"
+    },
+    "bis/credit_gap.csv.gz": {
+      "rows": 24488,
+      "bytes": 252270,
+      "sha256": "e5bdf782f1c1685f318c0acb5793f916f0ecdcdeeb3ee17378506d7f1f7af384"
+    },
+    "fdic_bankfind/top12_financials.csv.gz": {
+      "rows": 192,
+      "bytes": 25791,
+      "sha256": "3a373b7e7fea29daf83938d3b3e50d304646d501359e65f374826d2c88f77497"
+    },
+    "sec_nmfp/daily_shareholder_flows.csv.gz": {
+      "rows": 247400,
+      "bytes": 4117220,
+      "sha256": "84bbfee48f037efff8dec84a096c01a8cf6b6af609b6c8339dcb527609967d8c"
+    },
+    "sec_nmfp/daily_liquidity.csv.gz": {
+      "rows": 75468,
+      "bytes": 1446155,
+      "sha256": "43e5a803f8540f0f06bff26c85e4aa7c54846615923ef1e16a917d28857146ba"
+    },
+    "sec_bdc/ares_2025q3_schedule.csv.gz": {
+      "rows": 1838,
+      "bytes": 27553,
+      "sha256": "5cd406f0769be44a2cb42e5588247fda80b609349a5c9c25262d094246d08d1e"
+    },
+    "sba_7a_504/seven_a_2020_2025.csv.gz": {
+      "rows": 347514,
+      "bytes": 12546155,
+      "sha256": "32e88fa8c2bc01039099e463996e42770e74b242d7dec5d34f548c1aa31efb4f"
+    },
+    "cftc_cot/financial_futures_2025.csv.gz": {
+      "rows": 7373,
+      "bytes": 129509,
+      "sha256": "5a0e2def122c73afd9b2705b13f20099e6f040c3933003ece66add091a8b7e13"
+    },
+    "sec_nmfp/fedfund_2025_10_portfolio.csv.gz": {
+      "rows": 208,
+      "bytes": 4541,
+      "sha256": "368ff1e50e816c05dd687f3e5b525b71340dacd082e4d3a8db574e27f3b9be42"
+    },
+    "sec_nmfp/fedfund_2025_10_class_yields.csv.gz": {
+      "rows": 345,
+      "bytes": 2170,
+      "sha256": "392abe692260f60d5521f3ad76901245221189bf0167329f8c3a6c70ce4a2da2"
+    },
+    "sec_nport/selected_holding_details.csv.gz": {
+      "rows": 3620,
+      "bytes": 128999,
+      "sha256": "29b661ffed3e4eae1fb1368bcdafe219ab158d265477cdf6cf22aa9c49be83ec"
+    },
+    "sec_nport/interest_rate_risk_2025q4.csv.gz": {
+      "rows": 10317,
+      "bytes": 471302,
+      "sha256": "a517ba21bf9c858fabf044cd71896955176ad9df3f41319f22a99dd51621298e"
+    },
+    "bis/debt_service_ratios.csv.gz": {
+      "rows": 7116,
+      "bytes": 40140,
+      "sha256": "0ed6f514a60881dcc155790892f8fd2a34386b24a60d39115ab17a071f11a892"
+    },
+    "bis/broad_effective_exchange_rates.csv.gz": {
+      "rows": 256,
+      "bytes": 2504,
+      "sha256": "6dd4cc777737b8bcbb72303e986d1193ded02a107b670bbbd8927e3340d81fad"
+    },
+    "bis/global_liquidity_emde_2025q2.csv.gz": {
+      "rows": 9,
+      "bytes": 662,
+      "sha256": "5f803ebbb024fda191d74ff7b2c7a60a99c76e051ba8ba9b3ab45c2ae8c253c4"
+    },
+    "bis/otc_derivatives_2025s1.csv.gz": {
+      "rows": 22,
+      "bytes": 721,
+      "sha256": "f0592c6bb86bdea3b36c47f586b477358d9c4bffbf9a5280ed3adc4aabcaad3a"
+    },
+    "sec_bdc/ares_2025q2_q3_schedule.csv.gz": {
+      "rows": 3620,
+      "bytes": 53536,
+      "sha256": "800614c14119e0bde7604b80fd6c5dc2fea6ab7e19e25f3ed269e12fc6f3a5ff"
+    },
+    "sba_7a_504/five_o_four_2020_2025.csv.gz": {
+      "rows": 44728,
+      "bytes": 1768329,
+      "sha256": "787209d812830ca903c2574f6249d0c2cbbec9948439fbb184c1981bf08c564a"
+    },
+    "fhfa_hpi/hpi_through_2025.csv.gz": {
+      "rows": 183609,
+      "bytes": 1676388,
+      "sha256": "3058496d32ee5593ef0f79880a113f97f986b8f23ace0856d9f58d5a21df1b4d"
+    },
+    "treasury_tic/major_foreign_holders_2025.csv.gz": {
+      "rows": 456,
+      "bytes": 3606,
+      "sha256": "f32aee37cc0977b6c250841b212966eb896d24de50a916db45fa930fea253d16"
+    },
+    "treasury_dts/operating_cash_balance.csv.gz": {
+      "rows": 2004,
+      "bytes": 25849,
+      "sha256": "7af9b5d0f12957f6fe791e092f15f57ec4c7245a3304d02a9baa90428e0d4eab"
+    },
+    "treasury_dts/public_debt_transactions.csv.gz": {
+      "rows": 11523,
+      "bytes": 65036,
+      "sha256": "36dc835e55710c441bef91ba44c2b06a8340f121be096dce1f1d21367c4a0587"
+    }
+  }
+}

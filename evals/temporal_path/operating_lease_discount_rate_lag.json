@@ -1,0 +1,120 @@
+{
+  "name": "operating_lease_discount_rate_lag",
+  "module": "evals.temporal_path.operating_lease_discount_rate_lag",
+  "task_family": "temporal_path",
+  "data_sources": [
+    "sec_companyfacts",
+    "treasury_yield_curve"
+  ],
+  "case_type": "baseline",
+  "difficulty": "hard",
+  "judge_reference": {
+    "source": "Frozen SEC company facts for the 500 largest filers, annual reports on Form 10-K as first reported, and the Treasury daily par yield curve for 2019 through 2025. The reconciliations, comparisons and medians are analytic constructions rather than reported statistics.",
+    "facts": [
+      "372 filers tag the undiscounted operating lease payments, the amount representing interest and the operating lease liability at one 2024 balance date, and 359 reconcile exactly: payments less interest equal the liability, because the liability is the present value of the remaining payments. One filer tags its interest amount as negative, which no positive discount rate can produce. The median interest amount is 17.0856 percent of undiscounted payments.",
+      "Of the 339 reconciling filers that tag a weighted-average discount rate, the median rate is 4.30 percent and 166 stand below the five-year Treasury par yield on their balance date, at a median 2.00 basis points above it; 139 stand below every point of the curve on that date. A lessee discounts at the rate implicit in the lease or, usually, its incremental borrowing rate, the rate it would pay to borrow on a collateralized basis over a similar term, which today would sit above Treasury yields; a rate below them was set when the leases began.",
+      "Back through 2019, only one of the same filers stood below the five-year yield in 2021; 2022 is the first year in which more than half stood below it. Among 330 filers with a rate in both 2021 and 2024 the median rate rose 100 basis points while the yield on their balance dates rose a median 312, and 13 rates rose by at least as much as the yield. The rate of an existing lease is fixed at commencement and not updated when market rates move, so the weighted rate changes only as leases start, end or are remeasured.",
+      "328 of these filers tag the right-of-use asset at the same date and 281 carry it below the liability, at a median 0.9348 of it. The asset is measured from the liability adjusted for prepaid or accrued rent, lease incentives, initial direct costs and impairment, so the two differ; rents that rise over a lease's term accrue straight-line expense ahead of cash, which can hold the asset below the liability."
+    ]
+  },
+  "conversations": [
+    {
+      "turns": [
+        {
+          "query": "In the largest-filer company facts, use unamended annual 10-K reports and first-reported values (earliest filing, tie: lower accession). For each item, use its latest tagged balance date in 2024. Keep filers tagging total undiscounted operating lease payments, the interest portion and total lease liability on the same date. Report their count, how many reconcile exactly using tagged signs, how many tag negative interest, and the median interest as a percent of undiscounted payments across all selected filers. Use linear interpolation for every median in this task. Explain the liability and interest portion.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "schedule_filer_count",
+            "schedule_exact_count",
+            "negative_interest_count",
+            "median_interest_share_pct"
+          ],
+          "claims": [
+            {
+              "id": "liability_is_present_value",
+              "mode": "required",
+              "description": "Explains that the liability is the present value of the remaining lease payments, discounted at the lessee's rate, and that the interest amount is the discount separating that value from the payments as they fall due."
+            },
+            {
+              "id": "negative_interest_is_a_sign_error",
+              "mode": "optional",
+              "description": "Notes that an interest amount below zero cannot arise from discounting at a positive rate, so that filer's figure carries the wrong sign."
+            }
+          ]
+        },
+        {
+          "query": "Keep the filers that reconcile exactly and tag the weighted-average operating lease discount rate, stored as a fraction, at the same 2024 balance date. Compare each with the five-year Treasury par yield on that date, or the latest earlier date with a yield. Report how many filers that is, their median rate, how many rates stand strictly below the yield, and the median of rate less yield. Explain what rate a lessee discounts its lease payments with, and what to make of a reported rate below the Treasury yield.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "rate_filer_count",
+            "median_discount_rate_pct",
+            "below_treasury_count",
+            "median_spread_to_treasury_bp"
+          ],
+          "claims": [
+            {
+              "id": "incremental_borrowing_rate",
+              "mode": "required",
+              "description": "States that a lessee discounts at the rate implicit in the lease when it can be readily determined and otherwise at its incremental borrowing rate, the rate it would pay to borrow on a collateralized basis over a similar term."
+            },
+            {
+              "id": "below_treasury_is_not_current",
+              "mode": "required",
+              "description": "Explains that a company borrowing today over a comparable term would pay more than the Treasury yield, so a reported rate below it reflects rates set when the leases began rather than borrowing costs at the balance date."
+            },
+            {
+              "id": "tenor_mismatch",
+              "mode": "optional",
+              "description": "Notes that the five-year yield is only a rough match for each filer's remaining lease term."
+            }
+          ]
+        },
+        {
+          "query": "Follow the same filers back through 2019, reading each year's rate at its balance date and the yield as before. Report the earliest year in which more than half of the filers tagging a rate that year stand strictly below the yield, and how many stood below it in 2021. For the filers with a rate in both 2021 and 2024, report how many there are, the median change in their rate and in the yield between those two balance dates, and how many rates rose by at least as much as the yield. Explain what this says about how a reported lease discount rate responds to market rates.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "first_majority_below_year",
+            "below_treasury_2021_count",
+            "paired_filer_count",
+            "median_rate_change_bp",
+            "median_yield_change_bp",
+            "rate_kept_pace_count"
+          ],
+          "claims": [
+            {
+              "id": "fixed_at_commencement",
+              "mode": "required",
+              "description": "Explains that each lease's discount rate is fixed when the lease begins and is not updated as market rates move, so the reported weighted rate shifts only as the lease portfolio turns over and trails market yields."
+            },
+            {
+              "id": "adoption_date_rates",
+              "mode": "optional",
+              "description": "Notes that leases existing when the standard was adopted in 2019 were discounted at rates as of the adoption date."
+            }
+          ]
+        },
+        {
+          "query": "For the same 2024 filers, take the operating lease right-of-use asset at the same balance date, read the same way. Report how many tag it, how many carry an asset below the liability, and the median of the asset divided by the liability. Explain how the asset is measured relative to the liability and what makes the two differ.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "asset_filer_count",
+            "asset_below_liability_count",
+            "median_asset_to_liability"
+          ],
+          "claims": [
+            {
+              "id": "asset_measured_from_liability",
+              "mode": "required",
+              "description": "Explains that the right-of-use asset starts from the lease liability and is adjusted for items such as prepaid or accrued rent, lease incentives and initial direct costs, so the two need not be equal."
+            },
+            {
+              "id": "escalating_rent_gap",
+              "mode": "optional",
+              "description": "Notes that where rents rise over a lease's term the straight-line expense runs ahead of cash payments, and the accrued rent holds the asset below the liability."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

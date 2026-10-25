@@ -1,0 +1,84 @@
+{
+  "name": "fedfund_share_class_yield_weighting",
+  "module": "evals.calculation_reconciliation.fedfund_share_class_yield_weighting",
+  "task_family": "calculation_reconciliation",
+  "data_sources": [
+    "sec_nmfp",
+    "nyfed_reference_rates"
+  ],
+  "difficulty": "medium",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "For FEDFUND accession 0002071691-25-004249 on 2025-10-31, build the reported share-class panel. Report how many classes it reports, their total class net assets and the series gross seven-day yield. Carry the panel forward and explain how the series-level gross yield relates to the class-level net yields.",
+          "validator": "validate_class_panel",
+          "stores": [
+            "reported_class_count",
+            "class_net_assets_usd_billions",
+            "series_gross_seven_day_yield_pct"
+          ],
+          "claims": [
+            {
+              "id": "gross_net_field_semantics",
+              "description": "The response distinguishes the common series gross yield from the class-level net yields and treats their gaps as comparisons of reported yield fields.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "From that panel report the equal-class mean net yield and the class-net-asset-weighted mean net yield, the Institutional class asset share, and the unique lowest-net-yield class with its net yield. Explain what moves the weighted mean away from the equal-weighted mean.",
+          "validator": "validate_weighting",
+          "stores": [
+            "simple_mean_class_net_yield_pct",
+            "asset_weighted_class_net_yield_pct",
+            "institutional_class_asset_share_pct",
+            "lowest_net_yield_class",
+            "lowest_class_net_yield_pct"
+          ],
+          "claims": [
+            {
+              "id": "asset_concentration_weighting",
+              "description": "The response explains that the concentrated Institutional-class asset share pulls the asset-weighted net yield toward that class's yield relative to an equal-class average.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Report the New York Fed overnight SOFR effective on the same date, and compare it with the series gross yield and with the asset-weighted class net yield you carried forward. Explain what each of these three rates is measured over, and what an investor may not conclude from the differences you just computed.",
+          "validator": "validate_sofr_comparison",
+          "stores": [
+            "same_date_sofr_pct"
+          ],
+          "claims": [
+            {
+              "id": "cross_measure_comparison_semantics",
+              "description": "The response characterizes comparisons between the fund yields and SOFR as descriptive comparisons between measures with different horizons.",
+              "mode": "required"
+            },
+            {
+              "id": "return_inference_boundary",
+              "description": "If the response interprets either spread as a stated expense ratio, matched-horizon excess return, tracking error, guaranteed investor return or causal performance effect, it identifies that inference as unsupported by the reported fields alone.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "SEC Form N-MFP accession 0002071691-25-004249 and New York Fed reference-rate data for 2025-10-31",
+    "facts": [
+      "Fifteen classes total 189.666463459 billion USD of class net assets; their equal-class mean net yield is 3.8340% and class-asset-weighted mean is 3.9875%.",
+      "The Institutional class holds 86.8505% of class net assets; SELECT is uniquely lowest at 3.18%, one percentage point below the 4.18% series gross yield.",
+      "The same-date overnight SOFR is 4.22%; series gross minus SOFR is -0.04 point and asset-weighted class net minus SOFR is -0.2325 point.",
+      "The N-MFP fields are reported seven-day fund yields, while SOFR is an overnight secured financing reference rate; the observed spreads are descriptive cross-measure comparisons rather than matched-horizon excess returns."
+    ],
+    "known_overclaims": [
+      "Equating the gross-minus-net yield gap with a formally reported expense ratio.",
+      "Treating a same-date fund-yield-minus-SOFR spread as a matched-horizon excess return or guaranteed investor outcome."
+    ]
+  }
+}

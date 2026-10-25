@@ -1,0 +1,39 @@
+{
+  "name": "arcc_pik_income_dividend_nav_stress",
+  "module": "evals.scenario_analysis.arcc_pik_income_dividend_nav_stress",
+  "task_family": "scenario_analysis",
+  "data_sources": ["sec_notes", "sec_notes_dimensions", "nyfed_reference_rates"],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [{"id": "main", "turns": [
+    {
+      "query": "Use Ares Capital's SEC filing-note investment facts at September 30, 2025 in accession 0001287750-25-000046. Match reported investment-level principal, fair value and paid-in-kind interest rate by the same investment dimension; retain rows with all three finite and positive. Treat reported PIK rates as annual decimal fractions of principal. Report the retained position count, total fair value and annual PIK-interest run-rate on current principal. Interpret what this static run-rate does and does not measure.",
+      "validator": "validate_turn_1",
+      "stores": ["pik_position_count", "pik_position_fair_value_m", "annual_pik_runrate_m"],
+      "claims": [{"id": "runrate_stock_scope", "description": "The response identifies the annual PIK run-rate as a current-position contractual-rate proxy, not recognized interest income for the past quarter.", "mode": "required"}]
+    },
+    {
+      "query": "Using ARCC's original June 2025 10-Q accession 0001287750-25-000038 and September 2025 10-Q accession 0001287750-25-000046, isolate third-quarter 2025 reported PIK interest income from their year-to-date filing-note totals. From the September filing's third-quarter issuer-affiliation breakdown, report PIK interest attributed to unaffiliated issuers. Also report after-tax net investment income for that quarter. Compare the reported quarter's accrual with the prior turn's position run-rate, and interpret the unaffiliated component.",
+      "validator": "validate_turn_2",
+      "stores": ["q3_recognized_pik_interest_m", "q3_unaffiliated_pik_interest_m", "q3_after_tax_nii_m"],
+      "claims": [{"id": "accrual_runrate_distinction", "description": "The response distinguishes recognized quarter-specific PIK interest from the later static schedule's annual run-rate proxy.", "mode": "required"}, {"id": "affiliation_income_scope", "description": "The response interprets the unaffiliated-issuer share as a split of recognized PIK interest by issuer affiliation, rather than as a share of PIK-bearing position fair value.", "mode": "required"}]
+    },
+    {
+      "query": "Use the September filing note's third-quarter cash common dividend declaration. As a deliberately partial cash-like income proxy, remove only reported third-quarter PIK interest from after-tax net investment income and compare the remainder with that dividend. Report the positive dividend-over-proxy gap, or zero if the proxy covers the dividend. Suppose that gap is financed after the September 30 SOFR fixing is published on October 1, 2025, by a hypothetical 30-calendar-day bridge at that effective SOFR plus 200 basis points, fixed for the term with simple ACT/360 interest. Report the bridge interest. Explain what removing PIK interest from net investment income does and does not tell you about ARCC's ability to fund the dividend in cash.",
+      "validator": "validate_turn_3",
+      "stores": ["partial_cash_like_dividend_gap_m", "bridge_interest_m"],
+      "claims": [{"id": "partial_cash_proxy_boundary", "description": "The response explains that removing reported PIK interest from after-tax net investment income yields a deliberately partial cash-like proxy, leaving ARCC's other cash receipts and payments unmeasured.", "mode": "required"}, {"id": "hypothetical_bridge_boundary", "description": "If the response calls the bridge an observed ARCC borrowing or cash-flow statement item, it qualifies the bridge as a hypothetical financing scenario.", "mode": "conditional"}]
+    },
+    {
+      "query": "Return to the PIK-bearing positions retained in turn 1. In a separate hypothetical September quarter-end valuation stress, reduce each position's reported fair value by 15%, leave liabilities and all other assets fixed, and apply the mark to ARCC's September-filing-note stockholders' equity. Report simplified post-mark equity. Assess whether it still meets a hypothetical USD14 billion internal floor, and distinguish this valuation effect from the third-quarter income, dividend and later bridge comparison.",
+      "validator": "validate_turn_4",
+      "stores": ["stressed_equity_m"],
+      "claims": [{"id": "equity_floor_assessment", "description": "The response concludes that stressed equity breaches the USD14 billion hypothetical floor.", "mode": "required"}, {"id": "valuation_income_separation", "description": "The response distinguishes the quarter-end fair-value mark from Q3 PIK interest and the declared dividend, treating it as a balance-sheet valuation effect that leaves those reported income and dividend figures unchanged.", "mode": "required"}, {"id": "actual_mark_boundary", "description": "If the response calls the haircut a reported ARCC impairment or actual future NAV, it qualifies that the 15% mark is an analyst-defined scenario.", "mode": "conditional"}]
+    }
+  ]}],
+  "judge_reference": {
+    "source": "Frozen ARCC SEC filing-note investment and financial facts in original 2025 Q2/Q3 filings, plus frozen New York Fed SOFR. The PIK run-rate, partial cash-like comparison, bridge and valuation markdown are analyst-defined proxies or scenarios.",
+    "facts": ["The 2025-09-30 dimension-matched filing notes have 129 investments with positive principal, fair value and PIK rates, USD4,038.4 million of fair value and USD230.57721 million annualized PIK-interest run-rate on current principal.", "The September filing reports USD165 million nine-month PIK interest while the June filing reports USD106 million six-month PIK interest, giving USD59 million for Q3. The September quarter's issuer-affiliation note allocates USD50 million to unaffiliated issuers. Reported after-tax Q3 net investment income is USD338 million, distinct from USD349 million before income taxes; the cash common dividend declaration is USD342 million.", "Removing only USD59 million PIK accrual leaves a USD63 million dividend-over-partial-cash-like-income gap, not a full cash-flow statement. September 30 effective SOFR is 4.24%; a stipulated 30-day bridge at SOFR plus 200 basis points costs USD0.3276 million. A separate 15% mark on retained PIK-position fair value lowers reported USD14,322 million equity to USD13,716.24 million, below the hypothetical USD14 billion floor."],
+    "known_overclaims": ["Equating a quarter-end PIK-rate run-rate with the quarter's recognized income or cash collections.", "Treating NII less PIK interest as audited operating cash flow or conclusive dividend liquidity.", "Charging a hypothetical unrealized valuation mark directly to historical Q3 PIK interest or dividend declaration."]
+  }
+}

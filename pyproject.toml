@@ -1,0 +1,33 @@
+[project]
+name = "finagenticbench"
+version = "0.1.0"
+description = "Multi-turn financial analysis tasks with programmatically verified outputs, for evaluating language-model agents"
+requires-python = ">=3.12"
+license = "MIT"
+dependencies = [
+  "anthropic>=1.11.0",
+  "cave-agent[all]>=0.8.0",
+  "curl-cffi>=0.13.0",
+  "google-genai>=2.28.0",
+  "httpx2>=2.13.1",
+  "matplotlib>=3.11.2",
+  "openpyxl>=3.1.5",
+  "pandas>=2.2.3",
+  "pyarrow>=18.1.0",
+  "pypdf>=5.1.0",
+  "pyxlsb>=1.0.10",
+  "requests>=2.32.5",
+  "scipy>=1.15.0",
+  "xlrd>=2.0.1",
+]
+
+[dependency-groups]
+dev = ["pytest>=9.0.2"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+markers = [
+  "runtime_data: requires the runtime tables from FinAgenticBench-data.zip",
+  "raw_data: requires the source-native archives used to rebuild the data from source",
+]

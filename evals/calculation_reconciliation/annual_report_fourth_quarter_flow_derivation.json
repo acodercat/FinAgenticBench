@@ -1,0 +1,127 @@
+{
+  "name": "annual_report_fourth_quarter_flow_derivation",
+  "module": "evals.calculation_reconciliation.annual_report_fourth_quarter_flow_derivation",
+  "task_family": "calculation_reconciliation",
+  "data_sources": [
+    "sec_financial_statements",
+    "sec_submissions"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "From the financial statements rather than the filing index, take full-year Form 10-K reports with a period end in calendar 2024, read from the report date rather than the fiscal-year label, excluding amended filings. Where a filer closes two fiscal years in that year, keep the later period end, then the later filing date, then the higher accession. Report how many filers this leaves, how many close their year on a date other than 31 December, how many report a year-to-date net income, and how many report a net income for the quarter alone. Explain what the last two counts say about where a fourth-quarter net income can and cannot be read from.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "annual_filer_count",
+            "noncalendar_year_end_filers",
+            "annual_with_year_net_income",
+            "annual_with_quarter_net_income"
+          ],
+          "claims": [
+            {
+              "id": "annual_covers_the_year",
+              "mode": "required",
+              "description": "The response attributes the gap between the two reporting counts to the annual report covering the full year rather than its closing quarter, and states that a fourth-quarter figure has to be constructed rather than looked up."
+            }
+          ]
+        },
+        {
+          "query": "Pair each retained filer with its own third-quarter report: the Form 10-Q whose fiscal period is the third quarter, again excluding amendments, whose period end falls before the annual period end and no more than 120 days before it, taking the nearest such filing where more than one qualifies. Report how many filers pair, how many of those carry a year-to-date net income on both filings, the sum of the annual year-to-date net income across that group, and the sum across the same group of the annual figure less the nine-month figure. Explain what the second sum measures, and which filers the 120-day limit is there to keep out.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "paired_filer_count",
+            "derived_filer_count",
+            "year_net_income_bn",
+            "derived_q4_net_income_bn"
+          ],
+          "claims": [
+            {
+              "id": "derivation_and_its_pairing",
+              "mode": "required",
+              "description": "The response identifies the second sum as fourth-quarter net income obtained by subtracting the reported nine months from the reported year, and explains that the pairing limit excludes filers whose nearest third-quarter report belongs to a different fiscal year."
+            }
+          ]
+        },
+        {
+          "query": "Stay with the filers whose fourth quarter you derived. Report how many report a positive year, how many of those have a negative derived fourth quarter, how many filers carry a quarterly net income on the annual filing alongside the derived one, and how many of that last group have a derived and a reported figure differing by a dollar or more. Explain how a profitable year ending in a loss-making quarter would show up in the year-to-date series itself, and what the size of the disagreeing group says about treating the subtraction as exact.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "positive_year_filers",
+            "positive_year_negative_quarter_filers",
+            "validation_filer_count",
+            "validation_disagreement_count"
+          ],
+          "claims": [
+            {
+              "id": "sign_pattern_and_its_limit",
+              "mode": "required",
+              "description": "The response attributes a twelve-month profit closing on a three-month loss to cumulative earnings retreating between the two reports, and treats the mismatched cases as a standing caveat on the identity rather than as arithmetic imprecision."
+            }
+          ]
+        },
+        {
+          "query": "Look at the filers whose derived and reported quarters disagree. Count those whose reported quarterly net income equals their own annual year-to-date figure. Then identify the filer whose two figures sit furthest apart in absolute terms, breaking a tie by the lower CIK, and report that filer's CIK, its derived fourth quarter and its reported one. Explain what a filer reporting its annual amount in the quarterly field would indicate, and what could move the two figures apart where that is not what happened.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "annual_figure_in_quarter_slot_count",
+            "largest_disagreement_cik",
+            "largest_disagreement_derived_mn",
+            "largest_disagreement_reported_mn"
+          ],
+          "claims": [
+            {
+              "id": "tagging_fault_and_restatement",
+              "mode": "required",
+              "description": "The response reads the equal-figures count as the annual amount having been tagged into the quarterly field, and gives a reason such as a restatement, reclassification or discontinued operation booked between the two filings that would separate the figures for the remaining filers."
+            },
+            {
+              "id": "no_adjudication_from_these_fields",
+              "mode": "conditional",
+              "description": "If the response calls one of the widest-disagreement filer's two figures the correct fourth quarter, it states that these fields record both amounts and carry no note explaining the difference between them."
+            }
+          ]
+        },
+        {
+          "query": "Check what the derived figure rests on. Join the annual filings to the submission index on filer and accession together; a jointly filed accession appears there once per filer. Report how many annual filings carry an accession that more than one filer files under, how many are later superseded by an amendment with the same period end and a later filing date, the median days from period end to public acceptance, and how many the two files label with different forms. Explain what the supersession count and the publication lag each do to a fourth-quarter figure derived as you derived it.",
+          "validator": "validate_turn_5",
+          "stores": [
+            "shared_accession_count",
+            "superseded_by_amendment_count",
+            "median_days_to_public",
+            "form_disagreement_count"
+          ],
+          "claims": [
+            {
+              "id": "what_the_derivation_rests_on",
+              "mode": "required",
+              "description": "The response reads the superseded filings as a fourth quarter that may have been restated after it was derived, and the publication lag as the delay before the derivation can be made at all."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen SEC company-facts income-statement extracts for annual and third-quarter filings with period ends through 2024-12-31. The fourth-quarter figure, the pairing and the disagreement classification are analytic constructions rather than reported statistics.",
+    "facts": [
+      "The population is 5,524 filers, of which 1,251 close their year on a date other than 31 December. Of these, 5,170 tag a year-to-date net income and only 268 tag a net income for the quarter alone: the annual report covers the year, so the closing quarter has no filing of its own. Selecting on the fiscal-year label instead of the period end gives 5,504 filers, because that label puts two different fiscal years under 2024 for 52/53-week filers.",
+      "5,394 filers pair to a third-quarter report and 5,018 of those carry a year-to-date net income on both, summing to 1817.773855 USD billions for the year and 488.833662 for the derived fourth quarter. Removing the 120-day pairing limit raises the derived sum to 491.108491, admitting amended annual filings gives 490.578436, and admitting amended quarterly filings gives 488.946485.",
+      "2,508 of the derived filers report a positive year and 285 of those have a negative derived fourth quarter, which is a year-to-date net income that falls between the third-quarter and the annual filing. 256 filers carry both a derived and a disclosed quarter; 214 agree to the dollar and 42 do not. The agreement is not an artefact of small or empty filers: Accenture's 7,264,787,000 less 5,580,486,000 is the 1,684,301,000 it tags, AbbVie's 4,278,000,000 less 4,300,000,000 is the -22,000,000 it tags, and no matching filer has a nine-month figure of zero.",
+      "5 of the 42 disagreements report their own annual figure in the quarterly field, among them North Haven Private Income Fund with 259,971,000 in both. The widest is Ally Financial, CIK 0000040729, whose derived fourth quarter is -140.000000 USD millions against a disclosed 108.000000, a gap of 248,000,000 ahead of Dominion Energy at 221,000,000. The fields record both amounts and nothing that explains the difference.",
+      "The submission index matches 5,522 of the 5,524 annual filings on filer and accession together; 85 of those accessions are filed jointly by more than one filer, so joining on the accession alone multiplies rows. 574 of the filings are later superseded by an amendment carrying the same period end, and the median gap from the period end to public acceptance is 65 days, so a fourth quarter derived this way is neither available at the quarter's close nor final once it is. Two filings the statements extract labels 10-K the index labels 10-K/A; both records describe the same submission and neither field is checked against the other."
+    ],
+    "known_overclaims": [
+      "Reading the quarterly net income tagged on an annual filing as a fourth quarter without checking it against the year less the nine months, when five filers in this window put their annual figure in that field.",
+      "Presenting the derived fourth quarter as equivalent to a reported one, when it absorbs any restatement or reclassification booked between the third-quarter filing and the annual report.",
+      "Grouping fiscal years by the fiscal-year label, which files two different fiscal years of a 52/53-week filer under the same year.",
+      "Treating a negative derived fourth quarter as an error in the derivation rather than as what the reported year-to-date series says.",
+      "Deciding from these fields which of two disagreeing figures is the correct fourth quarter, when neither the reason for the difference nor any restatement note is recorded here.",
+      "Joining the two files on the accession alone, which duplicates every filing that several filers submit jointly.",
+      "Treating a derived fourth quarter as settled, when the annual report it rests on may be superseded by a later amendment for the same period."
+    ]
+  }
+}

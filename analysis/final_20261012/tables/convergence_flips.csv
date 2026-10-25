@@ -1,0 +1,4 @@
+direction,n_model_slot_pairs,n_with_consensus_error,n_distinct_slots,n_hits,share_to_consensus,ci_lo,ci_hi,share_over_all_pairs
+"non-thinking correct, thinking wrong",567,291,225,180,0.618557,0.441065,0.768293,0.31746
+"thinking correct, non-thinking wrong",2606,1428,734,648,0.453782,0.394513,0.51072,0.248657
+"difference, first minus second",,,,,0.164775,-0.012871,0.316899,

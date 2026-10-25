@@ -1,0 +1,113 @@
+{
+  "name": "treasury_delivery_basket_ctd_switch",
+  "module": "evals.comparison_ranking.treasury_delivery_basket_ctd_switch",
+  "task_family": "comparison_ranking",
+  "data_sources": [
+    "treasury_auctions",
+    "treasury_yield_curve",
+    "nyfed_reference_rates"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Build a hypothetical fixed-date delivery basket of Treasury CUSIPs 91282CBL4, 91282CJJ1 and 91282CKC4, in that order, using each original non-reopening auction's coupon, maturity and bid-to-cover. Value them on 2024-12-31 with that date's Treasury yields for 1, 2, 3, 6 months and 1, 2, 3, 5, 7, 10, 20, 30 years, read as zero rates compounded semiannually, interpolated linearly with flat ends. Coupons are regular semiannual flows anchored to maturity, keeping month-end when maturity is month-end, with no business-day adjustment. Discount on ACT/365 and accrue interest as actual elapsed days over actual coupon-period days. Report the lowest clean-price CUSIP, breaking ties by CUSIP ascending, and the second bond's dirty price.",
+          "stores": [
+            "cash_price_lowest_cusip",
+            "bond2_dirty_price"
+          ],
+          "validator": "validate_turn_1",
+          "claims": []
+        },
+        {
+          "query": "Carry that basket to fixed delivery March 31, 2025. Finance each entire dirty purchase price at a bond-specific simple ACT/360 rate: December 31, 2024 SOFR plus 25 basis points times that bond's original auction bid-to-cover ratio. Reinvest any coupons paid after valuation through delivery inclusive at the same bond-specific rate until delivery. These assigned financing terms are hypothetical and remain fixed. Report delivery-date values of interim coupons for the first and third bonds, and the first bond's financed forward clean price, excluding delivery accrued interest. Explain how the cash-flow calendar affects delivery cost.",
+          "stores": [
+            "bond1_carried_coupon_value",
+            "bond3_carried_coupon_value",
+            "bond1_forward_clean_price"
+          ],
+          "validator": "validate_turn_2",
+          "claims": [
+            {
+              "id": "coupon_reinvestment_carry",
+              "description": "The response explains that interim coupon receipts and their reinvestment reduce financed delivery cost relative to carrying the full dirty purchase without receipts.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "For this basket, conversion factors are respectively 0.730000, 0.874893 and 0.800000. The delivery invoice per 100 bond face is conversion factor times the quoted futures price, plus delivery accrued interest. There is no delivery timing, location or other option beyond choosing among these three bonds on the fixed date. Determine the lowest futures quote sufficient for the short's invoice to cover the financed delivery cost of at least one chosen bond; resolve a cost tie by CUSIP ascending. Report the cheapest deliverable and that break-even boundary quote. Explain its relation to the cash-price ranking.",
+          "stores": [
+            "base_ctd_cusip",
+            "base_boundary_quote"
+          ],
+          "validator": "validate_turn_3",
+          "claims": [
+            {
+              "id": "invoice_conversion_ranking",
+              "description": "The response explains why financed delivery cost and conversion factors determine the delivery ranking, rather than the lowest cash clean price alone.",
+              "mode": "required"
+            },
+            {
+              "id": "hyp_boundary_not_live_quote",
+              "description": "If the response calls the boundary a traded futures quote, implied repo result at an observed quote, or actual CME contract value, it qualifies that inference because this exercise stipulates a fixed-date basket and computes a model invoice boundary.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Apply a parallel shift to every zero yield in the valuation curve, keeping the financing rates, coupon calendar, conversion factors and delivery date fixed. Treat the shift as continuous in the closed range from negative to positive 200 basis points. Find the first strictly positive shift where the cheapest-delivery envelope changes bond; report its location and the cheapest deliverable immediately to its right. Also report the delivery boundary at positive 200 basis points. Explain the change in the delivery choice.",
+          "stores": [
+            "first_switch_bp",
+            "post_switch_cusip",
+            "up200_boundary_quote"
+          ],
+          "validator": "validate_turn_4",
+          "claims": [
+            {
+              "id": "ctd_switch_result",
+              "description": "The response relates the selected switch to the crossing of the converted forward costs that set the delivery envelope.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Around that first switch, evaluate the optimized delivery-boundary envelope over the one-basis-point interval ending at the switch and separately over the one-basis-point interval beginning there. Report the signed quote loss for an upward shift over each interval. Explain the relationship between these two sensitivities and the deliverable choice.",
+          "stores": [
+            "left_switch_dv01",
+            "right_switch_dv01"
+          ],
+          "validator": "validate_turn_5",
+          "claims": [
+            {
+              "id": "envelope_sensitivity",
+              "description": "The response explains that the differing one-sided quote losses reflect a change in the deliverable setting the envelope, rather than one fixed bond's sensitivity.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen governed dataset_new tables; explicitly hypothetical financial contracts in the conversation.",
+    "facts": [
+      "cash_price_lowest_cusip: 91282CBL4",
+      "bond2_dirty_price: 100.4134",
+      "bond1_carried_coupon_value: 0.5660",
+      "bond3_carried_coupon_value: 2.1344",
+      "bond1_forward_clean_price: 83.1849",
+      "base_ctd_cusip: 91282CBL4",
+      "base_boundary_quote: 113.9520",
+      "first_switch_bp: 20.3511",
+      "post_switch_cusip: 91282CJJ1",
+      "up200_boundary_quote: 98.9091",
+      "left_switch_dv01: 0.0653",
+      "right_switch_dv01: 0.0823"
+    ],
+    "known_overclaims": []
+  }
+}

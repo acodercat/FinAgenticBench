@@ -1,0 +1,170 @@
+{
+  "name": "treasury_par_bootstrap_auction_hedge",
+  "module": "evals.calculation_reconciliation.treasury_par_bootstrap_auction_hedge",
+  "task_family": "calculation_reconciliation",
+  "data_sources": [
+    "treasury_auctions",
+    "treasury_yield_curve"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Within calendar-2025 Treasury auction records, restrict the population to original-issue ten-year fixed-rate nominal notes: exclude reopenings, inflation-indexed securities and floating-rate securities, require a reported issue date, and require positive bid-to-cover, coupon and price. Rank the eligible auctions by bid-to-cover descending, breaking an exact tie by earlier auction date and then CUSIP ascending. Report the eligible count and the selected CUSIP, auction date, issue date, maturity date, bid-to-cover ratio, annual coupon percent and auction price per 100 face. Carry the selected note and issue date forward, and interpret the material limits of using this selection rule as an auction-demand comparison.",
+          "validator": "validate_auction_selection",
+          "stores": [
+            "eligible_ten_year_auction_count",
+            "selected_cusip",
+            "selected_auction_date",
+            "selected_issue_date",
+            "selected_maturity_date",
+            "selected_bid_to_cover_ratio",
+            "selected_coupon_pct",
+            "selected_auction_price_per100"
+          ],
+          "claims": [
+            {
+              "id": "bid_to_cover_meaning",
+              "description": "The response explains that bid-to-cover compares submitted bid volume with the amount offered within the defined auction population.",
+              "mode": "required"
+            },
+            {
+              "id": "bid_to_cover_performance_overclaim",
+              "description": "If the response treats the selected bid-to-cover leader as proof of stronger secondary-market performance, it states that the auction subscription ratio does not establish later returns.",
+              "mode": "conditional"
+            },
+            {
+              "id": "bid_to_cover_value_overclaim",
+              "description": "If the response treats the selected bid-to-cover leader as proof of cheapness, it states that the subscription ratio alone does not establish relative value.",
+              "mode": "conditional"
+            },
+            {
+              "id": "bid_to_cover_cost_overclaim",
+              "description": "If the response treats the selected bid-to-cover leader as proof of lower Treasury financing cost, it states that the ratio alone does not establish that conclusion.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "On that note's issue date, construct a semiannual analytical discount curve from the Treasury par yields at 6 months, 1, 2, 3, 5, 7, 10, 20 and 30 years. Use a sequential par-instrument bootstrap and linearly interpolate par yields in maturity for the missing half-year tenors. Report the curve date, the reported 10- and 30-year par yields, the bootstrapped 10- and 30-year discount factors, the corresponding semiannual-compounded spot yields, and the maximum absolute repricing residual per 100 face across synthetic par instruments at every half-year through 30 years. Carry the complete bootstrapped curve forward and explain the financial distinction between the reported par yields and the derived spot curve.",
+          "validator": "validate_bootstrapped_curve",
+          "stores": [
+            "curve_observation_date",
+            "ten_year_par_yield_pct",
+            "thirty_year_par_yield_pct",
+            "ten_year_discount_factor",
+            "thirty_year_discount_factor",
+            "ten_year_spot_yield_pct",
+            "thirty_year_spot_yield_pct",
+            "maximum_par_repricing_residual_per100"
+          ],
+          "claims": [
+            {
+              "id": "par_spot_distinction",
+              "description": "The response explains that a par yield prices a coupon-bearing par instrument while a spot yield discounts one maturity-specific cash flow, so the reported CMT par nodes cannot simply be used as zero rates.",
+              "mode": "required"
+            },
+            {
+              "id": "treasury_curve_boundary",
+              "description": "If the response characterizes the analytical curve as Treasury's exact production curve, it states instead that the requested interpolation and bootstrap define a benchmark approximation.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Using the curve carried forward, price the selected note per 100 face on its issue date with twenty regular half-year cash-flow periods and no accrued interest. Report the model price. Then rebootstrap after parallel one-basis-point upward and downward shocks to all nine quoted par nodes and report the two shocked prices, the standard symmetric effective duration and the standard symmetric effective convexity. Interpret the price reconciliation, the roles of duration and convexity, and the reconciliation's material inferential limits.",
+          "validator": "validate_note_repricing",
+          "stores": [
+            "target_model_price_per100",
+            "target_parallel_up_price_per100",
+            "target_parallel_down_price_per100",
+            "target_effective_duration_years",
+            "target_effective_convexity"
+          ],
+          "claims": [
+            {
+              "id": "auction_curve_timing",
+              "description": "The response explains that the auction price was determined before the issue-date curve observation used for the analytical mark.",
+              "mode": "required"
+            },
+            {
+              "id": "analytical_curve_status",
+              "description": "The response identifies the requested CMT interpolation and bootstrap as an analytical benchmark rather than a security-specific executable curve.",
+              "mode": "required"
+            },
+            {
+              "id": "price_gap_inference",
+              "description": "If the response reads the gap between the model price and the auction price as mispricing, it states that the gap alone establishes none.",
+              "mode": "conditional"
+            },
+            {
+              "id": "duration_convexity_meaning",
+              "description": "The response distinguishes the first-order effective-duration sensitivity from the second-order curvature captured by effective convexity.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Complete a two-key-rate hedge for 100 face of that note. Define synthetic five- and ten-year par securities on the base analytical curve, keeping their base coupons fixed thereafter. For the target and both hedges, measure five- and ten-year par-node key-rate DV01 by increasing only the corresponding quoted par node by one basis point, re-bootstrapping the curve, and taking the signed price loss under that upward bump. Solve the two hedge face amounts that set both combined key-rate DV01s to zero, with positive face denoting a long position and negative face a short. Report the target's two key-rate DV01s, both hedge face amounts and the maximum absolute post-hedge residual. Finally use the next available Treasury curve observation after the issue date, hold all coupons and cash-flow grids fixed, and report that date, the unhedged target and hedged portfolio changes as next value minus base value per 100 target face. Interpret what the hedge test establishes and its material coverage limits.",
+          "validator": "validate_key_rate_hedge",
+          "stores": [
+            "target_five_year_key_rate_dv01_per100",
+            "target_ten_year_key_rate_dv01_per100",
+            "five_year_hedge_face_per100_target",
+            "ten_year_hedge_face_per100_target",
+            "maximum_post_hedge_key_rate_residual_per100",
+            "next_curve_date",
+            "next_day_unhedged_price_change_per100",
+            "next_day_hedged_price_change_per100"
+          ],
+          "claims": [
+            {
+              "id": "hedge_observed_reduction",
+              "description": "The response states whether the hedge reduced the absolute next-curve-date value change relative to the unhedged target.",
+              "mode": "required"
+            },
+            {
+              "id": "hedge_locality",
+              "description": "The response explains that the solved hedge neutralizes the two specified local par-node sensitivities rather than every possible market exposure.",
+              "mode": "required"
+            },
+            {
+              "id": "fixed_grid_interpretation",
+              "description": "The response explains that holding coupons and cash-flow grids fixed makes the next-date comparison a controlled curve-repricing test rather than a realized total return.",
+              "mode": "required"
+            },
+            {
+              "id": "complete_hedge_overclaim",
+              "description": "If the response calls the position a complete hedge, it states that two key-rate equations do not cover unmodeled curve shapes or non-curve risks.",
+              "mode": "conditional"
+            },
+            {
+              "id": "hedge_performance_overclaim",
+              "description": "If the response generalizes from the one next-date path to hedge performance, it states that a single controlled revaluation does not establish general performance.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen Treasury auction records and daily Treasury par-yield curve for the selected 2025 original ten-year note and its issue-date/next-date analytical curve construction.",
+    "facts": [
+      "Four original fixed-rate nominal ten-year note auctions qualify. CUSIP 91282CNC1 leads at a 2.60 bid-to-cover ratio; it was auctioned 2025-05-06, issued 2025-05-15, matures 2035-05-15, carries a 4.250 percent coupon and cleared at 99.260100 per 100.",
+      "On 2025-05-15 the reported 10- and 30-year par yields are 4.45 and 4.91 percent. The analytical bootstrap gives discount factors 0.64040473 and 0.22462013 and semiannual spot yields 4.506572 and 5.040279 percent, with a zero repricing residual at ten decimals.",
+      "The note's analytical price is 98.383841, or -0.876259 versus the auction price. Parallel +1 and -1 basis-point par shocks produce 98.303849 and 98.463911, effective duration 8.1345 years and effective convexity 78.456299.",
+      "The target five- and ten-year par-node key-rate DV01s are -0.0001427 and 0.0805 per 100. Hedge face amounts per 100 target face are 0.317865 in the five-year par security and -99.691331 in the ten-year par security, with zero residual at ten decimals.",
+      "On 2025-05-16 the fixed-grid target gains 0.160873 per 100 while the hedged portfolio changes by -0.000183."
+    ],
+    "known_overclaims": [
+      "Treating CMT par yields directly as spot rates instead of bootstrapping discount factors.",
+      "Calling the analytical interpolation/bootstrap Treasury's exact unpublished production curve.",
+      "Treating model price minus auction price as proof of mispricing despite the auction/settlement timing and curve-model differences.",
+      "Presenting the two-key-rate hedge or fixed-grid next-day mark as a complete realized-return hedge."
+    ]
+  }
+}

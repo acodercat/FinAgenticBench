@@ -1,0 +1,113 @@
+{
+  "name": "sba_collateral_seniority_guarantee_loss_frontier",
+  "module": "evals.comparison_ranking.sba_collateral_seniority_guarantee_loss_frontier",
+  "task_family": "comparison_ranking",
+  "data_sources": [
+    "sba_504",
+    "sba_7a"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Construct two retrospective hypothetical bank books from California project rows in the frozen June 30, 2026 SBA snapshot. Keep fiscal-year 2024 approvals whose recorded first disbursement is on or before December 31, 2024. For 504 require positive SBA gross approval and third-party dollars; for 7(a) require positive gross approval and SBA-guaranteed approval. Keep the reported-row grain. In 504 the bank owns only the senior third-party claim, and the SBA gross approval is a junior claim. Scale each program's dollar amounts uniformly so that its bank principal, the 504 senior claim or the 7(a) gross loan, totals USD 100 million. Report the two retained row counts and normalized 504 junior principal.",
+          "stores": [
+            "rows_504",
+            "rows_7a",
+            "normalized_junior_principal_mn"
+          ],
+          "validator": "validate_turn_1",
+          "claims": []
+        },
+        {
+          "query": "Give each reported row collateral: for 504, total senior and junior principal at a 90% combined loan-to-value; for 7(a), 110% of gross principal. Every row defaults immediately, and recovery is 60% of initial collateral less collection costs of 5% of the gross recovered cash. The 504 senior claim has first priority, the junior claim takes only the residual, and neither recovers more than its principal. The 7(a) bank has sole priority over its collateral; ignore guarantee payments in this turn, accrued interest and all other recoveries. Report 504 senior and junior principal losses and the 7(a) bank collateral shortfall. Explain how claim priority affects the losses.",
+          "stores": [
+            "deterministic_senior_loss_mn",
+            "deterministic_junior_loss_mn",
+            "deterministic_7a_shortfall_mn"
+          ],
+          "validator": "validate_turn_2",
+          "claims": [
+            {
+              "id": "priority",
+              "description": "The answer explains that senior collateral priority and residual junior recovery create different principal loss exposure for the two 504 layers.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Apply the following hypothetical 7(a) guarantee to that bank shortfall: each row's coverage fraction is its reported guaranteed approval divided by gross approval, and this fraction covers the net principal shortfall after collection costs. The guarantee pays exactly 24 months after the immediate collateral recovery, with no fees, disputes or further collateral recoveries. Discount the guarantee at a 5% effective annual rate. Report bank 7(a) present-value principal loss in USD millions and select the lower-loss bank book. Explain the effect of guarantee coverage and payment timing.",
+          "stores": [
+            "deterministic_7a_pv_loss_mn",
+            "deterministic_lower_loss_book"
+          ],
+          "validator": "validate_turn_3",
+          "claims": [
+            {
+              "id": "guarantee_delay",
+              "description": "The answer explains how row-specific guarantee coverage and delayed discounted payment affect the bank principal loss.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Replace deterministic recovery by two equally likely common gross-recovery states, 35% and 85%, applied to every row. Retain all collateral, priority, costs and guarantee terms. Report expected bank 504 principal loss, expected bank 7(a) present-value principal loss, the lower expected-loss bank book and worst-state bank 504 loss in USD millions. Explain the relationship between this result and the earlier deterministic comparison.",
+          "stores": [
+            "stochastic_504_mean_loss_mn",
+            "stochastic_7a_mean_pv_loss_mn",
+            "stochastic_lower_loss_book",
+            "stochastic_504_worst_loss_mn"
+          ],
+          "validator": "validate_turn_4",
+          "claims": [
+            {
+              "id": "recovery_distribution",
+              "description": "The answer explains why the two-state 504 expected loss need not equal the loss evaluated at mean recovery, and connects that difference to the nonlinear senior payoff.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "The committee permits no more than USD35 million expected present-value principal loss in each bank book. Reduce both gross-recovery states by the same amount in the closed range 0–35 percentage points; retain their equal probabilities and all prior contract terms. Find the largest feasible common reduction, including any endpoint or flat feasible region. Report that reduction in percentage points, the binding book (or DOMAIN if only the upper domain endpoint limits the reduction) and expected bank 7(a) present-value loss at that boundary in USD millions. Explain which constraint determines the frontier.",
+          "stores": [
+            "maximum_common_recovery_drop_pp",
+            "limiting_book",
+            "boundary_7a_mean_pv_loss_mn"
+          ],
+          "validator": "validate_turn_5",
+          "claims": [
+            {
+              "id": "frontier",
+              "description": "The answer explains why the binding loss reaches its cap while the other bank book remains feasible, or why only the permitted recovery-reduction domain endpoint limits the frontier.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen governed dataset_new tables; explicitly hypothetical financial contracts in the conversation.",
+    "facts": [
+      "rows_504: 762",
+      "rows_7a: 6945",
+      "normalized_junior_principal_mn: 75.7799",
+      "deterministic_senior_loss_mn: 1.3057",
+      "deterministic_junior_loss_mn: 63.1469",
+      "deterministic_7a_shortfall_mn: 37.3000",
+      "deterministic_7a_pv_loss_mn: 12.1479",
+      "deterministic_lower_loss_book: SBA504",
+      "stochastic_504_mean_loss_mn: 17.5295",
+      "stochastic_7a_mean_pv_loss_mn: 12.1479",
+      "stochastic_lower_loss_book: SBA7A",
+      "stochastic_504_worst_loss_mn: 35.0591",
+      "maximum_common_recovery_drop_pp: 18.6647",
+      "limiting_book: SBA504",
+      "boundary_7a_mean_pv_loss_mn: 18.5002"
+    ],
+    "known_overclaims": []
+  }
+}

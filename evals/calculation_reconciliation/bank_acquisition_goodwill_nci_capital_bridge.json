@@ -1,0 +1,108 @@
+{
+  "name": "bank_acquisition_goodwill_nci_capital_bridge",
+  "module": "evals.calculation_reconciliation.bank_acquisition_goodwill_nci_capital_bridge",
+  "task_family": "calculation_reconciliation",
+  "data_sources": [
+    "ffiec_call_reports",
+    "treasury_yield_curve"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Build a hypothetical IFRS acquisition from the 2025-09-30 consolidated Call Reports of buyer RSSD 197478 and target RSSD 141556, treated as independent banks. Book equity is equity attributable to a bank's own shareholders, excluding inherited subsidiary NCI. The buyer pays 1.4 times the book equity of an 80% stake. Appraise the other 20%: 5% of its book equity at years 1 to 5 plus 1.4 times its book equity at year 5, discounted at the 2025-09-30 Treasury yields for 1, 2, 3, 6 months and 1, 2, 3, 5, 7, 10, 20, 30 years read as zero rates, semiannually compounded, linearly interpolated with flat ends. Report consideration and appraised NCI.",
+          "stores": [
+            "consideration_mn",
+            "nci_fair_value_mn"
+          ],
+          "validator": "validate_turn_1",
+          "claims": []
+        },
+        {
+          "query": "Execute the acquisition under IFRS 3 and IAS 32 with full-goodwill fair-value NCI. Inherited subsidiary NCI, consolidated assets less liabilities less book equity, stays separate at that amount, which is also its fair value, and nothing here changes it. All target assets are identifiable, with no prior goodwill; mark them down by 1% of original total assets, leaving liabilities unchanged and taxes zero. Pay half the consideration in cash and half in new ordinary shares; acquisition costs of 1% of consideration and issuance costs of 2% of issued equity are paid in cash. Report recognized goodwill and consolidated equity attributable to the parent. Explain the equity attribution in the acquisition.",
+          "stores": [
+            "new_goodwill_mn",
+            "postdeal_parent_equity_mn"
+          ],
+          "validator": "validate_turn_2",
+          "claims": [
+            {
+              "id": "acquisition_equity",
+              "description": "The response explains that target pre-acquisition equity is eliminated rather than added to parent shareholders' equity, while new shares and transaction-related costs affect the latter.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Apply a hypothetical internal capital policy: start from buyer reported CET1; changes in parent equity enter dollar for dollar, the buyer's original capital adjustments stay fixed, NCI is ineligible, and the parent's ownership share of new goodwill is deducted. Initial combined RWA is the two reported standardized RWA amounts less the target markdown at 100% weight; cash and goodwill carry none. With a 12% minimum ratio and new loans at 100% weight changing nothing else, report post-acquisition internal capital and the maximum additional loan RWA, without making the loans. Explain the meaning of this capital measure.",
+          "stores": [
+            "postdeal_internal_capital_mn",
+            "new_loan_rwa_capacity_mn"
+          ],
+          "validator": "validate_turn_3",
+          "claims": [
+            {
+              "id": "internal_policy_scope",
+              "description": "The response identifies the result as an internal scenario measure and gives at least one financially material reason it is insufficient to establish the actual regulatory capital outcome.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Before any additional loans, recognize impairment equal to 30% of that newly recognized full goodwill in a single cash-generating unit. Apply IAS 36, with the entire impairment assigned to goodwill and attributed 80% to the parent and 20% to the newly appraised direct target-bank NCI, with inherited subsidiary NCI unchanged. There are no other losses or tax effects. Retain the internal capital policy and carried RWA. Report equity attributable to the parent and internal capital after impairment. Explain the relationship between the accounting charge and capital outcome.",
+          "stores": [
+            "impairment_parent_equity_mn",
+            "impairment_internal_capital_mn"
+          ],
+          "validator": "validate_turn_4",
+          "claims": [
+            {
+              "id": "impairment_capital_bridge",
+              "description": "The response explains that the parent-attributed impairment is offset by a matching release of the existing goodwill deduction, leaving the specified internal capital unchanged.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Continue from the impaired acquisition. The parent buys half the remaining newly appraised direct target-bank NCI, for cash equal to 1.2 times the carrying amount of the interest transferred, while retaining control. Apply IFRS 10; there are no transaction costs, tax effects or other changes. Continue the same internal capital policy with the resulting ownership, and retain RWA. Report final internal capital and its RWA ratio. Explain the capital consequences of this subsequent purchase.",
+          "stores": [
+            "buyout_internal_capital_mn",
+            "buyout_capital_ratio_pct"
+          ],
+          "validator": "validate_turn_5",
+          "claims": [
+            {
+              "id": "retained_control_equity",
+              "description": "The response explains that the control-retaining NCI purchase is an equity transaction rather than a new goodwill-generating acquisition.",
+              "mode": "required"
+            },
+            {
+              "id": "buyout_capital_change",
+              "description": "The response relates the decrease in final internal capital to both the NCI purchase premium and the higher ownership share applied to remaining goodwill.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen governed dataset_new tables; explicitly hypothetical financial contracts in the conversation.",
+    "facts": [
+      "consideration_mn: 600.7882",
+      "nci_fair_value_mn: 148.8744",
+      "new_goodwill_mn: 246.7560",
+      "postdeal_parent_equity_mn: 8316.7233",
+      "postdeal_internal_capital_mn: 7998.6295",
+      "new_loan_rwa_capacity_mn: 6578.9002",
+      "impairment_parent_equity_mn: 8257.5019",
+      "impairment_internal_capital_mn: 7998.6295",
+      "buyout_internal_capital_mn: 7967.9497",
+      "buyout_capital_ratio_pct: 13.2630"
+    ],
+    "known_overclaims": []
+  }
+}

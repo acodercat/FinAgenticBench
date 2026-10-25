@@ -1,0 +1,62 @@
+{
+  "name": "tga_drawdown_debt_transaction_bridge",
+  "module": "evals.calculation_reconciliation.tga_drawdown_debt_transaction_bridge",
+  "task_family": "calculation_reconciliation",
+  "data_sources": ["treasury_dts", "treasury_debt_to_penny"],
+  "difficulty": "hard",
+  "case_type": "trap",
+  "conversations": [{
+    "id": "main",
+    "turns": [
+      {
+        "query": "Within federal fiscal year 2025 Daily Treasury Statement rows, take the Treasury General Account closing balance on each reported date and find the largest decline between consecutive reported dates, breaking an equal decline by the earlier ending date. Report the number of closing-balance dates, starting and ending dates, both closing balances, signed ending-minus-starting change, positive decline magnitude, and the decline-magnitude margin over the runner-up interval. Say how far the reported balances alone let you name what drove the selected fall in the account.",
+        "validator": "validate_tga_screen",
+        "stores": ["fy2025_tga_reported_date_count", "largest_tga_decline_start_date", "largest_tga_decline_end_date", "start_tga_closing_balance_usd_billions", "end_tga_closing_balance_usd_billions", "tga_closing_balance_change_usd_billions", "tga_decline_magnitude_usd_billions", "tga_decline_leader_margin_usd_billions"],
+        "claims": [
+          {"id": "fiscal_causality_boundary", "description": "If the response attributes the selected drawdown to a particular policy action, debt-limit event or spending program, it qualifies that inference because the supplied aggregates do not identify that cause.", "mode": "conditional"}
+        ]
+      },
+      {
+        "query": "For the turn-1 ending date, use the four operating-cash account rows. Report the TGA opening balance, opening minus the prior reported closing balance, deposits, withdrawals, deposits minus withdrawals, and that cash-flow net minus the turn-1 closing-balance change. Say whether the two residuals you computed leave anything unexplained between the prior night's close, the day's flows, and the day's ending figure.",
+        "validator": "validate_cash_identity",
+        "stores": ["selected_day_tga_opening_balance_usd_billions", "opening_minus_prior_close_usd_millions", "selected_day_tga_deposits_usd_billions", "selected_day_tga_withdrawals_usd_billions", "deposits_minus_withdrawals_usd_billions", "cash_flow_minus_closing_change_usd_millions"],
+        "claims": [
+          {"id": "tga_cash_identity_result", "description": "The response recognizes from the computed residuals that the selected day's opening balance rolls from the prior reported close and deposits minus withdrawals explains the closing-balance change at source precision.", "mode": "required"}
+        ]
+      },
+      {
+        "query": "On that same ending date, aggregate all reported DTS public-debt transaction rows of transaction type Issues or Redemptions, retaining the sign of source adjustments. Separately for Marketable and Nonmarketable securities report Issues, Redemptions and Issues-minus-Redemptions; then report the corresponding totals across both markets. Explain how these transaction measures relate to the debt measures used in the next turn.",
+        "validator": "validate_debt_flows",
+        "stores": ["marketable_debt_issues_usd_billions", "marketable_debt_redemptions_usd_billions", "marketable_debt_net_issues_usd_billions", "nonmarketable_debt_issues_usd_billions", "nonmarketable_debt_redemptions_usd_billions", "nonmarketable_debt_net_issues_usd_billions", "total_debt_issues_usd_billions", "total_debt_redemptions_usd_billions", "total_debt_net_issues_usd_billions"],
+        "claims": [
+          {"id": "debt_transaction_flow_boundary", "description": "The response distinguishes same-day gross issues and redemptions from end-of-day debt levels.", "mode": "required"}
+        ]
+      },
+      {
+        "query": "Use Debt to the Penny on the two turn-1 dates. Report both dates and, for debt held by the public, intragovernmental holdings and total debt, each starting stock, ending stock and signed change. Then report turn-3 total net issues minus total-debt change, Marketable net issues minus held-by-public change, Nonmarketable net issues minus intragovernmental change, and the turn-1 TGA change minus total-debt change. Interpret the total reconciliation, the two component crosswalk results and the final cash residual.",
+        "validator": "validate_stock_flow_bridge",
+        "stores": ["debt_stock_start_date", "debt_stock_end_date", "held_by_public_start_usd_billions", "held_by_public_end_usd_billions", "held_by_public_change_usd_billions", "intragovernmental_start_usd_billions", "intragovernmental_end_usd_billions", "intragovernmental_change_usd_billions", "total_debt_start_usd_billions", "total_debt_end_usd_billions", "total_debt_change_usd_billions", "dts_net_issues_minus_total_debt_change_usd_millions", "marketable_net_minus_public_change_usd_billions", "nonmarketable_net_minus_intragovernmental_change_usd_billions", "tga_change_minus_total_debt_change_usd_billions"],
+        "claims": [
+          {"id": "total_stock_flow_reconciliation_result", "description": "The response recognizes that total DTS net debt issuance closely reconciles to the same-day total Debt to the Penny stock change, subject to the DTS million-dollar reporting precision.", "mode": "required"},
+          {"id": "component_crosswalk_boundary", "description": "The response recognizes Marketable versus Nonmarketable and public versus intragovernmental as different classifications and explains why the component residuals offset even though the totals reconcile.", "mode": "required"},
+          {"id": "cash_debt_residual_meaning", "description": "The response treats TGA change minus total-debt change as an implied net contribution from other cash transactions in the selected daily bridge, not as an unexplained accounting error or a complete budget deficit measure.", "mode": "required"}
+        ]
+      }
+    ]
+  }],
+  "judge_reference": {
+    "source": "Daily Treasury Statement operating cash and public-debt transactions plus Debt to the Penny",
+    "facts": [
+      "The largest consecutive-reported-date FY2025 TGA decline closes exactly through deposits minus withdrawals.",
+      "Same-day total net debt transactions closely reconcile to total debt-stock change at DTS precision.",
+      "Marketability and holder-sector components are not one-to-one crosswalks, while their residuals offset in total.",
+      "TGA change also contains non-debt cash activity."
+    ],
+    "known_overclaims": [
+      "Synthesizing weekend TGA observations.",
+      "Treating gross issues as a stock or ignoring signed source adjustments.",
+      "Forcing Marketable to equal debt held by the public and Nonmarketable to equal intragovernmental holdings.",
+      "Calling the TGA-minus-debt residual the federal budget deficit or an error."
+    ]
+  }
+}

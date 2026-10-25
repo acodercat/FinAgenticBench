@@ -1,0 +1,126 @@
+{
+  "name": "mortgage_originator_retention_and_purchase_limits",
+  "module": "evals.risk_screening.mortgage_originator_retention_and_purchase_limits",
+  "task_family": "risk_screening",
+  "data_sources": [
+    "hmda",
+    "ffiec_nic_institutions"
+  ],
+  "case_type": "baseline",
+  "difficulty": "hard",
+  "judge_reference": {
+    "source": "Frozen 2024 mortgage disclosure records with the frozen supervisory institution snapshot.",
+    "facts": [
+      "The file holds 6,191,825 originated loans from 4,869 identifiers. 1,710 of those are tied to a deposit-insurance certificate in the supervisory snapshot and made 25.3243 percent of the originations. Of the remaining 3,159, only 53 appear in the snapshot without a certificate; 3,106 do not appear in it at all.",
+      "Identifiers carrying a certificate sold 34.6269 percent of their originations inside the year against 68.4937 for the rest. The widest buyer gap is code 2 at 10.7173 percentage points, 2.8598 against 13.5771, ahead of code 71 at 9.0902 by 1.6271; code 5 follows at 4.5402.",
+      "The two agencies bought 1,320,636 originated loans. In ten-thousand-dollar bands, the steepest fall between five hundred thousand and one and a half million opens at 1,140,000, which holds 1,307 loans against 20 above it, a fall of 98.4698 percent.",
+      "The second steepest opens at 760,000 and falls 97.8944 percent, from 16,337 to 344. The third, at 1,470,000, falls 90.0000 percent.",
+      "23,117 agency-bought loans exceed 766,550 dollars. California holds 10,888 of them, 47.0995 percent, ahead of Washington's 1,906 by 471 percent; the six leading states hold 74.7545 percent.",
+      "A further 4,645 exceed 1,149,825 dollars. Their unit counts run above 149 for 1,869, 50 to 99 for 784, 100 to 149 for 640 and 25 to 49 for 493, so they are multifamily loans rather than single-family jumbos.",
+      "Reported loan amounts are not on a ten-thousand-dollar grid; no agency-bought amount is an exact multiple of ten thousand.",
+      "No identifier in the snapshot carries more than one certificate, so a rule that discarded such identifiers would remove nothing on this release."
+    ],
+    "known_overclaims": [
+      "Calling the identifiers without a unique certificate nonbanks. The group also holds credit unions, which are insured by a different agency, and lenders this snapshot fails to match at all.",
+      "Reading the retention gap as evidence about screening, credit quality or risk retention rules, none of which these two files observe.",
+      "Presenting the bands as the statutory amounts themselves; they are ten-thousand-dollar groupings that contain the amounts, and the file does not carry the schedule.",
+      "Treating the loans above the national amount as ineligible or as errors, when the schedule raises the amount in designated high-cost areas and again for multi-unit properties.",
+      "Attributing the state concentration to any lender, product or policy that these records identify.",
+      "Reading the share sold inside the year as the share ever securitized; a loan sold in a later year is recorded as unsold here."
+    ]
+  },
+  "conversations": [
+    {
+      "turns": [
+        {
+          "query": "The 2024 mortgage disclosure file records, for each loan, the action the filer took and, where the loan was sold inside the year, the type of institution that bought it. Keep only the loans the filer originated, which is action code 1, because the buyer field is also populated on records the filer bought rather than made. Identify each lender by its legal entity identifier, and from the supervisory institution snapshot keep the identifiers it ties to a deposit-insurance certificate. Report how many originated loans the file holds, how many originating identifiers it ties that way, how many it does not, and the share of originations those tied identifiers made, in percent. Explain what the identifier tie establishes about a lender and what it leaves open.",
+          "validator": "validate_lender_split",
+          "stores": [
+            "origination_count",
+            "certificate_linked_lender_count",
+            "unlinked_lender_count",
+            "certificate_linked_origination_share_pct"
+          ],
+          "claims": [
+            {
+              "id": "the_second_group_is_not_a_category",
+              "mode": "required",
+              "description": "The identifiers left without a certificate are a residual of the matching rule rather than a recognised class of lender, since the group also holds institutions insured elsewhere and ones the snapshot simply fails to match."
+            },
+            {
+              "id": "origination_filter_matters",
+              "mode": "conditional",
+              "description": "If the response discusses the population rule, the buyer field is populated on records a filer bought as well as on ones it made, so keeping both would mix purchases into an origination statistic."
+            }
+          ]
+        },
+        {
+          "query": "Treat a loan as sold inside the year when its buyer code is anything other than 0. Report the share of originations sold, in percent, for the identifiers tied to a certificate and for the others. Then, for every buyer code other than 0, subtract the share of the tied identifiers' originations that went to that buyer from the share of the other identifiers' originations that went to it, and report the code with the largest such difference, breaking a tie by the lower code read as a number, together with that difference in percentage points. Explain what the widest gap says about where the two groups place the loans they sell.",
+          "validator": "validate_retention_and_channel",
+          "stores": [
+            "certificate_linked_sold_share_pct",
+            "unlinked_sold_share_pct",
+            "widest_buyer_gap_code",
+            "widest_buyer_gap_pp"
+          ],
+          "claims": [
+            {
+              "id": "retention_differs_by_lender_type",
+              "mode": "required",
+              "description": "Lenders tied to a deposit-insurance certificate keep roughly twice the proportion of what they make, so where a loan ends up depends on who wrote it."
+            },
+            {
+              "id": "the_gap_is_concentrated",
+              "mode": "conditional",
+              "description": "If the response looks past the headline, the difference is not spread evenly across buyers but sits mostly in one channel."
+            }
+          ]
+        },
+        {
+          "query": "Restrict to the originated loans bought by the two housing agencies, whose buyer codes are 1 and 3. Group the loan amounts carrying a reported value into bands ten thousand dollars wide, each opening at a multiple of ten thousand; the reported amounts are not themselves on that grid. For every band whose opening lies between 500,000 and 1,500,000 dollars inclusive, divide the count of the band ten thousand above it by its own count. Report how many agency-bought loans carry a reported amount, the opening amount of the band where that ratio is smallest, breaking a tie by the lower opening, how many loans that band holds, and the percentage by which the count falls from that band to the one above it. Explain what a fall of that size at a round amount indicates.",
+          "validator": "validate_purchase_limit_cliff",
+          "stores": [
+            "agency_purchased_count",
+            "steepest_fall_band_floor",
+            "steepest_fall_band_count",
+            "steepest_fall_pct"
+          ],
+          "claims": [
+            {
+              "id": "the_cliff_is_a_rule_not_a_market",
+              "mode": "required",
+              "description": "A drop of that size between neighbouring bands is the signature of an eligibility boundary rather than of demand thinning out, since loan sizes themselves vary smoothly."
+            },
+            {
+              "id": "bands_are_not_the_amount",
+              "mode": "conditional",
+              "description": "If the response names a threshold, the band is a ten-thousand-dollar grouping that contains it and not the statutory figure itself."
+            }
+          ]
+        },
+        {
+          "query": "Staying with the same band ratios, report the opening amount of the band where the ratio is second smallest. Then take 766,550 dollars as the 2024 conforming loan limit for a one-unit property, and report how many agency-bought loans exceed it, the two-letter code of the state holding the most of those loans, breaking a tie by the alphabetically earlier code, and that state's share of them in percent. Explain why loans above the limit exist at all and what the state concentration suggests.",
+          "validator": "validate_high_cost_tier",
+          "stores": [
+            "second_steepest_fall_band_floor",
+            "above_national_limit_count",
+            "largest_above_limit_state",
+            "largest_above_limit_state_share_pct"
+          ],
+          "claims": [
+            {
+              "id": "two_tiers_not_one",
+              "mode": "required",
+              "description": "Two cliffs appear rather than one, and the loans sitting above the national figure cluster in a handful of states, which is what a schedule that lifts the amount in designated areas would produce."
+            },
+            {
+              "id": "above_is_not_ineligible",
+              "mode": "conditional",
+              "description": "If the response interprets the loans above the national figure, they are not errors or breaches; the amount is higher in designated areas and higher again for multi-unit properties."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

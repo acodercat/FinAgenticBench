@@ -1,0 +1,94 @@
+{
+  "name": "treasury_almgren_chriss_execution_frontier",
+  "module": "evals.scenario_analysis.treasury_almgren_chriss_execution_frontier",
+  "task_family": "scenario_analysis",
+  "data_sources": [
+    "treasury_yield_curve",
+    "cftc_cot"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Construct a hypothetical liquidation block equal to 0.1 percent of CFTC futures-only open interest for contract market code 043602 on 2024-12-31, with USD 100,000 face per contract and fractional contracts allowed. Estimate its daily fractional-par-price risk using Treasury ten-year constant-maturity par yields from 2024-01-01 through 2024-12-31: use the sample standard deviation of consecutive within-window yield-level changes, each pair one trading day, and a fixed modified-duration-eight first-order par-price proxy. Report increment count, daily price volatility and initial face amount. Carry the inventory and volatility forward and discuss the proxy's financial scope. Use unrounded states throughout.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "price_increment_count",
+            "daily_price_sigma_bp",
+            "initial_face_million"
+          ],
+          "claims": [
+            {
+              "id": "treasury_almgren_chriss_execution_frontier_t1_interpretation",
+              "description": "The response gives at least one financially material limitation of using the estimated par-price risk proxy for this futures liquidation block.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Solve the original discrete-time Almgren\u2013Chriss linear-impact liquidation model for the carried block over five trading days in ten equal intervals. Use zero drift, independent Gaussian price innovations at the carried volatility, temporary impact slope 0.00002 fractional par price for a trading rate of one USD million face per trading day, permanent coefficient 0.000002 fractional par price per USD million face, and half-spread 0.00005 fractional par price. Minimize expected implementation shortfall plus its variance with risk aversion one per USD million; require complete liquidation, allow fractional quantities and impose no participation cap. Report the first trade, expected shortfall and shortfall standard deviation. Carry the optimal path and risk forward and interpret the cost-risk tradeoff.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "initial_first_trade_million",
+            "initial_expected_cost_million",
+            "initial_cost_sd_million"
+          ],
+          "claims": [
+            {
+              "id": "treasury_almgren_chriss_execution_frontier_t2_interpretation",
+              "description": "The response connects the front-loaded optimal path to the tradeoff between market-impact cost and inventory exposure to price uncertainty.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Using the carried model and risk estimate, find the minimum-expected-shortfall strategy whose shortfall standard deviation is at most 75 percent of the preceding optimal strategy's unrounded standard deviation. Keep the same block, deadline and impact parameters. Report the nonnegative variance-penalty multiplier defining this efficient-frontier point, expected shortfall and inventory remaining after four executions. Carry this strategy and its multiplier forward and interpret the frontier movement.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "frontier_risk_aversion_per_million",
+            "frontier_expected_cost_million",
+            "frontier_inventory_after_four_million"
+          ],
+          "claims": [
+            {
+              "id": "treasury_almgren_chriss_execution_frontier_t3_interpretation",
+              "description": "The response explains that the binding lower risk cap raises expected trading cost along the efficient frontier.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Immediately after four executions of that carried strategy, temporary impact unexpectedly quadruples. Reoptimize the remaining inventory over the original remaining deadline using the carried variance-penalty multiplier, volatility, permanent impact and half-spread. Report the next trade, remaining expected implementation shortfall and remaining shortfall standard deviation. Measure the remaining shortfall against the then-current pre-trade market price. Interpret how the revised execution pace relates to the original continuation.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "revised_next_trade_million",
+            "revised_remaining_cost_million",
+            "revised_remaining_sd_million"
+          ],
+          "claims": [
+            {
+              "id": "treasury_almgren_chriss_execution_frontier_t4_interpretation",
+              "description": "The response relates the smaller revised next trade to the deterioration in temporary liquidity while preserving the original liquidation deadline.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen dataset_new and the specified named-model scenario.",
+    "facts": [
+      "The response gives at least one financially material limitation of using the estimated par-price risk proxy for this futures liquidation block.",
+      "The response connects the front-loaded optimal path to the tradeoff between market-impact cost and inventory exposure to price uncertainty.",
+      "The response explains that the binding lower risk cap raises expected trading cost along the efficient frontier.",
+      "The response relates the smaller revised next trade to the deterioration in temporary liquidity while preserving the original liquidation deadline."
+    ],
+    "known_overclaims": [
+      "Treating a hypothetical structural scenario as an observed price or identified causal effect."
+    ]
+  }
+}

@@ -1,0 +1,107 @@
+{
+  "name": "nport_bounded_curve_reverse_stress",
+  "module": "evals.risk_screening.nport_bounded_curve_reverse_stress",
+  "task_family": "risk_screening",
+  "data_sources": ["sec_nport", "treasury_yield_curve"],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Use original SEC N-PORT-P reports dated 2025-03-31 and filed through 2025-06-30. Retain each series' latest filing, breaking filing-date ties by accession descending, and its complete USD five-tenor interest-rate-risk row at that exact accession. Require net assets of at least USD 100 million, positive cash not elsewhere reported that is strictly below net assets, and reported assets less liabilities within USD 1 of net assets. The five DV01 tenors run 3-month, 1-year, 5-year, 10-year then 30-year throughout. Subtract absolute signed-net DV01 magnitude from gross absolute five-tenor DV01 magnitude, scale that per-basis-point gap to a 50-basis-point move by multiplying it by 50, and express the result as a percentage of net assets. Select the series with the largest such measure, breaking ties by series identifier ascending. Report the selected series identifier, accession, net assets, cash not elsewhere reported and ranking measure. Separately, from complete Treasury par yields at those same five tenors on 2020-01-02 through 2024-12-31, form consecutive available-date changes in basis points and their sample covariance using the n-minus-one denominator. Report the change count and carry the selected balance sheet, signed DV01 vector and covariance forward. Explain from the five signed tenor sensitivities how a fund whose net DV01 nearly cancels can still carry substantial curve-shape exposure.",
+          "validator": "validate_turn_1",
+          "stores": ["selected_series_id", "selected_accession", "selected_nav_mn", "selected_cash_mn", "selected_cancellation_pct_nav", "curve_change_count"],
+          "claims": [
+            {
+              "id": "cancellation_shape_result",
+              "description": "The response explains from the selected five signed tenor sensitivities that a large gross-versus-net cancellation can coexist with material curve-shape exposure.",
+              "mode": "required"
+            },
+            {
+              "id": "nport_scope_boundary",
+              "description": "If the response treats the USD DV01 row as total fund risk or realized return, it identifies that other currencies and non-rate risks are outside this reported first-order sensitivity exercise.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "For the carried fund and Treasury covariance, find the minimum-Mahalanobis-distance five-tenor yield shock whose signed first-order USD DV01 loss equals 2% of the report-date net assets. Express every shock component in basis points; in this scenario a positive reported DV01 means a gain for a one-basis-point yield decline. There is no tenor bound yet. Report the minimum distance and the five-year and ten-year shock components. Interpret the shape of the resulting stress relative to a parallel move.",
+          "validator": "validate_turn_2",
+          "stores": ["unboxed_distance", "unboxed_5y_shock_bp", "unboxed_10y_shock_bp"],
+          "claims": [
+            {
+              "id": "minimum_shape_result",
+              "description": "The response recognizes from the optimized coordinates and signed exposures that the minimum-distance loss direction is nonparallel and cannot be recovered from the net DV01 alone.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Keep the same fund, covariance and 2%-of-original-NAV loss target, but restrict each tenor's shock separately to the closed range from negative to positive 50 basis points. Resolve the minimum-distance stress within that box. Report its distance, ten-year shock component and the first attained tenor bound in the stated tenor order, or no bound if all are interior. This comparison neither executes a rate move nor alters the fund holdings. Say which tenor limit binds, and explain what that bound does to the distance required for the same target loss.",
+          "validator": "validate_turn_3",
+          "stores": ["boxed_distance", "boxed_10y_shock_bp", "boxed_first_binding"],
+          "claims": [
+            {
+              "id": "box_effect_result",
+              "description": "The response identifies from the solve that a tenor limit binds and increases the minimum distance for the same target loss, rather than treating the unboxed optimum as feasible in the box.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Now execute a hypothetical redemption equal to 20% of the original report-date net assets, at the reported balance-sheet amounts, with liabilities unchanged. Spend the reported cash first; sell the remaining required amount of noncash assets at book value pro rata across all noncash assets. Every USD DV01 bucket retains the same fraction as noncash asset book value; cash carries no DV01. Reassess the unboxed minimum-distance stress for a first-order loss of 2% of the new net assets, keeping the historical Treasury covariance. Report noncash assets sold, the fraction of the USD DV01 vector retained and the new minimum distance. Interpret the exposure relative to the remaining net assets and the scenario's sale assumption.",
+          "validator": "validate_turn_4",
+          "stores": ["redemption_noncash_sale_mn", "redemption_dv01_retained_pct", "redemption_unboxed_distance"],
+          "claims": [
+            {
+              "id": "cash_first_risk_result",
+              "description": "The response relates the cash-first redemption to a NAV reduction proportionally larger than the modeled DV01 reduction, explaining the lower post-redemption loss distance.",
+              "mode": "required"
+            },
+            {
+              "id": "sale_scope_boundary",
+              "description": "If the response describes the proportional noncash sale as an observed or executable fund liquidation, it qualifies that assumption because the N-PORT aggregates do not establish execution liquidity.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "From the executed post-redemption state, use the original unboxed minimum distance from turn 2 as a radius and consider every five-tenor shock within it. Determine the new common-equity cash contribution that brings the worst first-order USD-rate loss to exactly 2% of net assets measured after that contribution. The contribution changes cash and net assets but not the carried DV01 vector or liabilities. Report the worst loss before the contribution as a share of post-redemption net assets and the required contribution. Explain what the post-redemption exposure implies for the original loss limit, and state that this is a first-order DV01 scenario, not a probability of loss.",
+          "validator": "validate_turn_5",
+          "stores": ["pre_injection_worst_loss_pct_nav", "required_new_equity_mn"],
+          "claims": [
+            {
+              "id": "equity_buffer_result",
+              "description": "The response concludes from the post-redemption exposure that a positive new-equity contribution is needed to restore the original-distance loss limit.",
+              "mode": "required"
+            },
+            {
+              "id": "risk_model_boundary",
+              "description": "The response characterizes the result as a linear USD-DV01 and historical-covariance scenario boundary, not a probability or complete fund-loss guarantee.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen SEC N-PORT original fund report and USD risk row, plus 2020–2024 Treasury par-yield changes under the stipulated hypothetical redemption and risk model.",
+    "facts": [
+      "The selected accession is 0001752724-25-114666 (series S000044524), with USD 385.41993428 million NAV and USD 14.60337376 million reported cash. The 50bp NAV-normalized cancellation is 4.0337993941% and the historical covariance uses 1,250 consecutive complete changes.",
+      "The 2%-NAV unboxed reverse stress has distance 11.44681142, five-year shock -70.85701215bp and ten-year shock -61.43973102bp. The +/-50bp box binds at five years negative, raising distance to 14.27334662 and giving a ten-year shock near -41.1524bp.",
+      "A 20%-NAV redemption spends cash and sells USD 62.480613096 million of noncash assets; under the scenario 84.40121724% of USD DV01 remains, and the new unboxed loss distance is 10.84990174.",
+      "At the original distance, the post-redemption first-order loss is 2.11003043% of pre-injection NAV and USD 16.96316860 million of fresh common equity restores the 2% limit. Borrowed cash would add an offsetting liability and not raise NAV.",
+      "These are first-order USD key-rate scenarios, not full portfolio repricing, actual sales, crisis probabilities or fund performance."
+    ],
+    "known_overclaims": [
+      "Treating net DV01 cancellation as no term-structure risk.",
+      "Calling the box-limited optimum the same as the unboxed shock.",
+      "Scaling cash and every risk asset equally after a cash-first redemption.",
+      "Treating a loan or collateral financing as fresh NAV equity.",
+      "Presenting the model loss as a forecast or full fund-liquidity conclusion."
+    ]
+  }
+}

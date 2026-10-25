@@ -1,0 +1,132 @@
+{
+  "name": "bank_y9c_asset_scope_lineage",
+  "module": "evals.calculation_reconciliation.bank_y9c_asset_scope_lineage",
+  "task_family": "calculation_reconciliation",
+  "data_sources": [
+    "ffiec_call_reports_balance",
+    "ffiec_nic_structure",
+    "ffiec_y9c"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Perform a retrospective 2025-09-30 legal-entity scope comparison for JPMorgan Chase Bank, National Association (RSSD 852218), Bank of America, National Association (RSSD 480228), Citibank, N.A. (RSSD 476810), and Wells Fargo Bank, National Association (RSSD 451965). For each bank, use the current FFIEC NIC direct regulatory-control lineage to identify the source-recorded legal name of the nearest controlling ancestor that reports a 2025-09-30 Y-9C consolidated balance sheet, together with the relationship-edge count. Report the matched-pair count, each bank's matched ancestor name and edge count, and the total lineage-edge count. Carry the matched pairs forward. Explain what the lineage traversal establishes and what the current snapshot does not settle.",
+          "validator": "validate_lineage_match",
+          "stores": [
+            "matched_bank_parent_pair_count",
+            "jpmorgan_matched_parent_legal_name",
+            "jpmorgan_lineage_edge_count",
+            "bank_of_america_matched_parent_legal_name",
+            "bank_of_america_lineage_edge_count",
+            "citibank_matched_parent_legal_name",
+            "citibank_lineage_edge_count",
+            "wells_fargo_matched_parent_legal_name",
+            "wells_fargo_lineage_edge_count",
+            "total_nic_relationship_edge_count"
+          ],
+          "claims": [
+            {
+              "id": "multi_hop_lineage_meaning",
+              "description": "The response explains that at least one selected bank reaches its matched Y-9C reporting ancestor only through multiple current direct regulatory-control edges and intermediate legal entities.",
+              "mode": "required"
+            },
+            {
+              "id": "lineage_shortcut_boundary",
+              "description": "If the response claims that direct legal-name matching or stopping at every immediate parent is sufficient, it states that those shortcuts do not recover the four selected Y-9C reporting-entity mappings.",
+              "mode": "conditional"
+            },
+            {
+              "id": "ownership_vintage_boundary",
+              "description": "If the response presents the NIC lineage as the ownership structure known or effective at 2025-09-30, it states that the supplied NIC graph is a later current snapshot used for retrospective mapping and is not a frozen 2025-Q3 as-known relationship archive.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "For the matched pairs carried forward, compare each bank's Call Report consolidated total assets with its matched ancestor's Y-9C consolidated total assets. Report aggregate bank assets, aggregate parent assets and the ratio of those two aggregate amounts. Explain what the two consolidated scopes each cover and what the aggregate ratio therefore measures.",
+          "validator": "validate_scope_aggregate",
+          "stores": [
+            "cohort_bank_total_assets_usd_billions",
+            "cohort_parent_total_assets_usd_billions",
+            "cohort_bank_to_parent_asset_ratio_pct"
+          ],
+          "claims": [
+            {
+              "id": "consolidated_scope_nonadditivity",
+              "description": "The response explains that Y-9C parent assets are consolidated and can already include the subsidiary bank, so bank and parent assets are not additive and their difference is not a clean measure of nonbank assets without consolidation and elimination detail.",
+              "mode": "required"
+            },
+            {
+              "id": "ratio_overclaim_boundary",
+              "description": "If the response labels the cohort ratio as an ownership percentage, banking-market share or equal-weighted mean of bank-level shares, it states that the measure instead divides aggregate bank consolidated assets by aggregate matched-parent consolidated assets for the four selected pairs.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Using the same matched pairs, identify the banks with the highest and lowest individual bank-to-parent asset shares, breaking an exact tie alphabetically by bank legal name. For each, report the bank and parent legal names, the lineage-edge count and the share. Explain what separates the top and bottom figures you just reported about each holding company's structure, and what it does not establish about how well either runs.",
+          "validator": "validate_share_extremes",
+          "stores": [
+            "highest_asset_share_bank_legal_name",
+            "highest_asset_share_parent_legal_name",
+            "highest_asset_share_lineage_edge_count",
+            "highest_bank_to_parent_asset_share_pct",
+            "lowest_asset_share_bank_legal_name",
+            "lowest_asset_share_parent_legal_name",
+            "lowest_asset_share_lineage_edge_count",
+            "lowest_bank_to_parent_asset_share_pct"
+          ],
+          "claims": [
+            {
+              "id": "organizational_performance_boundary",
+              "description": "If the response infers efficiency, diversification, risk, resolvability or organizational causality from the asset shares, it states that balance-sheet scope ratios and lineage alone do not establish those conclusions.",
+              "mode": "conditional"
+            },
+            {
+              "id": "share_spread_reading",
+              "description": "The response reads the gap between the highest and lowest share as a difference in how much of each parent's consolidated balance sheet sits in the selected bank subsidiary.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "From the four selected Call Report rows, report how many source-recorded last-submission dates are after 2025-12-31, and identify the bank with the latest such date and that date, breaking an exact date tie alphabetically by bank legal name. Explain what this submission metadata says about the supplied history.",
+          "validator": "validate_submission_vintage",
+          "stores": [
+            "post_2025_cutoff_call_report_update_count",
+            "latest_updated_call_report_bank_legal_name",
+            "latest_call_report_submission_update_date"
+          ],
+          "claims": [
+            {
+              "id": "submission_vintage_meaning",
+              "description": "The response explains that source-recorded post-2025-12-31 submission updates make the supplied historical Call Report rows retrospective records rather than a frozen as-known-at-cutoff filing snapshot.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "FFIEC 2025-Q3 Call Report Schedule RC, current NIC direct controlled regulatory relationships, and FFIEC 2025-Q3 Y-9C BHCK consolidated balance sheets",
+    "facts": [
+      "All four banks match a Y-9C-reporting controlling ancestor through eight total direct relationship edges: JPMorgan Chase Bank maps to JPMorgan Chase & Co. in one edge; Bank of America maps through BAC North America Holding Company and NB Holdings Corporation to Bank of America Corporation in three; Citibank maps through Citicorp LLC to Citigroup Inc. in two; and Wells Fargo Bank maps through WFC Holdings, LLC to Wells Fargo & Company in two.",
+      "The four bank consolidated asset balances total 10,075.815 billion USD; matched Y-9C parent consolidated assets total 12,669.373 billion, producing a 79.5289 percent ratio of sums.",
+      "Wells Fargo Bank, N.A. mapped to Wells Fargo & Company has the highest share at 85.6580 percent with two edges. Citibank, N.A. mapped to Citigroup Inc. has the lowest at 69.7902 percent with two edges. The spread is 15.8678 percentage points.",
+      "Two selected Call Report rows have source-recorded last-submission dates after 2025-12-31. Citibank is latest at 2026-06-30.",
+      "The NIC graph is a current active snapshot observed in 2026. The financial rows are retrospective historical bulk observations that can be revised in place."
+    ],
+    "known_overclaims": [
+      "Joining the bank directly to Y-9C on the bank RSSD or assuming the immediate parent is always the reporting parent.",
+      "Using domestic-office RCON assets instead of consolidated-bank RCFD assets, or averaging bank-level shares instead of dividing the two cohort totals.",
+      "Adding bank assets to consolidated parent assets, labeling their difference as pure nonbank assets, or treating the share as ownership, market share or performance evidence.",
+      "Treating the later source-recorded Call Report submission dates as evidence that those revisions were known at the 2025-12-31 benchmark cutoff.",
+      "Presenting the later current NIC graph as a strict 2025-Q3 as-known ownership snapshot."
+    ]
+  }
+}

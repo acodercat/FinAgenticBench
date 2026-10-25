@@ -1,0 +1,159 @@
+{
+  "name": "bank_securities_concentration_outcome_channels",
+  "module": "evals.scenario_analysis.bank_securities_concentration_outcome_channels",
+  "task_family": "scenario_analysis",
+  "data_sources": [
+    "fdic_bankfind",
+    "treasury_yield_curve"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "turns": [
+        {
+          "query": "Match banks present at both 2021-12-31 and 2024-12-31 with at least USD 100 million of assets and positive deposits and equity at the first date. Report bank count, both dates' 10-year par yields and their basis-point change. Rank banks by starting securities/assets share, certificate ascending on ties. Form five groups using linearly interpolated 20th, 40th, 60th and 80th percentiles of ordinal ranks; each upper cutpoint belongs to the lower group. Report median starting share in the lowest and highest groups and the highest group's minimum share, using linear interpolation. Interpret the matched-panel boundary and the rate move's conditional price effect on a fixed-rate portfolio bought earlier.",
+          "validator": "validate_panel_construction",
+          "stores": [
+            "panel_bank_count",
+            "start_yield_pct",
+            "end_yield_pct",
+            "yield_change_bp",
+            "lowest_fifth_median_securities_share_pct",
+            "highest_fifth_median_securities_share_pct",
+            "top_fifth_lower_bound_pct"
+          ],
+          "claims": [
+            {
+              "id": "survivorship_boundary",
+              "description": "The response notes that requiring presence at both dates excludes institutions absent at either endpoint.",
+              "mode": "required"
+            },
+            {
+              "id": "survivorship_absence_boundary",
+              "description": "If the response characterizes the excluded institutions, it states that the panel records neither why they are absent nor what their unobserved outcomes were.",
+              "mode": "conditional"
+            },
+            {
+              "id": "duration_loss_reasoning",
+              "description": "The response explains that a portfolio bought at the earlier yields loses market value as yields rise, by an amount that grows with how long the holdings run.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "For the lowest and highest groups, report median net interest margin at each date and the median of each bank's own margin change in percentage points. Across the full panel report the correlation of starting securities share with margin change. Use linear interpolation for medians. Interpret the level and change comparisons and what they establish about the earlier securities allocation.",
+          "validator": "validate_margin_channel",
+          "stores": [
+            "lowest_fifth_start_margin_pct",
+            "lowest_fifth_end_margin_pct",
+            "lowest_fifth_margin_change_pp",
+            "highest_fifth_start_margin_pct",
+            "highest_fifth_end_margin_pct",
+            "highest_fifth_margin_change_pp",
+            "margin_change_correlation"
+          ],
+          "claims": [
+            {
+              "id": "margin_association_boundary",
+              "description": "The response compares the observed margin changes without claiming that the grouping identifies where a causal cost of the starting allocation appeared.",
+              "mode": "required"
+            },
+            {
+              "id": "level_versus_change_boundary",
+              "description": "The response distinguishes the standing difference in margin levels between the groups, which reflects what each holds, from the change over the window, which is what the comparison is about.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Compare deposit, book-equity and cumulative-income outcomes. For the lowest, middle and highest groups report median deposit growth between the two dates in percent. For the lowest and highest groups report median book-equity growth in percent, and how many of the five groups have negative median equity growth. For each bank in the two tail groups, sum net income from the 2022–2024 annual reports as a percent of starting equity; report each group's median. Use linear interpolation. Explain the outcome differences, how income relates to equity change, and which securities disclosures and equity components are needed to interpret the gap.",
+          "validator": "validate_funding_and_capital_channels",
+          "stores": [
+            "lowest_fifth_deposit_growth_pct",
+            "middle_fifth_deposit_growth_pct",
+            "highest_fifth_deposit_growth_pct",
+            "lowest_fifth_equity_growth_pct",
+            "highest_fifth_equity_growth_pct",
+            "negative_equity_growth_fifth_count",
+            "lowest_fifth_earnings_over_equity_pct",
+            "highest_fifth_earnings_over_equity_pct"
+          ],
+          "claims": [
+            {
+              "id": "valuation_through_equity_reasoning",
+              "description": "The response notes that total securities do not identify accounting classification, duration or unrealized valuation changes, and that ending book equity also reflects distributions, capital actions, other comprehensive income and other changes not decomposed here.",
+              "mode": "required"
+            },
+            {
+              "id": "earnings_decomposition_reasoning",
+              "description": "The response interprets the gap between cumulative earnings and equity growth as the net contribution of all non-earnings changes.",
+              "mode": "required"
+            },
+            {
+              "id": "residual_attribution_boundary",
+              "description": "If the response attributes that residual to valuation or to distributions, it states that the declared tables carry no component data to support the split.",
+              "mode": "conditional"
+            },
+            {
+              "id": "causal_restraint_boundary",
+              "description": "The response treats the group differences as associations because banks chose securities shares alongside other business characteristics.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Repeat the tail-group comparison among banks with starting assets strictly above 10,000,000 thousand USD. Report their count and reassign five groups with the same rank-quantile rule and tie-break. Report median deposit and equity growth in the lowest and highest groups. For the full panel report correlations of starting securities share with each growth measure. Use linear interpolation for medians. Explain what the subset and correlation comparisons establish and their inferential limits.",
+          "validator": "validate_size_control",
+          "stores": [
+            "large_bank_count",
+            "large_lowest_fifth_deposit_growth_pct",
+            "large_highest_fifth_deposit_growth_pct",
+            "large_lowest_fifth_equity_growth_pct",
+            "large_highest_fifth_equity_growth_pct",
+            "deposit_growth_correlation",
+            "equity_growth_correlation"
+          ],
+          "claims": [
+            {
+              "id": "robustness_reasoning",
+              "description": "The response treats the large-bank subset as a descriptive robustness comparison.",
+              "mode": "required"
+            },
+            {
+              "id": "subset_confounding_boundary",
+              "description": "If the response presents the subset as a size control, it states that it eliminates neither size variation nor other confounding.",
+              "mode": "conditional"
+            },
+            {
+              "id": "correlation_versus_grouping_reasoning",
+              "description": "The response distinguishes an individual-bank linear correlation from medians of two tail groups.",
+              "mode": "required"
+            },
+            {
+              "id": "correlation_grouping_reason_boundary",
+              "description": "If the response explains why the correlation and the tail-group medians differ, it states that the declared tables do not measure that reason.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen FDIC quarterly bank financial reports for 2021-12-31 and 2024-12-31 with the Treasury par yield curve",
+    "facts": [
+      "The matched panel holds 3,738 banks. The ten-year par yield rose from 1.5200 to 4.5800 percent, 306.0000 basis points. The lowest fifth by starting securities share has a median of 4.2227 percent and the highest 45.8607; the highest fifth begins at 36.762844.",
+      "The lowest fifth's median margin went from 3.6669 to 3.8014 percent, a change of 0.1901 points; the highest fifth went from 2.8591 to 2.9570, a change of 0.0551. The correlation between starting securities share and margin change is -0.0324.",
+      "Median deposit growth runs 16.1940 percent in the lowest fifth, 9.4835 in the middle and 3.0812 in the highest. Median book equity grew 23.6203 percent in the lowest fifth and fell 18.245352 in the highest, a gap of 41.865685 points, with 2 of the five fifths showing negative median equity growth. Cumulative 2022-2024 net income against starting equity has a median of 37.4542 percent in the lowest fifth and 26.2694 in the highest; the highest fifth's earnings figure exceeds its equity growth by 44.514786 points.",
+      "Among the 144 panel banks above 10,000,000 thousand USD of assets, median deposit growth is 17.8211 percent in the lowest fifth against -4.1463 in the highest, and median equity growth 17.9365 against -1.4751. Panel correlations are -0.0417 for deposit growth and -0.0593 for equity growth."
+    ],
+    "known_overclaims": [
+      "Describing the securities allocation as the cause of the later deposit and equity outcomes.",
+      "Reading the small margin differences as evidence that the episode had no cost.",
+      "Treating the near-zero correlations as showing no relationship despite the ordered group medians.",
+      "Generalising to the industry without noting that failed and acquired banks leave the panel.",
+      "Reading the fall in book equity as a loss reported through earnings."
+    ]
+  }
+}

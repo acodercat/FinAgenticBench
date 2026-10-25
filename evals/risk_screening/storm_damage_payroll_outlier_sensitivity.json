@@ -1,0 +1,147 @@
+{
+  "name": "storm_damage_payroll_outlier_sensitivity",
+  "module": "evals.risk_screening.storm_damage_payroll_outlier_sensitivity",
+  "task_family": "risk_screening",
+  "data_sources": [
+    "noaa_storm_events",
+    "bls_qcew"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "For 2024 NOAA Storm Events, retain source rows whose geography type is County (source value C) for the 50 states and District of Columbia, identified by nonmissing state USPS. For each row, reported damage is the sum of its nonmissing property- and crop-damage amounts; a missing component contributes no amount to the arithmetic but must not be described as a reported zero. Aggregate by state-level jurisdiction and rank by reported damage, breaking a tie by USPS alphabetically. Report the jurisdiction count, retained event-row count, rows with at least one reported damage component, cohort damage, absolute-damage leader, its event-row and reported-damage-row counts and damage, runner-up, and leader margin. Explain which dollars this total does and does not sweep in, how blank entries were handled, and how current the underlying records are.",
+          "validator": "validate_damage_screen",
+          "stores": [
+            "matched_state_jurisdiction_count",
+            "county_event_row_count",
+            "event_rows_with_any_reported_damage_count",
+            "cohort_reported_damage_usd_billions",
+            "absolute_damage_leader_state_usps",
+            "absolute_leader_event_row_count",
+            "absolute_leader_reported_damage_row_count",
+            "absolute_leader_damage_usd_billions",
+            "absolute_damage_runner_up_state_usps",
+            "absolute_damage_leader_margin_usd_billions"
+          ],
+          "claims": [
+            {
+              "id": "reported_damage_coverage_boundary",
+              "description": "The response treats the aggregation as reported NOAA property and crop damage on retained event rows, preserving missing-versus-reported-zero semantics and not presenting it as a complete measure of insured, economic or welfare loss.",
+              "mode": "required"
+            },
+            {
+              "id": "noaa_retrospective_vintage_boundary",
+              "description": "If the response presents the supplied NOAA values as information available at 2024 year-end, it notes that the table is a later-frozen retrospective artifact rather than a strict year-end as-known snapshot.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Drill into the turn-1 absolute leader. Aggregate its retained rows by the source event-type label and rank by reported damage, tie-breaking alphabetically. Report the distinct event-type count, top type, its row count, damage and share of state damage, plus the HHI of event-type damage shares on a 0-to-10,000 scale. Also identify the single largest-damage event row, tie-breaking by smaller source event identifier, and report that identifier, county/zone name, begin datetime, damage and share of state damage. Compare what the index across storm categories and the single biggest row each say about where this state's losses pile up.",
+          "validator": "validate_leader_concentration",
+          "stores": [
+            "absolute_leader_event_type_count",
+            "absolute_leader_top_damage_event_type",
+            "top_event_type_row_count",
+            "top_event_type_damage_usd_billions",
+            "top_event_type_damage_share_pct",
+            "absolute_leader_event_type_damage_hhi",
+            "largest_damage_event_id",
+            "largest_damage_event_county_name",
+            "largest_damage_event_begin_datetime",
+            "largest_damage_event_usd_billions",
+            "largest_event_share_of_state_damage_pct"
+          ],
+          "claims": [
+            {
+              "id": "event_type_event_row_concentration_result",
+              "description": "The response distinguishes concentration across event-type damage totals from the largest single event-row share and uses the computed results to identify which aggregation drives the state's concentration.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Join the turn-1 state panel to 2024 BLS QCEW total-covered all-industry state totals by state FIPS. For each matched state calculate NOAA reported damage per annual-average covered employee and as a percentage of total annual wages. Rank by damage per employee, tie-breaking by USPS. Report the matched count; normalized leader; its employment, annual wages, damage per employee and damage-to-wages ratio; the turn-1 absolute leader's two normalized measures and rank; and the normalized leader's margin over the runner-up in USD per employee. Explain what dividing by the workforce does to the ranking, and say how far such a ratio can be read as loss borne by workers.",
+          "validator": "validate_payroll_normalization",
+          "stores": [
+            "damage_qcew_matched_state_count",
+            "damage_per_employee_leader_state_usps",
+            "normalized_leader_total_covered_employment",
+            "normalized_leader_total_annual_wages_usd_billions",
+            "normalized_leader_damage_per_employee_usd",
+            "normalized_leader_damage_to_annual_wages_pct",
+            "absolute_leader_damage_per_employee_usd",
+            "absolute_leader_damage_to_annual_wages_pct",
+            "absolute_leader_damage_per_employee_rank",
+            "normalized_leader_margin_usd_per_employee"
+          ],
+          "claims": [
+            {
+              "id": "absolute_normalized_leader_divergence",
+              "description": "The response uses the observed rank divergence to explain that absolute reported damage measures scale while damage per covered employee measures damage relative to a state employment denominator.",
+              "mode": "required"
+            },
+            {
+              "id": "damage_payroll_measure_boundary",
+              "description": "The response identifies NOAA damage and QCEW labor measures as different economic constructs and treats the ratios as scale comparisons rather than per-worker loss or foregone payroll.",
+              "mode": "required"
+            },
+            {
+              "id": "storm_labor_causality_boundary",
+              "description": "If the response attributes employment, wage or broader economic outcomes to the reported events, it qualifies that claim because the retrospective state-level alignment does not identify causal effects.",
+              "mode": "conditional"
+            },
+            {
+              "id": "qcew_retrospective_vintage_boundary",
+              "description": "If the response presents the supplied QCEW 2024 annual values as information available at 2024 year-end, it notes that the table is later-frozen and is not a strict year-end as-known vintage.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Test whether the turn-2 top event-type concentration is driven only by its single largest event row. Exclude that row from the top event type and report the remaining row count and damage, the share of top-type damage retained, adjusted state damage, and the remaining top type's share of adjusted state damage. Also report state damage outside the top type and whether the remaining top-type damage still exceeds all other event types combined. Explain what this decomposition does and does not establish about the excluded row and the concentration result.",
+          "validator": "validate_outlier_sensitivity",
+          "stores": [
+            "top_event_type_rows_excluding_largest_event_count",
+            "top_event_type_damage_excluding_largest_event_usd_billions",
+            "top_event_type_damage_retained_pct",
+            "state_damage_excluding_largest_event_usd_billions",
+            "top_type_remainder_share_of_adjusted_state_damage_pct",
+            "state_damage_outside_top_event_type_usd_billions",
+            "top_type_remainder_exceeds_all_other_types"
+          ],
+          "claims": [
+            {
+              "id": "outlier_sensitivity_result",
+              "description": "The response identifies from the computed decomposition that the top event type remains dominant even after its largest event row is excluded, so type concentration is not solely a one-row artifact.",
+              "mode": "required"
+            },
+            {
+              "id": "outlier_exclusion_boundary",
+              "description": "The response treats the row exclusion as a mechanical influence diagnostic rather than evidence that the source report is erroneous or an estimate of unreported losses.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "NOAA 2024 Storm Events detail rows and BLS QCEW 2024 total-covered state totals",
+    "facts": [
+      "The absolute-damage and damage-per-employee leaders differ.",
+      "The absolute leader's reported damage is overwhelmingly concentrated in one event type, while the largest single event row is a smaller share.",
+      "After excluding the 0.300 billion USD largest row, 84.4922% of the top event type's damage remains and still exceeds all other event types combined."
+    ],
+    "known_overclaims": [
+      "Treating missing damage as an observed zero or reported damage as complete economic loss.",
+      "Confusing event-type concentration with a single event-row share.",
+      "Calling damage per covered employee a per-worker loss.",
+      "Treating a row-level influence exclusion as proof the source report is erroneous."
+    ]
+  }
+}

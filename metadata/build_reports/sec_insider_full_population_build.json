@@ -1,0 +1,341 @@
+{
+  "built_at": "2026-08-26T09:10:30.545293+00:00",
+  "freeze_date": "2025-12-31",
+  "quarters": [
+    "2019q1",
+    "2019q2",
+    "2019q3",
+    "2019q4",
+    "2020q1",
+    "2020q2",
+    "2020q3",
+    "2020q4",
+    "2021q1",
+    "2021q2",
+    "2021q3",
+    "2021q4",
+    "2022q1",
+    "2022q2",
+    "2022q3",
+    "2022q4",
+    "2023q1",
+    "2023q2",
+    "2023q3",
+    "2023q4",
+    "2024q1",
+    "2024q2",
+    "2024q3",
+    "2024q4",
+    "2025q1",
+    "2025q2",
+    "2025q3",
+    "2025q4"
+  ],
+  "scope_rule": "Forms 3/4/5 whose issuer CIK is in the deep-tier universe (sec/companies.csv)",
+  "universe_size": 500,
+  "per_quarter": {
+    "2019q1": {
+      "submissions_total": 67537,
+      "submissions_kept": 12351
+    },
+    "2019q2": {
+      "submissions_total": 53007,
+      "submissions_kept": 7640
+    },
+    "2019q3": {
+      "submissions_total": 37647,
+      "submissions_kept": 5367
+    },
+    "2019q4": {
+      "submissions_total": 38145,
+      "submissions_kept": 6008
+    },
+    "2020q1": {
+      "submissions_total": 69408,
+      "submissions_kept": 12832
+    },
+    "2020q2": {
+      "submissions_total": 51459,
+      "submissions_kept": 7537
+    },
+    "2020q3": {
+      "submissions_total": 39096,
+      "submissions_kept": 5097
+    },
+    "2020q4": {
+      "submissions_total": 43607,
+      "submissions_kept": 5982
+    },
+    "2021q1": {
+      "submissions_total": 74944,
+      "submissions_kept": 12780
+    },
+    "2021q2": {
+      "submissions_total": 58798,
+      "submissions_kept": 7879
+    },
+    "2021q3": {
+      "submissions_total": 44057,
+      "submissions_kept": 5058
+    },
+    "2021q4": {
+      "submissions_total": 46675,
+      "submissions_kept": 5851
+    },
+    "2022q1": {
+      "submissions_total": 71395,
+      "submissions_kept": 12731
+    },
+    "2022q2": {
+      "submissions_total": 55261,
+      "submissions_kept": 7349
+    },
+    "2022q3": {
+      "submissions_total": 37955,
+      "submissions_kept": 4635
+    },
+    "2022q4": {
+      "submissions_total": 38307,
+      "submissions_kept": 5249
+    },
+    "2023q1": {
+      "submissions_total": 69457,
+      "submissions_kept": 11997
+    },
+    "2023q2": {
+      "submissions_total": 55207,
+      "submissions_kept": 7081
+    },
+    "2023q3": {
+      "submissions_total": 37036,
+      "submissions_kept": 4435
+    },
+    "2023q4": {
+      "submissions_total": 38108,
+      "submissions_kept": 5323
+    },
+    "2024q1": {
+      "submissions_total": 67671,
+      "submissions_kept": 11948
+    },
+    "2024q2": {
+      "submissions_total": 52802,
+      "submissions_kept": 7332
+    },
+    "2024q3": {
+      "submissions_total": 36075,
+      "submissions_kept": 4801
+    },
+    "2024q4": {
+      "submissions_total": 38547,
+      "submissions_kept": 5459
+    },
+    "2025q1": {
+      "submissions_total": 63284,
+      "submissions_kept": 11328
+    },
+    "2025q2": {
+      "submissions_total": 50861,
+      "submissions_kept": 6882
+    },
+    "2025q3": {
+      "submissions_total": 35457,
+      "submissions_kept": 4640
+    },
+    "2025q4": {
+      "submissions_total": 36421,
+      "submissions_kept": 5155
+    }
+  },
+  "normalized_tables": {
+    "submission": {
+      "file": "submission.csv.gz",
+      "rows": 210727,
+      "columns": [
+        "accession_number",
+        "filing_date",
+        "period_of_report",
+        "date_of_orig_sub",
+        "no_securities_owned",
+        "not_subject_sec16",
+        "form3_holdings_reported",
+        "form4_trans_reported",
+        "document_type",
+        "issuercik",
+        "issuername",
+        "issuertradingsymbol",
+        "remarks",
+        "source_quarter",
+        "aff10b5one"
+      ]
+    },
+    "reportingowner": {
+      "file": "reportingowner.csv.gz",
+      "rows": 215997,
+      "columns": [
+        "accession_number",
+        "rptownercik",
+        "rptownername",
+        "rptowner_relationship",
+        "rptowner_title",
+        "rptowner_txt",
+        "rptowner_street1",
+        "rptowner_street2",
+        "rptowner_city",
+        "rptowner_state",
+        "rptowner_zipcode",
+        "rptowner_state_desc",
+        "file_number",
+        "source_quarter"
+      ]
+    },
+    "nonderiv_trans": {
+      "file": "nonderiv_trans.csv.gz",
+      "rows": 357664,
+      "columns": [
+        "accession_number",
+        "nonderiv_trans_sk",
+        "security_title",
+        "security_title_fn",
+        "trans_date",
+        "trans_date_fn",
+        "deemed_execution_date",
+        "deemed_execution_date_fn",
+        "trans_form_type",
+        "trans_code",
+        "equity_swap_involved",
+        "equity_swap_trans_cd_fn",
+        "trans_timeliness",
+        "trans_timeliness_fn",
+        "trans_shares",
+        "trans_shares_fn",
+        "trans_pricepershare",
+        "trans_pricepershare_fn",
+        "trans_acquired_disp_cd",
+        "trans_acquired_disp_cd_fn",
+        "shrs_ownd_folwng_trans",
+        "shrs_ownd_folwng_trans_fn",
+        "valu_ownd_folwng_trans",
+        "valu_ownd_folwng_trans_fn",
+        "direct_indirect_ownership",
+        "direct_indirect_ownership_fn",
+        "nature_of_ownership",
+        "nature_of_ownership_fn",
+        "source_quarter"
+      ]
+    },
+    "nonderiv_holding": {
+      "file": "nonderiv_holding.csv.gz",
+      "rows": 126315,
+      "columns": [
+        "accession_number",
+        "nonderiv_holding_sk",
+        "security_title",
+        "security_title_fn",
+        "trans_form_type",
+        "trans_form_type_fn",
+        "shrs_ownd_folwng_trans",
+        "shrs_ownd_folwng_trans_fn",
+        "valu_ownd_folwng_trans",
+        "valu_ownd_folwng_trans_fn",
+        "direct_indirect_ownership",
+        "direct_indirect_ownership_fn",
+        "nature_of_ownership",
+        "nature_of_ownership_fn",
+        "source_quarter"
+      ]
+    },
+    "deriv_trans": {
+      "file": "deriv_trans.csv.gz",
+      "rows": 132205,
+      "columns": [
+        "accession_number",
+        "deriv_trans_sk",
+        "security_title",
+        "security_title_fn",
+        "conv_exercise_price",
+        "conv_exercise_price_fn",
+        "trans_date",
+        "trans_date_fn",
+        "deemed_execution_date",
+        "deemed_execution_date_fn",
+        "trans_form_type",
+        "trans_code",
+        "equity_swap_involved",
+        "equity_swap_trans_cd_fn",
+        "trans_timeliness",
+        "trans_timeliness_fn",
+        "trans_shares",
+        "trans_shares_fn",
+        "trans_total_value",
+        "trans_total_value_fn",
+        "trans_pricepershare",
+        "trans_pricepershare_fn",
+        "trans_acquired_disp_cd",
+        "trans_acquired_disp_cd_fn",
+        "excercise_date",
+        "excercise_date_fn",
+        "expiration_date",
+        "expiration_date_fn",
+        "undlyng_sec_title",
+        "undlyng_sec_title_fn",
+        "undlyng_sec_shares",
+        "undlyng_sec_shares_fn",
+        "undlyng_sec_value",
+        "undlyng_sec_value_fn",
+        "shrs_ownd_folwng_trans",
+        "shrs_ownd_folwng_trans_fn",
+        "valu_ownd_folwng_trans",
+        "valu_ownd_folwng_trans_fn",
+        "direct_indirect_ownership",
+        "direct_indirect_ownership_fn",
+        "nature_of_ownership",
+        "nature_of_ownership_fn",
+        "source_quarter"
+      ]
+    },
+    "deriv_holding": {
+      "file": "deriv_holding.csv.gz",
+      "rows": 52733,
+      "columns": [
+        "accession_number",
+        "deriv_holding_sk",
+        "security_title",
+        "security_title_fn",
+        "conv_exercise_price",
+        "conv_exercise_price_fn",
+        "trans_form_type",
+        "trans_form_type_fn",
+        "exercise_date",
+        "exercise_date_fn",
+        "expiration_date",
+        "expiration_date_fn",
+        "undlyng_sec_title",
+        "undlyng_sec_title_fn",
+        "undlyng_sec_shares",
+        "undlyng_sec_shares_fn",
+        "undlyng_sec_value",
+        "undlyng_sec_value_fn",
+        "shrs_ownd_folwng_trans",
+        "shrs_ownd_folwng_trans_fn",
+        "valu_ownd_folwng_trans",
+        "valu_ownd_folwng_trans_fn",
+        "direct_indirect_ownership",
+        "direct_indirect_ownership_fn",
+        "nature_of_ownership",
+        "nature_of_ownership_fn",
+        "source_quarter"
+      ]
+    },
+    "footnotes": {
+      "file": "footnotes.csv.gz",
+      "rows": 548788,
+      "columns": [
+        "accession_number",
+        "footnote_id",
+        "footnote_txt",
+        "source_quarter"
+      ]
+    }
+  }
+}

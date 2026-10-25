@@ -1,0 +1,137 @@
+{
+  "name": "xbrl_dimensional_revenue_double_count",
+  "module": "evals.calculation_reconciliation.xbrl_dimensional_revenue_double_count",
+  "task_family": "calculation_reconciliation",
+  "data_sources": [
+    "sec_notes",
+    "sec_notes_dimensional"
+  ],
+  "case_type": "baseline",
+  "difficulty": "hard",
+  "judge_reference": {
+    "source": "SEC Financial Statement Notes data sets: the undimensioned numeric facts and the dimensioned facts, restricted to annual RevenueFromContractWithCustomerExcludingAssessedTax reported in USD on Form 10-K.",
+    "facts": [
+      "The dimensioned file holds 43,162 qualifying rows across 1,751 filings; the undimensioned file supplies a consolidated figure for 1,289 filing-and-period observations, and 1,196 observations carry both.",
+      "Adding every dimensioned row together returns a median of 2.0169 times the consolidated figure, a seventy-fifth percentile of 3.2746 and a maximum of 9.4599, with 51.5886 percent of observations above 2.",
+      "831 of the 1,289 consolidated observations carry more than one row because a fact repeats across presentations, and only 4 of them disagree on the value, so the repeats are copies rather than revisions.",
+      "Keeping the primary presentation alone lowers the median ratio to 2.0000 and the maximum to 5.7476.",
+      "Grouping the paired observations by how many distinct axes they carry, those with one, two and three axes number 343, 436 and 269 and have median ratios of 1.0000, 2.0000 and 3.0000 respectively, so the inflation factor tracks the number of axes and each axis is a complete partition of the same total.",
+      "Liberty Global Ltd. shows the highest ratio: 4.1158 billion USD consolidated against 26 dimensioned rows summing to 38.9349 billion, 9.4599 times over, with 3.8472 billion on the business segment axis and 22.4751 billion on the equity method investee axis, itself 5.4607 times consolidated revenue.",
+      "Revenue on the equity method investee axis belongs to joint ventures the filer does not consolidate, so it is not a component of consolidated revenue at all.",
+      "Grouping the primary-presentation rows one group per filing, period and axis gives 2,643 groups, of which 18.3504 percent sum above 1.05 times the consolidated figure and 14.2263 percent above 1.5 times; an axis can exceed the total either by carrying a subtotal beside its components or by reporting amounts outside consolidation.",
+      "Choosing one axis works: 73.4114 percent of observations have an axis within 1 percent of the consolidated figure and 72.2408 percent within a tenth of a percent.",
+      "Coverage differs sharply between the two files: the dimensioned side spans 1,751 filings and 5,033 observations while the undimensioned side carries this tag for 432 filings and 1,289 observations, so the 1,196 paired observations come from 401 filings."
+    ],
+    "known_overclaims": [
+      "Presenting the sum of dimensioned rows as a company's revenue.",
+      "Treating repeated presentations of one fact as separate amounts.",
+      "Describing every axis as a partition of the total, when an equity method investee axis reports revenue that was never consolidated.",
+      "Pairing on the reporting period alone, which merges a fiscal year with the same year restated as a comparative in the next report."
+    ]
+  },
+  "conversations": [
+    {
+      "turns": [
+        {
+          "query": "From SEC notes, select USD four-quarter Form 10-K Revenue from Contract with Customer, Excluding Assessed Tax facts without co-registrants. Report dimensioned-row and distinct-filing counts. In undimensioned facts, retain zero-dimension primary-presentation rows (index 0); report distinct filing-periods with consolidated values. Pair by accession and period where consolidated revenue is positive; report pair count. For each pair take all dimensioned rows' sum divided by its consolidated value. Report that ratio's median, 75th percentile, maximum and share above 2, using linear interpolation. Interpret the row sum and ratio.",
+          "validator": "validate_naive_aggregation",
+          "stores": [
+            "dimensioned_rows",
+            "dimensioned_filings",
+            "consolidated_observations",
+            "paired_observations",
+            "median_ratio",
+            "seventy_fifth_ratio",
+            "maximum_ratio",
+            "share_above_double_pct"
+          ],
+          "claims": [
+            {
+              "id": "not_an_aggregate",
+              "description": "The response treats the all-row sum as an overlap diagnostic rather than company revenue, because dimensioned rows can repeat presentations, alternative axes, subtotals or amounts with another consolidation scope.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Separate presentation repetition from axis structure. Return to all zero-dimension rows before the primary-presentation filter and report how many filing-and-period observations carry more than one presentation row, and how many observations carry more than one distinct value. Then recompute the prior ratio using only dimensioned rows at presentation index 0, and report its median and maximum. On those same primary-presentation rows report the median number of distinct axes per paired observation. Finally, group the paired observations by how many distinct axes they carry, and for the groups carrying exactly one, exactly two and exactly three axes report how many observations each holds and the median ratio within each, the ratios. Take every median and percentile asked for here with linear interpolation. Explain what the band pattern suggests without assuming every axis is a complete partition.",
+          "validator": "validate_presentation_repeats",
+          "stores": [
+            "multirow_consolidated_observations",
+            "multivalue_consolidated_observations",
+            "primary_median_ratio",
+            "primary_maximum_ratio",
+            "median_axes",
+            "one_axis_observations",
+            "one_axis_median_ratio",
+            "two_axis_observations",
+            "two_axis_median_ratio",
+            "three_axis_observations",
+            "three_axis_median_ratio"
+          ],
+          "claims": [
+            {
+              "id": "presentation_scope_boundary",
+              "description": "The response distinguishes repeated presentation rows from observations with multiple distinct values.",
+              "mode": "required"
+            },
+            {
+              "id": "differing_value_cause_boundary",
+              "description": "If the response explains why values differ, it states that the declared tables record no reason.",
+              "mode": "conditional"
+            },
+            {
+              "id": "multi_axis_overlap_reasoning",
+              "description": "The response interprets the axis-count bands as evidence that alternative axes often re-express overlapping amounts, without claiming that every axis reconciles or that the relationship is an identity for every filer.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Select the first-turn pair with the highest ratio, accession then period ascending on ties. Report the filer name verbatim from SEC notes, its consolidated revenue and dimensioned-row sum in USD billions, row count and ratio. Report the Business Segments axis total and Schedule of Equity Method Investments' Equity Method Investee Name axis total, also in USD billions, plus the latter divided by consolidated revenue. Interpret the investee-axis sales against the filer's consolidated revenue.",
+          "validator": "validate_anchor_decomposition",
+          "stores": [
+            "anchor_name",
+            "anchor_consolidated_usd_billions",
+            "anchor_rows",
+            "anchor_sum_usd_billions",
+            "anchor_ratio",
+            "anchor_segment_axis_usd_billions",
+            "anchor_investee_axis_usd_billions",
+            "anchor_investee_axis_ratio"
+          ],
+          "claims": [
+            {
+              "id": "category_error",
+              "description": "The response explains that an equity-method-investee axis can disclose investee revenue outside the filer's consolidated revenue and therefore cannot be added to the consolidated amount as another component.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Finally test single-axis reconciliation. On the primary-presentation dimensioned rows, group by filing, period and axis and sum, then pair each group with its consolidated figure. Report how many such groups there are. Report the percentage summing to more than 1.05 times the consolidated figure and the percentage above 1.5 times. Then, for each paired observation, take the axis whose total is closest to the consolidated figure in relative terms, and report the percentage of observations where that closest axis lands within 1 percent, and the percentage where it lands within a tenth of a percent. Explain why one axis can exceed the consolidated figure and what proximity within a tolerance can and cannot prove.",
+          "validator": "validate_axis_reconciliation",
+          "stores": [
+            "axis_group_count",
+            "axis_groups_above_1_05_pct",
+            "axis_groups_above_1_5_pct",
+            "reconciling_observation_share_pct",
+            "tightly_reconciling_share_pct"
+          ],
+          "claims": [
+            {
+              "id": "internal_overlap_reason",
+              "description": "The response gives a reason an axis can exceed the total on its own, either that it carries a subtotal member beside the members composing it or that it reports amounts outside consolidation, rather than treating every axis as a clean partition.",
+              "mode": "required"
+            },
+            {
+              "id": "test_limit",
+              "description": "If the response concludes that the axis is a complete partition, it states that landing within a tolerance of the total does not prove it.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,84 @@
+{
+  "name": "wti_negative_spot_stress_recovery",
+  "module": "evals.temporal_path.wti_negative_spot_stress_recovery",
+  "task_family": "temporal_path",
+  "data_sources": ["eia_bulk_wti", "ofr_market_stress"],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [{
+    "id": "main",
+    "turns": [
+      {
+        "query": "Across 2000-01-01 through 2025-12-31, restrict the analysis to dates on which both the reported EIA daily Cushing WTI spot series and the OFR Financial Stress Index have observations. Among every window of five consecutive joint observations, select the most negative ending-minus-starting WTI price-level change, breaking a tie by the earlier ending date. Report the joint-observation count, window dates, starting and ending prices, and the magnitude advantage over the runner-up decline (the second-largest five-observation decline, whether or not its window overlaps the selected one). Explain the financial measure and source represented by the selected price path.",
+        "validator": "validate_selloff_screen",
+        "stores": ["joint_wti_ofr_observation_count", "selloff_window_start_date", "selloff_window_end_date", "selloff_start_wti_usd_per_barrel", "selloff_end_wti_usd_per_barrel", "selloff_magnitude_margin_usd_per_barrel"],
+        "claims": [
+          {
+            "id": "wti_instrument_mechanism_boundary",
+            "description": "If the response relabels the negative spot observation as a futures settlement or attributes it to a specific trading or delivery mechanism, it qualifies that claim because the supplied series does not establish those instrument or causal details.",
+            "mode": "conditional"
+          },
+          {
+            "id": "retrospective_snapshot_boundary",
+            "description": "If the response presents either supplied history as the exact vintage known on the 2020 dates, it identifies the EIA and OFR artifacts as later-frozen retrospective histories rather than contemporaneous point-in-time releases.",
+            "mode": "conditional"
+          }
+        ]
+      },
+      {
+        "query": "For that selected window, report the second, third and fourth joint-observation dates and WTI prices, then report the window trough date and price, with an earlier date breaking a trough tie. Explain how this price path should be summarized and what a percentage-return description would and would not establish.",
+        "validator": "validate_selloff_path",
+        "stores": ["selloff_second_observation_date", "selloff_second_wti_usd_per_barrel", "selloff_third_observation_date", "selloff_third_wti_usd_per_barrel", "selloff_fourth_observation_date", "selloff_fourth_wti_usd_per_barrel", "selloff_trough_date", "selloff_trough_wti_usd_per_barrel"],
+        "claims": [{
+          "id": "cross_zero_return_boundary",
+          "description": "The response recognizes from the computed negative endpoint that a conventional percentage or logarithmic return through the window is not a well-behaved substitute for the requested USD-per-barrel level change.",
+          "mode": "required"
+        }]
+      },
+      {
+        "query": "Carry the same start and end dates into the OFR table. Report starting and ending FSI, and ending-minus-starting changes in Credit, Equity valuation, Safe assets, Funding and Volatility contributions. Identify the category with the largest positive contribution change, breaking a tie alphabetically, and report that change. Interpret the category changes relative to the headline FSI change over the window.",
+        "validator": "validate_stress_path",
+        "stores": ["selloff_start_ofr_fsi", "selloff_end_ofr_fsi", "selloff_credit_contribution_change", "selloff_equity_valuation_contribution_change", "selloff_safe_assets_contribution_change", "selloff_funding_contribution_change", "selloff_volatility_contribution_change", "largest_positive_contribution_change_category", "largest_positive_contribution_change"],
+        "claims": [
+          {
+            "id": "fsi_component_offset_result",
+            "description": "The response explains from the computed changes that positive and negative category contributions substantially offset, leaving the endpoint FSI change small.",
+            "mode": "required"
+          },
+          {
+            "id": "oil_stress_causality_boundary",
+            "description": "If the response claims that the WTI path caused the OFR path or vice versa, it qualifies the claim because aligned observations and contribution changes do not establish causal direction.",
+            "mode": "conditional"
+          }
+        ]
+      },
+      {
+        "query": "Starting strictly after the selected trough, find the first later joint observation on which WTI is at least the selected window's starting price. Report the recovery date and WTI price, calendar days after the trough, the count of later joint observations through and including recovery, and recovery-date FSI. Explain what reaching that earlier price level on that date does and does not establish about conditions in the oil market by then.",
+        "validator": "validate_recovery_path",
+        "stores": ["wti_recovery_date", "wti_recovery_price_usd_per_barrel", "wti_recovery_calendar_days", "wti_recovery_later_joint_observation_count", "recovery_date_ofr_fsi"],
+        "claims": [
+          {
+            "id": "threshold_recovery_boundary",
+            "description": "The response treats recovery as the first reported joint-date price reaching the prior window-start level, not as proof that oil-market conditions, financial stress, liquidity or economic activity had normalized.",
+            "mode": "required"
+          }
+        ]
+      }
+    ]
+  }],
+  "judge_reference": {
+    "source": "Frozen EIA PET.RWTC.D daily Cushing WTI spot prices and current-revised OFR Financial Stress Index history",
+    "facts": [
+      "There are 6,514 joint observations. The selected window is 2020-04-14 through 2020-04-20, with WTI moving from 20.15 to -36.98 USD per barrel, a -57.13 level change and a 36.71 USD decline-magnitude margin.",
+      "The five prices are 20.15, 19.96, 19.82, 18.31 and -36.98; the trough is the ending date.",
+      "OFR FSI moves from 4.773 to 4.757. Credit rises 0.042, Safe assets 0.032 and Volatility 0.011, while Equity valuation falls 0.010 and Funding falls 0.091.",
+      "WTI first reaches the 20.15 starting level on 2020-05-04 at 20.47, 14 calendar days and 10 later joint observations after the trough. FSI is 3.721, down 1.036 from the trough."
+    ],
+    "known_overclaims": [
+      "Treating Cushing spot as a futures settlement series.",
+      "Computing a standard percentage or log return through a negative price.",
+      "Calling the level-threshold recovery a full market or economic normalization.",
+      "Inferring causality between WTI and OFR paths from the alignment."
+    ]
+  }
+}

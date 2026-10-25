@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "benchmark_cutoff": "2025-12-31",
+  "builder": "scripts.ingest.build.build_phase3_runtime",
+  "files": {
+    "ncua_call_reports/institutions_2025q3.csv.gz": {
+      "rows": 4419,
+      "bytes": 89012,
+      "sha256": "3a40e33d67d72838018c7ba924101c5f3152c4bfc2eacc7b6867621021560f32",
+      "source_dataset": "ncua_call_reports",
+      "source_file": "raw/call-report-data-2025-09.zip",
+      "source_sha256": "5b54331ce1c3794a5400ade2ffbfbd9a18a37bcd3e0f47a7a8fd3df78e0b37be"
+    },
+    "sec_midas_security_exchange/april_2025.csv.gz": {
+      "rows": 2218205,
+      "bytes": 17146359,
+      "sha256": "265dd0f66d9e632197e50ff7d91c6bd1824d81eeb1b7773e2f415d39ec849717",
+      "source_dataset": "sec_midas_security_exchange",
+      "source_file": "raw/individual_security_exchange_2025_q2.zip",
+      "source_sha256": "7c9460b476be4c156a28b4aa876594c325c3272ad6c9a15457dd8adc13ed0324"
+    },
+    "fed_scf/summary_2022.csv.gz": {
+      "rows": 22975,
+      "bytes": 308562,
+      "sha256": "05e908f09758826a4f3f20e66d37ce08ce4a953f1042a75209526e398aa3e16c",
+      "source_dataset": "fed_scf",
+      "source_file": "raw/scfp2022excel.zip",
+      "source_sha256": "9721aa73ef1df237d0c5a7ce2578ff9a45c8e5a2ef8efc4fab132c6885ace050"
+    }
+  }
+}

@@ -1,0 +1,116 @@
+{
+  "name": "bdc_fiscal_label_cross_section_alignment",
+  "module": "evals.temporal_path.bdc_fiscal_label_cross_section_alignment",
+  "task_family": "temporal_path",
+  "data_sources": [
+    "sec_bdc",
+    "nyfed_reference_rates"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Use the business-development-company filing index. Report how many filers it covers, counted by distinct CIK rather than reported name, and how many close their fiscal year on a date other than 31 December. Then take every filing labelled fiscal year 2024, fiscal period Q3, and report how many there are, how many distinct calendar period ends they carry, and the number of days from the earliest of those period ends to the latest. Explain what the fiscal label is anchored to and what that implies for putting filings side by side on the strength of the label alone.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "index_filer_count",
+            "noncalendar_fiscal_year_end_filers",
+            "label_filing_count",
+            "label_distinct_period_ends",
+            "label_period_span_days"
+          ],
+          "claims": [
+            {
+              "id": "label_is_issuer_relative",
+              "mode": "required",
+              "description": "The response identifies the fiscal label as fixed by each filer's own year end, so the same label points at different calendar dates across filers."
+            }
+          ]
+        },
+        {
+          "query": "Retain one filing per filer under that label, keeping the one filed latest and breaking a tie by the higher accession, so that an amended filing supersedes the original it corrects. Report how many filers are retained, the calendar period end shared by the most of them as an ISO date, breaking a tie by the earlier period end, and how many retained filers carry some other period end. Explain what the retained set would represent to someone who treated the label as a single as-of date.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "label_filer_count",
+            "label_dominant_period_end",
+            "label_off_date_filers"
+          ],
+          "claims": [
+            {
+              "id": "off_date_membership",
+              "mode": "required",
+              "description": "The response quantifies the retained filers sitting away from the plurality date and treats the retained set as a mixture of as-of dates rather than one."
+            }
+          ]
+        },
+        {
+          "query": "Join the retained filings to the investment schedule. A schedule row with no reported fair value contributes nothing, and rows carrying negative or zero fair values are kept as reported. Report how many retained filers carry any schedule row, the reported fair value across the retained filings, and the portion of it contributed by filers whose period end differs from the plurality date. Explain what the filer count and the value total each rest on, what an absent mark does to the total you report, and how much of that total was struck on some date other than the plurality one.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "label_filers_with_schedule_rows",
+            "label_fair_value_mn",
+            "off_date_fair_value_mn"
+          ],
+          "claims": [
+            {
+              "id": "coverage_and_floor",
+              "mode": "required",
+              "description": "The response separates the number of filers contributing schedule rows from the number carrying the label, and presents the value total as a floor because some marks are absent."
+            },
+            {
+              "id": "stale_weight_result",
+              "mode": "required",
+              "description": "The response uses the portion traced to off-plurality filers to say how much of the assembled value carries an as-of date other than the plurality one."
+            }
+          ]
+        },
+        {
+          "query": "Now build the same cross-section by calendar period end instead, taking every filing whose period ends on the plurality date you identified, under the same one-per-filer retention and the same fair-value conventions. Report that cross-section's filer count and reported fair value. Then report overnight SOFR in effect at the earliest period end behind the fiscal label and at the plurality period end, taking in each case the published rate whose effective date is the latest on or before that day. Explain what changes between the two ways of assembling the cross-section, and what the two rates say about the conditions under which the label's marks were struck.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "calendar_filer_count",
+            "calendar_fair_value_mn",
+            "earliest_period_sofr_pct",
+            "dominant_period_sofr_pct"
+          ],
+          "claims": [
+            {
+              "id": "assembly_comparison",
+              "mode": "required",
+              "description": "The response sets the calendar-built cross-section against the label-built one on both membership and reported value."
+            },
+            {
+              "id": "rate_environment_reading",
+              "mode": "required",
+              "description": "The response connects the two published rates to the valuation conditions prevailing at the ends of the span the label covers."
+            },
+            {
+              "id": "causal_mark_boundary",
+              "mode": "conditional",
+              "description": "If the response attributes any part of the value gap to the rate move itself, it states that these filings carry no attribution of marks to interest rates."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen SEC business-development-company filing index and investment schedules, joined to frozen New York Fed overnight SOFR. The fiscal-label and calendar cross-sections are analytic constructions, not SEC reporting units.",
+    "facts": [
+      "The index covers 167 filers, 22 of which close their fiscal year other than 31 December. The fiscal 2024 Q3 label sits on 164 filings whose calendar period ends take 5 distinct values from 2023-11-30 to 2024-09-30, a span of 305 days. Every one of the 164 ends exactly nine months after its filer's own year end, with no exception: February year ends land on 2023-11-30 (1 filing), March on 2023-12-31 (3), June on 2024-03-31 (3), September on 2024-06-30 (13) and December on 2024-09-30 (144).",
+      "Retaining the latest filed accession per filer leaves 163 filers; one filer is retained through a 10-Q/A filed the day after the 10-Q it corrects. 2024-09-30 is the plurality period end with 143 filers, leaving 20 filers on other dates.",
+      "Only 135 of the 163 retained filers carry investment-schedule rows. Their reported fair value totals USD1,287,095.147 million, of which USD79,739.295 million, about 6.2%, comes from filers whose period end is not 2024-09-30. Fair value is absent on 5.79% of those rows, touching 91 of the 135 accessions, so the total is a floor; 6,082 rows carry negative and 5,616 carry zero fair value and are kept as reported.",
+      "Assembling by calendar period end 2024-09-30 instead gives 162 filers and USD1,290,044.225 million. Overnight SOFR was 5.33% at 2023-11-30 and 4.96% at 2024-09-30, the September 2024 policy cut falling inside the span the label covers."
+    ],
+    "known_overclaims": [
+      "Treating a fiscal-period label as a common as-of date across filers whose fiscal years end on different months.",
+      "Dropping an entire filing because one schedule row carries no fair value, which would discard most of the cross-section.",
+      "Filtering out negative or zero fair values, which are reported marks rather than data errors.",
+      "Reading the reported fair-value total as a complete portfolio valuation when some marks are absent.",
+      "Attributing the difference between the two cross-sections to the change in overnight rates, which these filings do not record."
+    ]
+  }
+}

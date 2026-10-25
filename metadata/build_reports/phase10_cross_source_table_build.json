@@ -1,0 +1,55 @@
+{
+  "ffiec_call_report_balance_sheets": {
+    "rows": 31763,
+    "report_dates": [
+      "2024-03-31",
+      "2024-06-30",
+      "2024-09-30",
+      "2024-12-31",
+      "2025-03-31",
+      "2025-06-30",
+      "2025-09-30"
+    ],
+    "reporters_2025q3": 4435,
+    "output": "ffiec_call_reports/bank_balance_sheets.csv.gz",
+    "source_archives": [
+      "FFIEC_CDR_Call_Bulk_All_Schedules_03312024.zip",
+      "FFIEC_CDR_Call_Bulk_All_Schedules_03312025.zip",
+      "FFIEC_CDR_Call_Bulk_All_Schedules_06302024.zip",
+      "FFIEC_CDR_Call_Bulk_All_Schedules_06302025.zip",
+      "FFIEC_CDR_Call_Bulk_All_Schedules_09302024.zip",
+      "FFIEC_CDR_Call_Bulk_All_Schedules_09302025.zip",
+      "FFIEC_CDR_Call_Bulk_All_Schedules_12312024.zip"
+    ]
+  },
+  "ffiec_y9c_balance_sheets": {
+    "rows": 2687,
+    "report_dates": [
+      "2024-03-31",
+      "2024-06-30",
+      "2024-09-30",
+      "2024-12-31",
+      "2025-03-31",
+      "2025-06-30",
+      "2025-09-30"
+    ],
+    "reporters_2025q3": 382,
+    "output": "ffiec_y9c/holding_company_balance_sheets.csv.gz",
+    "source_archives": [
+      "BHCF20240331.ZIP",
+      "BHCF20240630.ZIP",
+      "BHCF20240930.ZIP",
+      "BHCF20241231.ZIP",
+      "BHCF20250331.ZIP",
+      "BHCF20250630.ZIP",
+      "BHCF20250930.ZIP"
+    ]
+  },
+  "rules": [
+    "The projections retain all reporters through 2025-Q3; the post-cutoff-published 2025-Q4 archives are excluded.",
+    "Call Report RCFD fields are consolidated-bank measures; RCON fields are domestic-office measures and remain separate.",
+    "Y-9C BHCK fields are holding-company consolidated measures and are not additive to subsidiary-bank Call Report values.",
+    "No bank-parent relationship or case cohort is precomputed; legal-entity linkage remains in the separate NIC relationship graph.",
+    "The current NIC graph and historical financial archives support retrospective analysis, not a strict 2025-Q3 as-known ownership claim."
+  ]
+}

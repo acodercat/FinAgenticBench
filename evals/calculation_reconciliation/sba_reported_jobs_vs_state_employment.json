@@ -1,0 +1,114 @@
+{
+  "name": "sba_reported_jobs_vs_state_employment",
+  "module": "evals.calculation_reconciliation.sba_reported_jobs_vs_state_employment",
+  "task_family": "calculation_reconciliation",
+  "data_sources": [
+    "sba_7a",
+    "sba_504",
+    "bls_qcew"
+  ],
+  "difficulty": "medium",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "For FY2025 SBA 7(a) approval rows with projects in California and first disbursement by 2025-12-31, report the row count, gross loan approvals, SBA-guaranteed approvals and jobs supported. Carry the cohort forward.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "seven_a_rows",
+            "seven_a_gross_m",
+            "seven_a_guaranteed_m",
+            "seven_a_jobs"
+          ],
+          "claims": []
+        },
+        {
+          "query": "Use the same project state, approval fiscal year and first-disbursement cutoff for SBA 504. Report its row count, SBA/CDC gross loan approvals, third-party loan amounts and jobs supported. Compare the two programs' financing roles.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "five_o_four_rows",
+            "five_o_four_cdc_m",
+            "five_o_four_third_party_m",
+            "five_o_four_jobs"
+          ],
+          "claims": [
+            {
+              "id": "program_financing_roles",
+              "description": "The response distinguishes a guarantee of the 7(a) lender loan from the separate SBA/CDC and third-party loan pieces of 504 project financing.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Report California's 2024 and 2025 QCEW annual-average private all-industry employment. Compare its change with the carried SBA jobs-supported figures and assess what the comparison establishes.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "qcew_2024_employment",
+            "qcew_2025_employment"
+          ],
+          "claims": [
+            {
+              "id": "reported_vs_observed_jobs",
+              "description": "The response distinguishes SBA lender-reported jobs expected to be created or retained from QCEW statewide private annual-average employment and its observed change.",
+              "mode": "required"
+            },
+            {
+              "id": "period_scope_boundary",
+              "description": "The response notes that the SBA FY2025 approval cohort and calendar-year QCEW annual averages have different time and population scopes.",
+              "mode": "required"
+            },
+            {
+              "id": "causal_jobs_boundary",
+              "description": "If the response attributes the statewide QCEW employment change to the SBA loans, it qualifies that the two aggregates cannot identify a causal employment effect.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "In each carried SBA cohort, count rows reporting zero jobs supported and report their approved financing: 7(a) gross loans; 504 SBA/CDC and third-party loans separately. Assess how excluding those rows changes financing per reported job supported, and interpret what that measure represents.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "seven_a_zero_job_rows",
+            "seven_a_zero_job_gross_m",
+            "five_o_four_zero_job_rows",
+            "five_o_four_zero_job_cdc_m",
+            "five_o_four_zero_job_third_party_m"
+          ],
+          "claims": [
+            {
+              "id": "zero_job_selection",
+              "description": "The response explains that dropping zero-job rows removes financing from the numerator without removing reported jobs from the denominator, so the resulting descriptive financing-per-job figure falls by sample selection.",
+              "mode": "required"
+            },
+            {
+              "id": "not_subsidy_cost",
+              "description": "The response distinguishes approved loan financing and guaranteed principal from public subsidy cost or the cost of a verified additional job.",
+              "mode": "required"
+            },
+            {
+              "id": "loan_row_boundary",
+              "description": "If the response calls every retained public row a unique loan or borrower, it qualifies that the privacy-reduced files have no guaranteed unique public loan identifier.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen SBA 7(a)/504 privacy-reduced 2026-06-30 snapshot for projects in California, SBA loan-data dictionary and BLS QCEW California private all-industry annual rows.",
+    "facts": [
+      "California FY2025 first-disbursed-by-2025-12-31 7(a): 7,330 rows, USD 3933.7961 million gross approvals, USD 2924.6249265 million guaranteed approvals, 72,245 reported jobs supported.",
+      "Same 504 cohort: 811 rows, USD 957.823 million SBA/CDC gross approval, USD 1254.91718722 million third-party financing, 10,293 reported jobs supported.",
+      "California QCEW private annual-average employment is 15,546,764 in 2024 and 15,544,576 in 2025, a 2,188 decrease.",
+      "Zero reported jobs: 7(a) 847 rows and USD 272.8045 million gross approval; 504 26 rows, USD 22.756 million SBA/CDC and USD 33.340888 million third-party financing."
+    ],
+    "known_overclaims": [
+      "Treating SBA jobs-supported reports as verified net new jobs, or comparing them directly with a statewide annual-average employment change.",
+      "Equating a 7(a) loan guarantee, a 504 CDC loan approval and third-party financing with federal subsidy expenditure or actual disbursement.",
+      "Silently deduplicating identical-looking privacy-reduced rows."
+    ]
+  }
+}

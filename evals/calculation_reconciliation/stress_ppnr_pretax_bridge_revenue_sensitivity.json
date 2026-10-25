@@ -1,0 +1,56 @@
+{
+  "name": "stress_ppnr_pretax_bridge_revenue_sensitivity",
+  "module": "evals.calculation_reconciliation.stress_ppnr_pretax_bridge_revenue_sensitivity",
+  "task_family": "calculation_reconciliation",
+  "difficulty": "medium",
+  "case_type": "baseline",
+  "data_sources": ["fed_stress_tests", "ffiec_y9c"],
+  "conversations": [{
+    "id": "main",
+    "turns": [
+      {
+        "query": "Match named firms in the Fed's 2025 Supervisory Severely Adverse results to their 2024-12-31 Y-9C consolidated assets by RSSD. How many match, and how many have positive PPNR less loan provisions but negative reported pretax income? Carry the latter cohort forward.",
+        "validator": "validate_turn_1",
+        "stores": ["stress_bridge_matched_firms", "stress_bridge_reversal_firms"],
+        "claims": []
+      },
+      {
+        "query": "Among that cohort, find the most negative signed residual from PPNR after loan provisions to reported pretax income, scaled by opening Y-9C assets. Break ties by lower RSSD. Give the leader's RSSD and assets.",
+        "validator": "validate_turn_2",
+        "stores": ["stress_bridge_rssd", "stress_bridge_assets_b"],
+        "claims": []
+      },
+      {
+        "query": "For that firm, report cumulative PPNR, loan provisions, reported pretax income and the signed residual needed to reconcile them. Explain what the residual stands for, given the two projected components already reported beside it.",
+        "validator": "validate_turn_3",
+        "stores": ["stress_bridge_ppnr_b", "stress_bridge_provision_b", "stress_bridge_pretax_b", "stress_bridge_residual_b"],
+        "claims": [
+          {"id": "stress_income_bridge_scope", "mode": "required", "description": "The response interprets the signed residual as the net contribution of projected pretax components outside PPNR and loan provisions."},
+          {"id": "stress_income_bridge_attribution", "mode": "conditional", "description": "If the response assigns the entire residual to a specific component, it identifies that attribution as unsupported by the supplied aggregate fields."}
+        ]
+      },
+      {
+        "query": "Raise each carried firm's cumulative PPNR over the same stress horizon by 25 basis points of its opening Y-9C assets, holding other projected components fixed. How many of the cohort become strictly pretax-profitable, and what is the selected firm's new pretax income? Discuss the scenario's scope.",
+        "validator": "validate_turn_4",
+        "stores": ["stress_bridge_restored_firms", "stress_bridge_selected_stressed_pretax_b"],
+        "claims": [
+          {"id": "stress_revenue_sensitivity_boundary", "mode": "required", "description": "The response states at least one material limitation on translating this cumulative PPNR-only pretax sensitivity into an actual firm or regulatory outcome."},
+          {"id": "stress_revenue_fed_projection", "mode": "conditional", "description": "If the response presents the stipulated uplift as a Federal Reserve projection or observed firm result, it identifies that claim as unsupported by the stress-test results."},
+          {"id": "stress_revenue_cet1_effect", "mode": "conditional", "description": "If the response infers a CET1-ratio change, it recognizes that pretax income alone does not determine the capital ratio effect."}
+        ]
+      }
+    ]
+  }],
+  "judge_reference": {
+    "source": "Federal Reserve 2025 severely adverse supervisory stress-test result rows for named firms and matching 2024-12-31 FFIEC Y-9C consolidated asset rows; Fed 2025 stress-test results table and methodology appendix B explain the income components.",
+    "facts": [
+      "All 22 named stress-test firms match positive-asset Y-9C rows. Three have positive PPNR less loan provisions but negative reported pretax income: Barclays US LLC, Citigroup Inc. and JPMorgan Chase & Co.",
+      "Barclays US LLC (RSSD 5006575) has the most negative signed bridge as a share of opening assets. Its Y-9C assets are USD 191.486 billion, cumulative PPNR USD 5.9 billion, provisions USD 4.5 billion, pretax income negative USD 0.1 billion, and the signed omitted bridge negative USD 1.5 billion.",
+      "The stipulated 25-basis-point-of-opening-assets addition to cumulative PPNR makes one of the three pretax-profitable; Barclays reaches positive USD 0.378715 billion."
+    ],
+    "known_overclaims": [
+      "Calling PPNR less loan provisions complete pretax income or assigning the entire residual to trading losses without the omitted components.",
+      "Treating the hypothetical PPNR uplift as an observed Fed forecast or inferring CET1 changes from pretax income alone."
+    ]
+  }
+}

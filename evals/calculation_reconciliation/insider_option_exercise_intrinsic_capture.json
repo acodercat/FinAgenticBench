@@ -1,0 +1,151 @@
+{
+  "name": "insider_option_exercise_intrinsic_capture",
+  "module": "evals.calculation_reconciliation.insider_option_exercise_intrinsic_capture",
+  "task_family": "calculation_reconciliation",
+  "data_sources": [
+    "sec_insider",
+    "ken_french_daily_factors"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "turns": [
+        {
+          "query": "Select derivative transaction rows with reported row-level form type 4 and an ISO YYYY-MM-DD transaction date in 2024. Keep a row even if its submission document is an amendment, when its own form type is 4. Among code-M rows, report the count, counts with a conversion/exercise price and an expiration date, and median nonmissing conversion/exercise price in USD. Also count code-A rows in the same population. Use linear interpolation for medians. Interpret the SEC meanings and scope of M and A, and what the reported fields establish for later price analysis.",
+          "validator": "validate_m_population",
+          "stores": [
+            "m_transaction_count",
+            "m_with_conversion_price_count",
+            "m_with_expiry_count",
+            "median_reported_conversion_price_usd",
+            "a_transaction_count"
+          ],
+          "claims": [
+            {
+              "id": "code_meaning_reasoning",
+              "description": "The response gives the SEC meanings of M and A, and states that M includes derivative conversion as well as exercise and that A includes other acquisition as well as grant or award.",
+              "mode": "required"
+            },
+            {
+              "id": "code_scope_boundary",
+              "description": "If the response describes either code as a stock-option event, it states that neither code is limited to options.",
+              "mode": "conditional"
+            },
+            {
+              "id": "field_coverage_boundary",
+              "description": "The response states that transaction code, conversion price and expiration date do not establish grant-date fair value or full contractual economics.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Apply a co-reporting match to the 2024 M rows: for each accession and transaction date, take the median numeric price across nonderivative S rows, join that price to every M row in the same accession and date, and retain matches with a positive conversion or exercise price and nonmissing underlying-share count. Report the matched M-row count, median conversion price, median co-reported sale price, median row-level sale-price-to-conversion-price multiple, and count whose sale price is below conversion price. Take every median and percentile asked for here with linear interpolation. Explain how the matching was constructed and what the resulting multiple does and does not establish about the underlying transactions.",
+          "validator": "validate_co_reported_sale_match",
+          "stores": [
+            "matched_m_transaction_count",
+            "matched_median_conversion_price_usd",
+            "matched_median_co_reported_sale_price_usd",
+            "median_sale_to_conversion_price_multiple",
+            "sale_below_conversion_price_count"
+          ],
+          "claims": [
+            {
+              "id": "no_decision_inference_boundary",
+              "description": "The response treats the multiple and below-price count as properties of the co-reporting heuristic.",
+              "mode": "required"
+            },
+            {
+              "id": "holder_intent_boundary",
+              "description": "If the response infers rationality, sale linkage or holder intent, it states that the heuristic observes none of them.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "For each matched M row, compute the signed co-reported price-gap proxy: sale-price summary less conversion price, times underlying shares on the derivative row. Report total in USD billions and median per row in USD. Rank issuers by summed proxy descending, issuer CIK ascending on ties; report the top two issuer names verbatim from their SEC submissions, the leader's total and M-row count, the runner-up's count, and issuer count. Use linear interpolation for the median. Interpret proxy amount versus row frequency and what the share count can establish.",
+          "validator": "validate_price_gap_proxy_concentration",
+          "stores": [
+            "total_signed_price_gap_proxy_usd_billions",
+            "median_price_gap_proxy_per_m_row_usd",
+            "leading_issuer_name",
+            "leading_issuer_price_gap_proxy_usd_billions",
+            "leading_issuer_m_row_count",
+            "runner_up_issuer_name",
+            "runner_up_issuer_m_row_count",
+            "issuer_count"
+          ],
+          "claims": [
+            {
+              "id": "value_versus_frequency_reasoning",
+              "description": "The response explains that ranking summed price-gap proxy and comparing M-row frequency measure different dimensions and neither substitutes for the other.",
+              "mode": "required"
+            },
+            {
+              "id": "price_gap_proxy_boundary",
+              "description": "The response states that the underlying shares are not matched sale shares and the signed co-reported price-gap proxy is not realized intrinsic value, proceeds, compensation income or proof of sale.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "For all 2024 M rows with expiration dates, compute calendar days from transaction to expiration, retaining 0–4,000 days. Report the qualifying count, median remaining days, count above 730 and count at or below 90. From unique 2024 M transaction dates, report total and count matching Fama-French daily-factor dates; report median market excess return on matched dates and on all 2024 factor dates, using linear interpolation. Interpret the term distribution and market-date comparison.",
+          "validator": "validate_remaining_term_and_event_dates",
+          "stores": [
+            "expiry_dated_m_transaction_count",
+            "median_days_to_expiry",
+            "long_dated_m_transaction_count",
+            "near_expiry_m_transaction_count",
+            "unique_m_transaction_date_count",
+            "factor_matched_m_date_count",
+            "median_event_date_market_excess_return_pct",
+            "median_2024_market_excess_return_pct"
+          ],
+          "claims": [
+            {
+              "id": "remaining_term_boundary",
+              "description": "The response states that M includes mixed exercises and conversions.",
+              "mode": "required"
+            },
+            {
+              "id": "remaining_term_motive_boundary",
+              "description": "If the response reads reported remaining term as evidence about behaviour, it states that it identifies neither voluntary early exercise, nor forfeited time value, nor holder motive.",
+              "mode": "conditional"
+            },
+            {
+              "id": "market_context_boundary",
+              "description": "The response treats the event-date factor comparison as descriptive.",
+              "mode": "required"
+            },
+            {
+              "id": "market_causation_boundary",
+              "description": "If the response infers market causation or issuer-specific performance, it states that the factor comparison establishes neither.",
+              "mode": "conditional"
+            },
+            {
+              "id": "unique_date_weighting_boundary",
+              "description": "The response states that the event-date median weights each unique matched date once rather than weighting dates by the number of M rows.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen SEC insider transaction data sets for 2024 and the Kenneth French daily research factors",
+    "facts": [
+      "2024 holds 8,503 Form 4 derivative rows coded M, of which 4,158 report a conversion or exercise price and 3,817 an expiration date; the median nonmissing reported price is 41.4000 USD. Form 4 derivative rows coded A number 8,538. Ten further 2024 code-M rows arrive on Form 5, the annual late-report obligation, and are outside the Form 4 population the question names. SEC defines M as exercise or conversion and A as grant, award or other acquisition under the respective Rule 16b-3 provisions.",
+      "2,245 M rows match the median S-row price in the same accession and date after requiring a positive conversion price and underlying-share count. Their median conversion price is 89.7600 USD, median co-reported sale price 225.6250 USD, median ratio 2.2528, and 1 matched row has sale price below conversion price. The shared filing and date do not prove transaction linkage.",
+      "The signed co-reported price-gap proxy totals 5.516525 billion USD with a 622,200.00 USD median per matched M row across 166 issuers. Oracle Corp leads at 0.590179 billion over 18 M rows; MicroStrategy Inc is second with 128 M rows. These are not realized intrinsic-value or proceeds measures.",
+      "3,806 M rows carry a usable expiration date; the median remaining term is 604.5000 days, 1,671 exceed 730 days and 802 are at or below 90 days. The 8,503 M rows span 327 unique transaction dates, 249 of which match a 2024 factor date. Median daily market excess return is 0.0700 percent on matched dates and 0.0600 percent across all 2024 factor dates, a 0.0100-point difference."
+    ],
+    "known_overclaims": [
+      "Treating code M as stock-option exercise only, or code A as grant only, contrary to the SEC code definitions.",
+      "Treating a same-accession same-date S-row price as proof that the converted shares from an M row were sold.",
+      "Calling the signed co-reported price-gap proxy realized intrinsic value, proceeds or compensation income.",
+      "Inferring voluntary early exercise, forfeited time value, market causation or issuer-specific performance from remaining term and broad-factor dates.",
+      "Counting Form 5 code-M rows in the Form 4 population, which adds ten 2024 rows from a different filing obligation."
+    ]
+  }
+}

@@ -1,0 +1,137 @@
+{
+  "name": "bank_group_concentration_merger_divestiture",
+  "module": "evals.scenario_analysis.bank_group_concentration_merger_divestiture",
+  "task_family": "scenario_analysis",
+  "case_type": "baseline",
+  "difficulty": "medium",
+  "data_sources": [
+    "fdic_sod",
+    "ffiec_nic_structure"
+  ],
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Use the 2025-06-30 FDIC Summary of Deposits for a county-level analysis under the frozen current NIC organization snapshot. Use all branches with reported five-digit county FIPS codes. Define groups using only NIC direct relationships reported as controlled. A group root has no parent in that graph; a bank without a parent is its own root. A bank is assignable only if all its upward paths are acyclic and reach exactly one root. A county is eligible only if every branch has a bank RSSD, finite nonnegative reported deposits and an assignable group, and at least three groups have positive county deposits. Use all deposits at full weight. Among eligible counties, select the largest group-level minus bank-level deposit HHI on the 0–10,000 scale, breaking ties by county FIPS ascending. Report the eligible county count, selected county and its two HHIs. Interpret the organizational difference and the scope of this geographic comparison.",
+          "stores": [
+            "eligible_counties",
+            "origin_county",
+            "origin_bank_hhi",
+            "origin_group_hhi"
+          ],
+          "validator": "validate_selection",
+          "claims": [
+            {
+              "id": "organizational_concentration",
+              "mode": "required",
+              "description": "The response interprets the measured group-versus-bank HHI difference as a change in the unit of aggregation under common control rather than a contemporaneous change in deposits."
+            },
+            {
+              "id": "geographic_scope",
+              "mode": "required",
+              "description": "The response explains that the county-level full-weight deposit comparison is an analytical geographic measure, and that identifying an antitrust market or competitive harm requires market definition and evidence beyond it."
+            },
+            {
+              "id": "historical_control",
+              "mode": "conditional",
+              "description": "If the response describes the group structure as the actual structure at the SOD date, it qualifies that the grouping uses the frozen current NIC snapshot rather than a verified historical control snapshot."
+            }
+          ]
+        },
+        {
+          "query": "For that county, assess each group's contribution to the HHI difference by consolidating only that group's banks while leaving every other bank separate. Select the group producing the largest increase over the all-bank HHI, breaking ties by root RSSD numerically ascending. For the selected group, now use its branches across all reported five-digit counties at the same SOD date, retaining branches with finite nonnegative deposits and an assignable bank even when their counties were ineligible for the earlier screen. Report the group root, the number of its banks with positive deposits in this broader population, and the selected county's percentage of this broader group deposit total. Explain how much of this wider deposit base sits in that one county, and how this wider base differs from the total you used earlier.",
+          "stores": [
+            "acquiring_group",
+            "group_bank_count",
+            "origin_group_deposit_share_pct"
+          ],
+          "validator": "validate_group_footprint",
+          "claims": [
+            {
+              "id": "footprint_interpretation",
+              "mode": "required",
+              "description": "The response explains that the original county contains most but not all of the selected group deposit footprint in the broader eligible-branch population, distinguishing that denominator from all deposits of banks in the original county."
+            }
+          ]
+        },
+        {
+          "query": "Suppose that group acquires the other group with the largest positive deposits in the originally selected county; break ties by root RSSD numerically ascending. Keep all deposits and county boundaries fixed. Across the original eligible county population, consider counties where both parties have positive deposits. Select the county with the largest merger-induced increase in group deposit HHI, breaking ties by county FIPS ascending. Report the acquired group's root, the number of overlap counties, the selected county and its post-merger HHI. Explain how a single ownership change can land differently across the places both parties operate, and what status this transaction actually has here.",
+          "stores": [
+            "target_group",
+            "overlap_counties",
+            "merger_county",
+            "merger_after_hhi"
+          ],
+          "validator": "validate_merger",
+          "claims": [
+            {
+              "id": "geographic_deal_effect",
+              "mode": "required",
+              "description": "The response interprets the selected overlap county as the greatest concentration-increase location for the fixed hypothetical deal, recognizing that a common ownership change can have different local impacts."
+            },
+            {
+              "id": "transaction_status",
+              "mode": "conditional",
+              "description": "If the response presents the acquisition as announced, completed or approved, it states that the acquisition is a stipulated counterfactual rather than an event established by these tables."
+            }
+          ]
+        },
+        {
+          "query": "For the county selected in the merger comparison, consider transferring exactly one whole branch of either merging party to a new independent buyer with no existing deposits in that county. All the branch's reported deposits transfer with it; all other deposits and ownership are unchanged from the merger scenario. A qualifying transfer leaves county HHI no higher than its pre-merger group-level HHI. Among qualifying branches, select the smallest transferred deposit amount, breaking ties by bank RSSD numerically ascending and then source branch identifier lexicographically ascending. If none qualifies, make no transfer. Report the qualifying alternative count, selected bank and branch identifiers, transferred deposits and county HHI after the chosen action. Explain the tradeoff between retained deposits and concentration across the qualifying alternatives.",
+          "stores": [
+            "qualifying_transfers",
+            "transfer_bank",
+            "transfer_branch",
+            "transferred_deposits_thousand_usd",
+            "final_hhi"
+          ],
+          "validator": "validate_transfer",
+          "claims": [
+            {
+              "id": "disposal_objective",
+              "mode": "required",
+              "description": "The response explains the selected transfer in terms of the least deposits relinquished among alternatives meeting the HHI target, and distinguishes this objective from minimizing final HHI without regard to deposits relinquished."
+            },
+            {
+              "id": "remedy_inference",
+              "mode": "conditional",
+              "description": "If the response characterizes the transfer as a legally sufficient remedy or forecasts actual customer deposit migration, it limits the conclusion to the stipulated whole-branch deposit-transfer scenario and analytical HHI target."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen FDIC SOD and current FFIEC NIC direct-control relationships.",
+    "facts": [
+      "eligible_counties: 2531",
+      "origin_county: 36039",
+      "origin_bank_hhi: 3643.0125900338307",
+      "origin_group_hhi: 6881.172928852576",
+      "acquiring_group: 2728595",
+      "group_bank_count: 2",
+      "origin_group_deposit_share_pct: 77.87062913937343",
+      "target_group: 234506",
+      "overlap_counties: 2",
+      "merger_county: 36039",
+      "merger_after_hhi: 8356.333585054148",
+      "qualifying_transfers: 2",
+      "transfer_bank: 3268249",
+      "transfer_branch: 2025_57710_0",
+      "transferred_deposits_thousand_usd: 1184514",
+      "final_hhi: 4536.1711286897735",
+      "The original county contains most but not all deposits in the selected group broader assignable-branch footprint. This is a geographic share, not a share of county-wide deposits.",
+      "The two overlap-county increases are {'36001': 1.341554603954797, '36039': 1475.1606562015722}; the same legal acquisition has different local concentration effects.",
+      "Among 13 whole-branch alternatives, minimizing final HHI alone would choose ('214106', '2025_21591_0', 1372629, 4317.804325736357), which differs from minimizing transferred deposits subject to the HHI target.",
+      "All amounts and group memberships are frozen descriptive inputs to hypothetical transactions; current graph roots and analytical counties do not independently establish historical ultimate ownership, antitrust markets or transaction approval."
+    ],
+    "known_overclaims": [
+      "Treating current NIC membership as historical ownership at June 2025.",
+      "Treating county/full-weight HHI as an actual regulatory approval test.",
+      "Calling the stipulated acquisition an observed transaction.",
+      "Treating minimum final HHI as the minimum-deposit transfer objective."
+    ]
+  }
+}

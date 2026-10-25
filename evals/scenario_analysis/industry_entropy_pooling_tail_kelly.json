@@ -1,0 +1,99 @@
+{
+  "name": "industry_entropy_pooling_tail_kelly",
+  "module": "evals.scenario_analysis.industry_entropy_pooling_tail_kelly",
+  "task_family": "scenario_analysis",
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "data_sources": [
+    "ken_french_10_industry_portfolios",
+    "ofr_market_stress"
+  ],
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Use Kenneth French's value-weighted HiTec, Enrgy, Utils and NoDur daily simple returns and the OFR Financial Stress Index on common complete dates from 2018-01-01 through 2022-12-31. Consider a daily-rebalanced portfolio with capital weights 40, 20, 20 and 20 percent in that order. Treat the joint observed return-and-stress scenarios as a uniform finite-population prior. Report the scenario count, prior daily portfolio volatility and lower-inverse empirical 95th-percentile OFR FSI level. Define the stress event as FSI strictly above that level. Carry the complete joint prior and event forward, and discuss the financial meaning and scope of the prior.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "scenario_count",
+            "prior_daily_volatility_pct",
+            "stress_threshold"
+          ],
+          "claims": [
+            {
+              "id": "entropy_t1_interpretation",
+              "description": "The response interprets the uniform scenario prior as retrospective joint empirical evidence rather than a forecast probability law.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Apply Meucci's discrete Entropy Pooling to the carried prior, minimizing posterior-relative-to-prior Kullback-Leibler divergence on the unchanged scenario support. Give full confidence simultaneously to two equality views: the stress event has probability 20 percent, and the portfolio's expected daily simple return is 0.10 percent. Report the divergence using natural logs, the posterior inverse-Herfindahl effective scenario count and posterior daily portfolio volatility. Carry the entire posterior probability law forward and assess how its information content differs from the historical prior.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "entropy_divergence",
+            "effective_scenario_count",
+            "posterior_daily_volatility_pct"
+          ],
+          "claims": [
+            {
+              "id": "entropy_t2_interpretation",
+              "description": "The response relates the decline in effective scenario count to the concentration of probability needed to impose the subjective views.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Using the carried posterior and original portfolio, report the lower-inverse 97.5-percent daily loss VaR and expected shortfall. Loss is negative simple return; expected shortfall uses exactly the worst 2.5 percent of probability mass, with any boundary ties allocated proportionally to their posterior probabilities. For Euler attribution, treat the second-turn posterior probabilities as fixed with respect to portfolio weights. Report the signed Euler expected-shortfall contribution of each of the four industries, using that same portfolio loss tail. Select the largest signed contributor, breaking an exact tie alphabetically by canonical industry token. Carry the selected industry and posterior forward, and interpret the attribution for risk management.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "posterior_var975_pct",
+            "posterior_es975_pct",
+            "hitec_es_contribution_pct",
+            "enrgy_es_contribution_pct",
+            "utils_es_contribution_pct",
+            "nodur_es_contribution_pct",
+            "largest_tail_contributor"
+          ],
+          "claims": [
+            {
+              "id": "entropy_t3_interpretation",
+              "description": "The response identifies HiTec as the largest contributor to the portfolio's own posterior loss tail and interprets the contributions as allocations of that portfolio risk.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "For the industry selected in the preceding turn, solve the one-day Kelly log-optimal allocation under the carried posterior. Initial wealth is one; the industry notional may range continuously from zero to four, with the residual cash balance earning or borrowing at zero interest. There are no costs, and terminal wealth must be positive in every scenario. Report the optimal notional, posterior expected natural-log wealth growth in basis points and 97.5-percent expected shortfall loss of this funded position under the preceding tail convention. Discuss this sizing decision and a material limit of applying it outside the stipulated scenario.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "kelly_leverage",
+            "kelly_daily_log_growth_bp",
+            "kelly_es975_pct"
+          ],
+          "claims": [
+            {
+              "id": "entropy_t4_interpretation",
+              "description": "The response identifies at least one material limitation of deploying the scenario-optimal leveraged position, such as subjective probability views, absent financing costs or omitted outcomes beyond historical support.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen governed dataset_new and explicitly stipulated named-model financial scenario.",
+    "facts": [
+      "{\"effective_scenario_count\": 845.7381310474698, \"enrgy_es_contribution_pct\": 1.7424981879533203, \"entropy_divergence\": 0.142462228043932, \"hitec_es_contribution_pct\": 2.5154031427088928, \"kelly_daily_log_growth_bp\": 17.373113990437513, \"kelly_es975_pct\": 16.555290378399526, \"kelly_leverage\": 2.56072972107806, \"largest_tail_contributor\": \"HiTec\", \"nodur_es_contribution_pct\": 1.146635183288108, \"posterior_daily_volatility_pct\": 2.032852341311644, \"posterior_es975_pct\": 6.759336623124238, \"posterior_var975_pct\": 3.55, \"prior_daily_volatility_pct\": 1.39122343295162, \"scenario_count\": 1258, \"stress_threshold\": 2.896193246201842, \"utils_es_contribution_pct\": 1.3548001091739155}",
+      "The response interprets the uniform scenario prior as retrospective joint empirical evidence rather than a forecast probability law.",
+      "The response relates the decline in effective scenario count to the concentration of probability needed to impose the subjective views.",
+      "The response identifies HiTec as the largest contributor to the portfolio's own posterior loss tail and interprets the contributions as allocations of that portfolio risk.",
+      "The response identifies at least one material limitation of deploying the scenario-optimal leveraged position, such as subjective probability views, absent financing costs or omitted outcomes beyond historical support."
+    ],
+    "known_overclaims": [
+      "Presenting the hypothetical financial model as a causal finding, observed bilateral exposure or guaranteed forecast."
+    ]
+  }
+}

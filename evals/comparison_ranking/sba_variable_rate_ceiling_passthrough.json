@@ -1,0 +1,125 @@
+{
+  "name": "sba_variable_rate_ceiling_passthrough",
+  "module": "evals.comparison_ranking.sba_variable_rate_ceiling_passthrough",
+  "task_family": "comparison_ranking",
+  "data_sources": [
+    "sba_7a",
+    "nyfed_reference_rates"
+  ],
+  "case_type": "baseline",
+  "difficulty": "hard",
+  "judge_reference": {
+    "source": "Frozen 7(a) approval records with the frozen New York Fed published reference rates.",
+    "facts": [
+      "281,056 approvals carry a rate, an amount, a rate kind and a policy rate published for the approval date; 239,767 are variable and 41,289 fixed. The median variable spread is 5.9100 points.",
+      "One spread, 5.92, holds 16.3488 percent of the variable loans, and the five most common hold 46.3004 percent. The fixed group's five most common hold 15.0960 percent.",
+      "The fixed group's own most common spread leads its runner-up by 0.0993 points, which is why the case does not select on it.",
+      "Splitting the variable loans at 50,000, 250,000 and 350,000 dollars, the smallest tier holds 60,285 loans and stacks at 9.67 with 14.4895 percent, ahead of its runner-up at 5.17 by 3.00 points of spread. The tier above 350,000 holds 77,121 and stacks at 5.92.",
+      "Five calendar years hold at least two hundred variable loans. Their most common rates are 6.00, 6.00, 10.50, 11.25 and 10.25, a range of 5.25 points, while the policy rate ranges 5.2800 across the matched approvals.",
+      "The most common spread is 5.92 in every one of those five years, so the rate moves with policy while the spread does not.",
+      "Nothing ties: the fixed group's fifth and sixth most common spreads hold 1,019 and 989 loans, and the 2023 most common rate leads by 378 of 45,091."
+    ],
+    "known_overclaims": [
+      "Naming the statutory base rate or the exact spread ceiling as a measured quantity; the file carries neither, and the spread here is taken over the overnight policy rate, which sits below that base by a roughly constant amount.",
+      "Reading the stacking as evidence about competition, borrower quality or lender margin, none of which these two files observe.",
+      "Treating the fixed-rate loans as an untreated control in a causal sense; they are written under a different schedule and by a different mix of lenders and borrowers.",
+      "Presenting the tier boundaries as the statutory ones; they are the amounts this question states, and the file does not carry the schedule.",
+      "Reading the year-by-year most common rate as an average rate paid, or the spread as a lender's realised margin.",
+      "Extending the pass-through finding to loans outside the window, when the policy rate file begins after the approval file does."
+    ]
+  },
+  "conversations": [
+    {
+      "turns": [
+        {
+          "query": "The 7(a) approval file reports each loan's initial rate and whether that rate is fixed or variable. The programme caps a variable rate at a base rate plus a statutory spread quoted in quarter points. Keep the approvals carrying a rate, a gross approval amount and a fixed-or-variable flag, and for which the effective federal funds rate is published for the approval date itself; an approval falling on a day the rate file skips is left out rather than filled from a nearby day. Subtract that day's federal funds rate from the loan's initial rate and round the difference to two decimals; call that the loan's spread. Report how many approvals remain, how many carry a variable rate, how many a fixed rate, and the median variable spread in percentage points. Explain why the spread is rounded before the counting rather than after.",
+          "validator": "validate_population",
+          "stores": [
+            "matched_loan_count",
+            "variable_rate_loan_count",
+            "fixed_rate_loan_count",
+            "variable_median_spread_pct"
+          ],
+          "claims": [
+            {
+              "id": "the_spread_is_not_the_statutory_one",
+              "mode": "required",
+              "description": "The figure measured here is the loan rate over the overnight policy rate, which is not the base the programme's ceiling is written on, though the two move together."
+            },
+            {
+              "id": "same_day_rule",
+              "mode": "conditional",
+              "description": "If the response discusses the matching rule, carrying a rate across a skipped day would assign a loan a rate that was not published when it was approved."
+            }
+          ]
+        },
+        {
+          "query": "Count the variable loans at each distinct spread. Report the most common variable spread, breaking a tie by the lower spread, and the share of variable loans carrying it in percent. Then report the share of variable loans carrying any of the five most common variable spreads, admitting the lower spread first where a tie decides which spread takes fifth place. Repeat that counting inside the fixed group against its own five most common spreads and report the fixed group's top-five share, on the same basis. Explain what the comparison between the two groups' concentration shows.",
+          "validator": "validate_stacking",
+          "stores": [
+            "variable_modal_spread_pct",
+            "variable_modal_spread_share_pct",
+            "variable_top_five_spread_share_pct",
+            "fixed_top_five_spread_share_pct"
+          ],
+          "claims": [
+            {
+              "id": "one_group_stacks_the_other_does_not",
+              "mode": "required",
+              "description": "Variable pricing piles onto a few values while fixed pricing spreads out, which is what a binding ceiling does to a distribution and what its absence looks like."
+            },
+            {
+              "id": "five_values_not_the_mode",
+              "mode": "conditional",
+              "description": "If the response compares the two groups, the five-value coverage is used for both because the fixed group's single most common spread barely leads its runner-up."
+            }
+          ]
+        },
+        {
+          "query": "Split the variable loans into tiers by gross approval amount, cutting at 50,000, 250,000 and 350,000 dollars, with each cut belonging to the tier below it. Report how many variable loans fall in the tier at or below 50,000, that tier's most common spread, the share of that tier carrying it in percent, and the most common spread among the loans above 350,000, breaking any tie by the lower spread. Explain what the tiers do and do not tell you about how the cap is set.",
+          "validator": "validate_tiers",
+          "stores": [
+            "smallest_tier_loan_count",
+            "smallest_tier_modal_spread_pct",
+            "smallest_tier_modal_share_pct",
+            "largest_tier_modal_spread_pct"
+          ],
+          "claims": [
+            {
+              "id": "two_stacks_not_one",
+              "mode": "required",
+              "description": "The smallest loans pile at a value several points above where the largest pile, so one programme carries more than one ceiling and size is what selects between them."
+            },
+            {
+              "id": "tiers_are_stated_not_measured",
+              "mode": "conditional",
+              "description": "If the response names the boundaries, they are the amounts this question states rather than anything the file carries."
+            }
+          ]
+        },
+        {
+          "query": "Group the variable loans by the calendar year of approval and keep the years holding at least two hundred of them. Within each such year take the most common initial rate, rounded to two decimals, breaking a tie by the lower rate. Report how many years qualify, the highest of those yearly rates in percent, the range across those yearly rates in percentage points, and the range of the federal funds rate across every approval kept in the first turn. Explain what moving the two ranges against each other says about the pass-through.",
+          "validator": "validate_passthrough",
+          "stores": [
+            "covered_year_count",
+            "highest_yearly_modal_rate_pct",
+            "modal_rate_range_pp",
+            "policy_rate_range_pp"
+          ],
+          "claims": [
+            {
+              "id": "the_rate_moves_the_spread_does_not",
+              "mode": "required",
+              "description": "The most common rate travels almost exactly as far as the policy rate does over the same years, which is what pricing at a ceiling that floats on policy produces."
+            },
+            {
+              "id": "not_an_average_paid",
+              "mode": "conditional",
+              "description": "If the response interprets the yearly figure, it is the most common rate written that year rather than an average rate paid or an outstanding portfolio yield."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

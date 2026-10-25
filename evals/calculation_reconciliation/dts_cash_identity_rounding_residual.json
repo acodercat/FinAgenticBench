@@ -1,0 +1,126 @@
+{
+  "name": "dts_cash_identity_rounding_residual",
+  "module": "evals.calculation_reconciliation.dts_cash_identity_rounding_residual",
+  "task_family": "calculation_reconciliation",
+  "data_sources": [
+    "treasury_dts_operating_cash",
+    "treasury_dts_public_debt"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "The Daily Treasury Statement's operating cash table names the government's cash account differently in different periods, and a screen written against one name silently drops the others. Report how many distinct account-type labels the table uses across its whole history. Then report the last date carrying the Federal Reserve Account label, the last date carrying the Treasury General Account label that stands alone without an opening, deposits, withdrawals or closing qualifier, and the first date carrying the opening-balance label. Finally report how many dates carry all four of the opening-balance, total-deposits, total-withdrawals and closing-balance lines together. Carry those dates forward and explain what the changing labels mean for a series built across them.",
+          "validator": "validate_naming_eras",
+          "stores": [
+            "account_type_label_count",
+            "federal_reserve_account_last_date",
+            "single_line_tga_last_date",
+            "four_line_first_date",
+            "four_line_date_count"
+          ],
+          "claims": [
+            {
+              "id": "label_continuity_reasoning",
+              "description": "The response explains that the successive labels describe the same cash account rather than different accounts, so a series must bridge them rather than treat each as a separate history.",
+              "mode": "required"
+            },
+            {
+              "id": "population_construction_result",
+              "description": "The response states that the four-line population begins where that reporting structure begins.",
+              "mode": "required"
+            },
+            {
+              "id": "population_start_boundary",
+              "description": "If the response reads the first four-line date as the start of the cash account itself, it states that the account is reported earlier under the other labels.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "On the carried dates the withdrawals line is printed as a positive magnitude even though its label marks it as a subtraction. Form the daily residual as opening balance plus deposits minus withdrawals minus closing balance, in the millions the table reports. Report how many of those dates give a residual of exactly zero, the largest absolute residual over them, and how many carry a positive residual. Interpret what the residual is and whether the statement balances.",
+          "validator": "validate_identity_residual",
+          "stores": [
+            "identity_exact_date_count",
+            "identity_maximum_absolute_residual",
+            "identity_positive_residual_date_count"
+          ],
+          "claims": [
+            {
+              "id": "rounding_signature_result",
+              "description": "The response reads the residual as the effect of each line being published to the nearest million rather than as an accounting failure, and points to its size as the evidence.",
+              "mode": "required"
+            },
+            {
+              "id": "balance_conclusion",
+              "description": "The response concludes that the statement balances to its published precision on every carried date.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Within the carried dates, select the date whose closing balance moved furthest from its own opening balance, in either direction, breaking a tie by the earlier date. Report that date, the signed closing-minus-opening movement, and the opening and closing balances themselves, all in millions. Interpret the size of this movement against a normal day's activity, and state what a one-day cash movement can and cannot tell you about the government's finances.",
+          "validator": "validate_largest_movement",
+          "stores": [
+            "largest_balance_movement_date",
+            "largest_balance_movement_amount",
+            "largest_movement_opening_balance",
+            "largest_movement_closing_balance"
+          ],
+          "claims": [
+            {
+              "id": "flow_versus_level_reasoning",
+              "description": "The response treats the one-day movement and the level of the balance as separate quantities, and reads each on its own scale.",
+              "mode": "required"
+            },
+            {
+              "id": "single_day_inference_boundary",
+              "description": "If the response reads the movement as evidence about the fiscal position, the deficit or a policy decision, it states that one day's cash movement establishes none of those.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Turn to the public debt transactions the same statement reports for the date carried from turn 3. Report marketable issues minus marketable redemptions, nonmarketable issues minus nonmarketable redemptions, and whether marketable net issues reach the balance movement, all in millions. Explain how much of the day's cash movement debt issuance accounts for, and what the nonmarketable figure represents that does not raise cash from the public.",
+          "validator": "validate_debt_contribution",
+          "stores": [
+            "movement_day_marketable_net_issues",
+            "movement_day_nonmarketable_net_issues",
+            "marketable_net_issues_cover_movement"
+          ],
+          "claims": [
+            {
+              "id": "issuance_coverage_result",
+              "description": "The response quantifies how far short of the day's movement marketable net issuance falls and identifies receipts outside the debt tables as the remainder.",
+              "mode": "required"
+            },
+            {
+              "id": "nonmarketable_scope_boundary",
+              "description": "The response identifies nonmarketable traffic as dominated by government account series held inside the government, and distinguishes it from issuance that raises cash from the public.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen Daily Treasury Statement operating cash and public debt transaction tables, 2019-01-02 to 2025-12-31",
+    "facts": [
+      "The operating cash table uses eight account-type labels. The Federal Reserve Account label ends 2021-09-30, the standalone Treasury General Account label ends 2022-04-15, and the opening-balance label begins 2022-04-18. 928 dates carry all four modern lines.",
+      "Opening plus deposits minus withdrawals equals the closing balance exactly on 620 of those dates. The residual is never larger than one million: 156 dates are positive, 152 negative. It is the signature of four lines rounded to the nearest million.",
+      "The largest closing-minus-opening movement is 262,780 million on 2022-04-18, from 578,473 to 841,253. Ranking by the closing balance instead would select 2025-10-30 at 1,000,632 million, which is a level rather than a movement.",
+      "On that date marketable issues net to 125,408 million and nonmarketable issues to 12,039 million, so marketable issuance covers less than half the movement and the deposits line carries the remainder.",
+      "Adding the withdrawals line instead of subtracting it, on the reading that its label marks it negative, leaves no date satisfying the identity."
+    ],
+    "known_overclaims": [
+      "Reporting that the cash statement fails to balance, when the residual never exceeds the published rounding unit.",
+      "Reading the largest one-day movement as evidence about the deficit, the fiscal position or a policy decision.",
+      "Treating nonmarketable issues as cash raised from the public.",
+      "Treating the first date of the four-line structure as the start of the cash account itself."
+    ]
+  }
+}

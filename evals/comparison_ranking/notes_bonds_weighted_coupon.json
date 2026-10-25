@@ -1,0 +1,79 @@
+{
+  "name": "notes_bonds_weighted_coupon",
+  "module": "evals.comparison_ranking.notes_bonds_weighted_coupon",
+  "task_family": "comparison_ranking",
+  "data_sources": [
+    "treasury_marketable_securities",
+    "treasury_auctions"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Take the outstanding stock of conventional Treasury notes and bonds in the 2025-12-31 Monthly Statement of the Public Debt, excluding totals, bills, inflation-protected securities, floating-rate notes and Federal Financing Bank securities. For each class report outstanding principal and the outstanding-principal-weighted stated coupon. Carry both classes forward and explain what the weighted coupon describes about the stock.",
+          "validator": "validate_outstanding_stock",
+          "stores": [
+            "notes_outstanding_billion_usd",
+            "bonds_outstanding_billion_usd",
+            "notes_weighted_coupon_pct",
+            "bonds_weighted_coupon_pct"
+          ],
+          "claims": [
+            {
+              "id": "stock_weighted_coupon_basis",
+              "description": "The response characterizes the weighted coupon as the coupon carried by securities already outstanding, weighted by their principal, so it reflects past issuance terms still on the books.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Now take calendar-2025 nominal fixed-rate Treasury note and bond auctions with a 2025 issue date, including both original issues and reopenings, excluding inflation-indexed and floating-rate securities, and retaining rows with a positive offering amount and a reported high yield. For notes and bonds separately report the total auction count, the reopening count, the aggregate offering amount and the offering-amount-weighted high yield. Explain what comparing this flow with the two outstanding classes you carried forward does and does not establish.",
+          "validator": "validate_auction_flow",
+          "stores": [
+            "note_auction_count",
+            "note_reopening_count",
+            "note_auction_offering_billion_usd",
+            "note_offering_weighted_high_yield_pct",
+            "bond_auction_count",
+            "bond_reopening_count",
+            "bond_auction_offering_billion_usd",
+            "bond_offering_weighted_high_yield_pct"
+          ],
+          "claims": [
+            {
+              "id": "coupon_yield_distinction",
+              "description": "The response characterizes stated coupons on the outstanding stock and auction high yields on issuance events as related but nonidentical measures rather than a reconciliation identity.",
+              "mode": "required"
+            },
+            {
+              "id": "reopening_lineage_meaning",
+              "description": "The response treats a reopening as additional issuance flow for an existing security lineage rather than a newly distinct outstanding security merely because it has a separate auction row.",
+              "mode": "required"
+            },
+            {
+              "id": "borrowing_cost_boundary",
+              "description": "If the response calls either weighted measure the government's total current borrowing cost or interest expense, it qualifies that assertion because the calculation omits other security classes, timing, accrued interest, inflation adjustments and debt-management effects.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Treasury FiscalData MSPD 2025-12-31 marketable-security detail and 2025 Treasury auction records",
+    "facts": [
+      "Conventional notes have 15,636.839 billion USD outstanding at a 3.0886% weighted stated coupon; bonds have 5,248.974 billion at 3.3022%, a 0.2137 percentage-point bond-minus-note gap.",
+      "There are 60 qualifying note auctions, including 9 reopenings, with 3,372.000 billion USD offered at a 3.9445% offering-weighted high yield; the yield-minus-coupon gap is 0.8559 points.",
+      "There are 24 qualifying bond auctions, including 16 reopenings, with 444.000 billion USD offered at a 4.7866% offering-weighted high yield; the yield-minus-coupon gap is 1.4843 points."
+    ],
+    "known_overclaims": [
+      "Equal-weighting outstanding CUSIPs or auction rows instead of using the requested principal and offering weights.",
+      "Dropping reopenings from issuance flow or treating each reopening as a new outstanding security.",
+      "Calling stated coupon and auction high yield the same measure or a complete government borrowing-cost measure."
+    ]
+  }
+}

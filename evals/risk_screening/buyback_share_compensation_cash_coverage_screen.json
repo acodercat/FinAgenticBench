@@ -1,0 +1,143 @@
+{
+  "name": "buyback_share_compensation_cash_coverage_screen",
+  "module": "evals.risk_screening.buyback_share_compensation_cash_coverage_screen",
+  "task_family": "risk_screening",
+  "data_sources": [
+    "sec_financial_statements",
+    "sec_companyfacts"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Select original full-year Form 10-Ks ending in calendar 2024, one per filer by latest report date, filing date, then accession. Keep filers reporting fiscal-year values for all four of operating cash flow, PP&E purchases, common-stock repurchases and share-based compensation. Exclude filers reporting a negative value for any of the last three concepts. Report retained filer count, excluded count, positive-repurchase count and total retained operating cash flow. Explain what an unexpected negative value can and cannot establish and whether reversing its sign is justified.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "eligible_filer_count",
+            "negative_value_excluded_filer_count",
+            "repurchasing_filer_count",
+            "operating_cash_flow_bn"
+          ],
+          "claims": [
+            {
+              "id": "negative_sign_screen_boundary",
+              "mode": "required",
+              "description": "The response treats the negative-value exclusion as a stated screen rather than proof of a filing error: a reversal, recovery, presentation convention or data fault can cause an unexpected sign. It preserves the reported sign unless source evidence supports a correction."
+            }
+          ]
+        },
+        {
+          "query": "For the filers you kept, take operating cash flow less purchases of property, plant and equipment. Report that figure summed across them, how many individual filers have a negative one, their repurchases of common stock summed, and how many of the filers reporting a repurchase spend more on it than that same figure of their own. Explain what this cash-after-purchases measure captures and misses, and how deferring PP&E purchases would affect it.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "free_cash_flow_bn",
+            "negative_free_cash_flow_filers",
+            "repurchase_bn",
+            "repurchase_above_fcf_filers"
+          ],
+          "claims": [
+            {
+              "id": "what_the_measure_represents",
+              "mode": "required",
+              "description": "The response describes operating cash flow less reported PP&E purchases as cash after those purchases, without equating all PP&E spending with maintenance investment or treating the result as cash unconditionally available for distribution."
+            }
+          ]
+        },
+        {
+          "query": "For the retained filers, report total share-based compensation; the median of each positive-operating-cash-flow filer's compensation divided by its own operating cash flow; the count of repurchasers whose repurchases are below compensation; and the count whose repurchases exceed operating cash flow. Use linear interpolation for the median. How does compensation's cash-flow treatment relate to that measure and to shareholder dilution? What can a repurchase above operating cash flow mean?",
+          "validator": "validate_turn_3",
+          "stores": [
+            "share_based_compensation_bn",
+            "compensation_to_operating_cash_flow_median_pct",
+            "repurchase_below_compensation_filers",
+            "repurchase_above_operating_cash_flow_filers"
+          ],
+          "claims": [
+            {
+              "id": "add_back_lifts_the_measure",
+              "mode": "required",
+              "description": "The response distinguishes share-based compensation as a noncash addback to operating cash flow from its dilution cost, keeping the reported cash-flow measure and the dilution question separate."
+            },
+            {
+              "id": "above_operating_cash_flow_interpretation",
+              "mode": "required",
+              "description": "The response gives at least one explanation besides borrowing for repurchases exceeding operating cash flow, such as use of existing cash or an amount tagged on a basis other than the single year."
+            }
+          ]
+        },
+        {
+          "query": "Test that comparison against the share count. For each repurchasing filer, find its own annual report for the preceding fiscal year, with a period end 300 to 430 days earlier, and keep filers where both reports carry a fiscal-year weighted-average basic share count. Report how many filers that leaves; split them by whether repurchases fell short of share-based compensation and report each side's percentage whose share count rose; then report the median share-count change of the side that fell short, with linear interpolation. Explain what these figures do and do not settle about the previous turn's comparison.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "comparable_filer_count",
+            "below_compensation_share_rise_pct",
+            "above_compensation_share_rise_pct",
+            "below_compensation_median_share_change_pct"
+          ],
+          "claims": [
+            {
+              "id": "outcome_test_not_restatement",
+              "mode": "required",
+              "description": "The response reads the two percentages as an outcome test of the dollar comparison rather than a restatement of it, and names at least one other thing that moves a share count, such as issuance, conversion or an acquisition."
+            },
+            {
+              "id": "no_isolated_cause",
+              "mode": "conditional",
+              "description": "If the response says the dollar comparison caused the share-count outcome, it states that these filings record the amounts and the counts without isolating the other transactions that change shares outstanding."
+            }
+          ]
+        },
+        {
+          "query": "In the separate fact file, find USD dividend facts for T1-eligible filers' fiscal years from any Form 10-K, including later comparative disclosures. Require annual facts ending on each selected report date and spanning 300–430 days; retain each concept's first-filed value. Use the dividend aggregate when present; otherwise use only common, ordinary and preferred components, excluding separately reported noncontrolling-interest distributions. Report count of filers with selected facts (including zero values), count reporting the first table's dividend concept, count with both aggregate and component facts, and sum of selected values in USD billions. Explain what this concept-based total can and cannot establish about shareholder payouts.",
+          "validator": "validate_turn_5",
+          "stores": [
+            "dividend_reporting_filer_count",
+            "single_concept_reporting_filer_count",
+            "aggregate_and_component_filer_count",
+            "dividend_bn"
+          ],
+          "claims": [
+            {
+              "id": "single_concept_coverage",
+              "mode": "required",
+              "description": "The response explains that the first table's single dividend concept appears for only some filers reporting dividends in the separate fact file."
+            },
+            {
+              "id": "aggregate_component_overlap",
+              "mode": "required",
+              "description": "The response explains that adding an aggregate dividend fact to components it already contains double-counts payments."
+            },
+            {
+              "id": "dividend_scope_heterogeneity",
+              "mode": "required",
+              "description": "The response distinguishes aggregates that can include noncontrolling-interest distributions from the common, ordinary and preferred component fallback, and interprets the selected total as a heterogeneous concept sum rather than uniform parent-shareholder payouts."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen SEC company-facts cash-flow and share-count extracts for annual filings with period ends in calendar 2023 and 2024. The cash-generation measure, the compensation comparison and the share-count test are analytic constructions rather than reported statistics.",
+    "facts": [
+      "1,259 annual filings tag all four concepts; 8 have a negative reported PP&E purchase, repurchase or share-based-compensation value and are excluded by the stated screen, leaving 1,251 filers, including 1,039 with positive repurchases. Operating cash flow sums to 1585.787171 USD billions. The nine negative flags across eight filers may reflect reversals, presentation choices or data errors; their sign alone does not prove a filing fault, and flipping it would invent an unreported amount.",
+      "Operating cash flow after reported PP&E purchases sums to 1138.760931 USD billions; 202 filers have a negative figure. Repurchases sum to 607.377827 USD billions, and 281 repurchasers spend more than this cash-after-purchases measure. PP&E spending can be deferred, but the total includes growth and maintenance investment and is not by itself sustainable distributable cash.",
+      "Share-based compensation sums to 176.353726 USD billions and is a median 8.1852% of a filer's own operating cash flow. 352 of the 1,039 repurchasers spend less on repurchases than they expensed in stock, and 177 of them spend more on repurchases than their entire operating cash flow. That last count is not only leverage: NetApp reports 15,600,000,000 of repurchases against 1,685,000,000 of operating cash flow, and its 2019 to 2025 series of 11.7, 13.1, 13.3, 13.9, 0.85, 15.6 and 16.8 billions is a cumulative program total sitting in an annual field in every year but one.",
+      "989 repurchasers have a prior annual report 300 to 430 days earlier with both share counts present, three of them 52/53-week filers whose preceding year ended in the first days of 2024; the window keeps out one filer whose nearest earlier report is 731 days back. Of the filers repurchasing below their share-based compensation, 72.5076% saw weighted-average basic shares rise, against 19.7568% of the rest, and the first group's median share count rose 0.7811% while the second group's fell. The split is an outcome test rather than a restatement, but a share count also moves on issuance, conversion and acquisitions, which these fields do not separate.",
+      "Among 1,251 eligible filers, 122 report a selected annual dividend fact, including two zero-valued disclosures; 120 have a positive selected amount. The first table’s single dividend concept appears for 49. Twelve report common and preferred components together. One reports an aggregate alongside components, so aggregate precedence yields 281.566830 USD billions versus 291.380830 from double counting. The aggregate may include noncontrolling interests while fallback uses common, ordinary and preferred components; this is a selected-concept sum, not homogeneous parent-shareholder payouts. First-filed selection retains one 782,048,000 fact instead of its later 782,000,000 restatement."
+    ],
+    "known_overclaims": [
+      "Flipping a negative reported PP&E, repurchase or share-based-compensation value to positive without source evidence; a negative amount is an exclusion under this screen, not proof of a filing error.",
+      "Treating operating cash flow after all PP&E purchases as sustainable distributable cash, without distinguishing growth from maintenance spending or other cash claims.",
+      "Treating repurchases as net share-count shrinkage or a net return to existing holders without checking share issuance and compensation-related dilution.",
+      "Reading every repurchase above a filer's own operating cash flow as debt-funded, when some are amounts tagged on a cumulative rather than an annual basis.",
+      "Treating the share-count split as proof that the repurchase and compensation amounts caused it, when issuance, conversion and acquisitions move the same count and are not separated here.",
+      "Adding dividends to this payout picture from the first table alone, where only 825 of the 5,524 annual filings tag the one concept it carries.",
+      "Reading the filers tagging the single dividend concept as all dividend reporters, when many filers report a different concept instead.",
+      "Adding an aggregate dividend amount to the components it already contains, which counts one payment twice."
+    ]
+  }
+}

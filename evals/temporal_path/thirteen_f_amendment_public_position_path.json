@@ -1,0 +1,56 @@
+{
+  "name": "thirteen_f_amendment_public_position_path",
+  "module": "evals.temporal_path.thirteen_f_amendment_public_position_path",
+  "task_family": "temporal_path",
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "data_sources": ["sec_13f_filings", "sec_13f_amendment_chain"],
+  "conversations": [{
+    "id": "main",
+    "turns": [
+      {
+        "query": "For Palogic Value Management's quarter ended December 31, 2024, trace its Form 13F original and amendments public by March 12, 2025. Report the number of filings, the exact accession of the latest restatement, and the exact accession of the amendment adding holdings. Explain how those two amendment types affect a public portfolio reconstruction.",
+        "validator": "validate_turn_1",
+        "stores": ["thirteen_f_chain_count", "thirteen_f_latest_restatement", "thirteen_f_added_accession"],
+        "claims": [{"id": "thirteen_f_amendment_types", "mode": "required", "description": "The response distinguishes a restatement that replaces the public information table for that quarter from an added-holdings amendment that supplements it."}]
+      },
+      {
+        "query": "At the close of February 11, 2025, report the then-public information-table value in USD millions and Apple common-stock value as a percentage of that total. Explain the public-information cutoff.",
+        "validator": "validate_turn_2",
+        "stores": ["thirteen_f_original_value_m", "thirteen_f_original_apple_weight_pct"],
+        "claims": [{"id": "thirteen_f_original_cutoff", "mode": "required", "description": "The response uses only the public original 13F at the first cutoff and leaves later amendment values out of it."}]
+      },
+      {
+        "query": "Advance the same quarter to the close of March 12, 2025. Reconstruct the then-public information table under the Form 13F amendment rules. Report its total value in USD millions and Apple's common-stock share of that value. Explain the added LivePerson row's security and quantity types.",
+        "validator": "validate_turn_3",
+        "stores": ["thirteen_f_final_value_m", "thirteen_f_final_apple_weight_pct"],
+        "claims": [
+          {"id": "thirteen_f_additive_reconstruction", "mode": "required", "description": "The response replaces earlier full tables with the latest restatement and adds the one-row supplemental information table exactly once."},
+          {"id": "thirteen_f_prn_boundary", "mode": "required", "description": "The response treats the LivePerson note's PRN quantity as debt principal amount, not as a count of common shares or an Apple position."}
+        ]
+      },
+      {
+        "query": "A hypothetical risk rule caps Apple at 4.7% of the public information-table value. At each cutoff, report the minimum whole Apple shares to sell at that cutoff's reported value per share. Keep the portfolio-value denominator fixed by holding sale proceeds as cash. Compare the cap decisions and explain what the filings establish about intervening trading.",
+        "validator": "validate_turn_4",
+        "stores": ["thirteen_f_first_cutoff_sale_shares", "thirteen_f_later_cutoff_sale_shares"],
+        "claims": [
+          {"id": "thirteen_f_revised_concentration_decision", "mode": "required", "description": "The response interprets the first cutoff as above the hypothetical Apple cap and the later cutoff as below it."},
+          {"id": "thirteen_f_disclosure_trade_boundary", "mode": "required", "description": "The response treats a revision of the public information table as evidence of a restatement rather than of an intervening trade."}
+        ]
+      }
+    ]
+  }],
+  "judge_reference": {
+    "source": "SEC 13F source-native per-accession information tables and filing metadata for Palogic Value Management's 2024Q4 report; the concentration cap and sale convention are hypothetical.",
+    "facts": [
+      "The public chain has one original, two restatements and one one-row NEW HOLDINGS amendment. The latest restatement is 0001214659-25-004240 and added-holdings amendment 0001214659-25-004241.",
+      "The original information-table value is 256.545 million USD with Apple at 4.7550 percent; the final public reconstructed value is 263.917 million USD with Apple at 4.6222 percent.",
+      "The added row is a LivePerson note with a PRN quantity. Under the hypothetical 4.7 percent cap, the original table requires a sale of 564 Apple shares, whereas the reconstructed later table requires none; this does not establish that a trade occurred."
+    ],
+    "known_overclaims": [
+      "Summing original and all restatements as independent positions, or allowing an added-holdings amendment to replace the full table.",
+      "Reading the delayed 13F amendment as proof of a trade on the filing date.",
+      "Treating a debt PRN amount as common shares, or interpreting the revised disclosure as proof of trading."
+    ]
+  }
+}

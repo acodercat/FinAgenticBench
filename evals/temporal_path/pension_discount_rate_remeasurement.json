@@ -1,0 +1,120 @@
+{
+  "name": "pension_discount_rate_remeasurement",
+  "module": "evals.temporal_path.pension_discount_rate_remeasurement",
+  "task_family": "temporal_path",
+  "data_sources": [
+    "sec_notes_dimensional",
+    "treasury_yield_curve"
+  ],
+  "case_type": "baseline",
+  "difficulty": "hard",
+  "judge_reference": {
+    "source": "Frozen SEC Financial Statement and Notes single-axis dimensional facts for the 500 largest 10-K filers, read on the defined benefit pension plan member as first reported, and the Treasury daily par yield curve. The changes, spreads, implied durations and funded ratios are analytic constructions rather than reported statistics.",
+    "facts": [
+      "124 filers tag a pension discount rate at both their 2021 and 2022 year ends; one tags a negative 2022 rate. For the other 123 the rate rose a median 250 basis points against 236 for the ten-year Treasury yield on the same dates, and 118 changes lie within 50 basis points of the yield change. The rate is set at each measurement date from yields on high-quality corporate bonds matching the timing of benefit payments, so it moves with the market every year.",
+      "At the 2022 year end the median rate is 5.20 percent, a median 132 basis points above the ten-year yield, and 4 of 123 stand below it, because high-quality corporate bonds yield more than Treasuries.",
+      "112 filers carry the 2022 actuarial gain with the obligation at both year ends. 20 tag the gain below zero and all 20 show a lower obligation at the later year end, so the negative sign reflects how they tag the amount rather than a loss. The gain's size over the opening obligation and the rate change implies a median duration of 9.0457 years: a higher discount rate lowers the present value of distant benefits, more so the longer they run.",
+      "All 108 filers carrying assets at both year ends and the 2022 return lost money on their plan assets, yet 71 ended the year with assets less obligation strictly higher, and the median ratio of assets to obligation rose from 0.9495 to 0.9794. The obligation fell further than the assets because the rate rise cut its present value."
+    ]
+  },
+  "conversations": [
+    {
+      "turns": [
+        {
+          "query": "Use 10-K single-axis notes facts on the retirement plan type axis's defined benefit pension member, primary presentation (index 0), each from its earliest filing (tie: lower accession); an item's year end is its latest fact date in the calendar year. Take filers with a benefit-obligation discount rate at both 2021 and 2022 year ends: report their count and how many have a rate outside (0, 1) at either date, then drop those. For the rest report the median rate change. Medians use linear interpolation throughout. Explain how sponsors set this rate.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "rate_filer_count",
+            "invalid_rate_count",
+            "median_rate_change_bp"
+          ],
+          "claims": [
+            {
+              "id": "rate_reset_at_measurement_date",
+              "mode": "required",
+              "description": "Explains that the discount rate is set at each measurement date from current yields on high-quality corporate bonds whose timing matches the expected benefit payments, so it is reset every year and moves with market rates."
+            },
+            {
+              "id": "negative_rate_is_a_tagging_error",
+              "mode": "optional",
+              "description": "Notes that a negative discount rate is a tagging error rather than a rate the sponsor used."
+            }
+          ]
+        },
+        {
+          "query": "Compare the rest with the ten-year Treasury par yield on each year-end date, or on the latest earlier date with one. Report the median change in that yield between the two year ends, how many filers' rate changes lie within 50 basis points, inclusive, of that same filer's own yield change, and, at the 2022 year end, the median rate, how many rates stand strictly below the yield, and the median of rate less yield. Explain how the rate moves with the Treasury yield and where it stands against it.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "median_yield_change_bp",
+            "tracking_count",
+            "median_end_rate_pct",
+            "below_treasury_count",
+            "median_spread_bp"
+          ],
+          "claims": [
+            {
+              "id": "corporate_spread_over_treasury",
+              "mode": "required",
+              "description": "Explains that the rate is drawn from high-quality corporate bond yields, which carry a credit spread over Treasury yields, so it stands above the Treasury yield for nearly all filers."
+            },
+            {
+              "id": "tenor_mismatch",
+              "mode": "optional",
+              "description": "Notes that the ten-year point is only a rough match for the timing of each plan's benefit payments."
+            }
+          ]
+        },
+        {
+          "query": "Of these filers, take those carrying the actuarial gain or loss for the year ending at their 2022 year end and the benefit obligation at both year ends. Report how many there are, how many tag the gain below zero, and how many of those show a lower obligation in 2022 than in 2021. Then divide each filer's gain size, whatever its sign, by its 2021 obligation and by the rate change as a decimal, and report the median in years. Explain what the rate change did to the obligation, what this ratio measures, and what to make of a gain tagged below zero.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "gain_filer_count",
+            "negative_gain_count",
+            "negative_gain_obligation_fell_count",
+            "median_implied_duration_years"
+          ],
+          "claims": [
+            {
+              "id": "higher_rate_lowers_obligation",
+              "mode": "required",
+              "description": "Explains that a higher discount rate lowers the present value of the future benefits, producing an actuarial gain, and that the ratio approximates the obligation's duration, its sensitivity to the discount rate."
+            },
+            {
+              "id": "negative_tag_is_sign_convention",
+              "mode": "required",
+              "description": "Explains that the gains tagged below zero come with falling obligations, so the sign reflects how those filers tag the amount rather than a loss."
+            },
+            {
+              "id": "other_assumptions",
+              "mode": "optional",
+              "description": "Notes that the gain also reflects changes in other assumptions, such as mortality or salary growth, so the ratio only approximates duration."
+            }
+          ]
+        },
+        {
+          "query": "Of those filers, take the ones also carrying plan assets at both year ends and the actual return on plan assets for the year ending at their 2022 year end. Report how many there are, how many report a return below zero, and how many of those end the year with plan assets less the obligation strictly higher than a year earlier. Report the median of plan assets divided by the obligation at each year end. Explain what drove the change in funded position over the year.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "funded_filer_count",
+            "negative_return_count",
+            "negative_return_improved_count",
+            "median_start_funded_ratio",
+            "median_end_funded_ratio"
+          ],
+          "claims": [
+            {
+              "id": "obligation_fell_more",
+              "mode": "required",
+              "description": "Explains that for most of these plans the obligation fell by more than the assets did, because the higher discount rate lowered its present value, so the funded position improved despite negative returns."
+            },
+            {
+              "id": "liability_hedging",
+              "mode": "optional",
+              "description": "Notes that plans holding long-duration bonds to match their liabilities lose on those bonds when rates rise but gain more on the liability side."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

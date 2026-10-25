@@ -1,0 +1,17 @@
+{
+  "geography": {
+    "county_fips_rows": 3222,
+    "zcta_county_relationship_rows": 46960,
+    "zcta_primary_county_rows": 33791
+  },
+  "financial_entities": {
+    "active_institution_rows": 61914,
+    "current_relationship_rows": 35922
+  },
+  "rules": [
+    "No fuzzy entity-name joins are introduced.",
+    "Zero-valued NIC identifier placeholders are normalized to blank.",
+    "Current NIC tables are discovery/crosswalk support, not a 2025 point-in-time snapshot.",
+    "The primary ZCTA county is a derived maximum-overlap convenience field; use the full relationship table when allocation matters."
+  ]
+}

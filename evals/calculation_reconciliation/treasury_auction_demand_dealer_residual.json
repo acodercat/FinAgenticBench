@@ -1,0 +1,136 @@
+{
+  "name": "treasury_auction_demand_dealer_residual",
+  "module": "evals.calculation_reconciliation.treasury_auction_demand_dealer_residual",
+  "task_family": "calculation_reconciliation",
+  "data_sources": [
+    "treasury_auctions",
+    "treasury_yield_curve"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "turns": [
+        {
+          "query": "Auction results report the amount accepted from primary dealers, direct bidders and indirect bidders, alongside SOMA accepted and noncompetitive accepted. Select auctions of security type Note with an auction date in 2024 or 2025 whose security term is either 10-Year or 9-Year 10-Month and whose inflation-indexed flag reads No. Report how many auctions qualify, how many are new issues and how many are reopenings. Report total accepted, the sum of the three bidder groups, SOMA accepted and noncompetitive accepted, all in USD billions. Then report the largest absolute difference in any single auction between total accepted and the five components added together, in USD. Explain what that reconciliation does and does not establish, and why the inflation-indexed flag had to be applied.",
+          "validator": "validate_award_identity",
+          "stores": [
+            "auction_count",
+            "new_issue_count",
+            "reopening_count",
+            "total_accepted_usd_billions",
+            "competitive_award_usd_billions",
+            "soma_accepted_usd_billions",
+            "noncompetitive_usd_billions",
+            "identity_residual_usd"
+          ],
+          "claims": [
+            {
+              "id": "exhaustive_components_reasoning",
+              "description": "The response treats the discrepancy as a reconciliation of the named fields in these rows, without claiming that the fields exhaust every economic description of auction demand.",
+              "mode": "required"
+            },
+            {
+              "id": "indexed_exclusion_reasoning",
+              "description": "The response explains that inflation-linked issues share the reopening term label but clear at a real yield, so leaving them in would mix two different pricing conventions in one population.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Bidder-category shares depend on what you divide by. For each auction compute the indirect, dealer and direct accepted amounts as a percent of the three groups added together, and report the median of each across the auctions. Then compute the indirect and dealer amounts as a percent of total accepted instead, and report those two medians. Take every median and percentile asked for here with linear interpolation. Explain which base isolates the three competitive bidder categories and how SOMA and noncompetitive accepted amounts affect the other denominator.",
+          "validator": "validate_demand_base",
+          "stores": [
+            "median_indirect_share_competitive_pct",
+            "median_dealer_share_competitive_pct",
+            "median_direct_share_competitive_pct",
+            "median_indirect_share_total_pct",
+            "median_dealer_share_total_pct"
+          ],
+          "claims": [
+            {
+              "id": "non_bid_components_reasoning",
+              "description": "The response explains that SOMA accepted and noncompetitive accepted sit outside the three competitive bidder-category amounts, so including them in total accepted changes the denominator without changing those category numerators.",
+              "mode": "required"
+            },
+            {
+              "id": "rollover_nature_boundary",
+              "description": "If the response includes SOMA accepted in auction demand, it states that SOMA accepted is neither competitive primary-dealer, nor direct, nor indirect demand that helped determine the auction's high yield.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Examine primary-dealer participation. Using the dealer share of the three bidder groups, report the auction date with the highest such share, that share and that auction's bid-to-cover ratio, then the same three figures for the auction with the lowest share, breaking any tie by auction date ascending. Report the correlation between dealer share and bid-to-cover across the qualifying auctions and the median bid-to-cover. Take every median and percentile asked for here with linear interpolation. Explain what the New York Fed's expectation that primary dealers bid pro rata at reasonably competitive prices does and does not establish about awards, and state the sample and causal limits on interpreting the correlation.",
+          "validator": "validate_dealer_residual",
+          "stores": [
+            "highest_dealer_share_date",
+            "highest_dealer_share_pct",
+            "highest_dealer_share_bid_to_cover",
+            "lowest_dealer_share_date",
+            "lowest_dealer_share_pct",
+            "lowest_dealer_share_bid_to_cover",
+            "dealer_share_bid_to_cover_correlation",
+            "median_bid_to_cover"
+          ],
+          "claims": [
+            {
+              "id": "dealer_expectation_boundary",
+              "description": "The response distinguishes the expectation to submit pro-rata reasonably competitive bids from any requirement to receive unsold residual securities, and treats dealer share as the arithmetic complement of direct and indirect shares on this base.",
+              "mode": "required"
+            },
+            {
+              "id": "small_sample_boundary",
+              "description": "The response notes that the correlation rests on sixteen observations and treats it as descriptive rather than as an estimated relationship.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Place the clearing yields against the curve. For each auction take the high yield less the ten-year par yield published for the same day, in basis points. Report how many auctions clear above the curve reading, the median difference, the date and value of the widest positive difference and that auction's dealer share of the three bidder groups. Then report how many of the qualifying auctions carry a positive open market account amount. Take every median and percentile asked for here with linear interpolation. Explain what this comparison can and cannot say about whether an auction was well received.",
+          "validator": "validate_clearing_yield_context",
+          "stores": [
+            "auctions_clearing_above_curve",
+            "median_yield_gap_bp",
+            "widest_yield_gap_date",
+            "widest_yield_gap_bp",
+            "widest_gap_dealer_share_pct",
+            "positive_soma_auction_count"
+          ],
+          "claims": [
+            {
+              "id": "curve_proxy_boundary",
+              "description": "The response states that a fitted par curve is not the pre-auction quotation against which a concession is normally judged, so the difference is indicative rather than the measure practitioners use.",
+              "mode": "required"
+            },
+            {
+              "id": "magnitude_reasoning",
+              "description": "The response interprets the computed basis-point magnitudes.",
+              "mode": "required"
+            },
+            {
+              "id": "failed_auction_boundary",
+              "description": "If the response characterizes the auction outcome, it states that a positive same-day par-curve gap is not a failed auction.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen Treasury auction results for nominal ten-year notes auctioned in 2024 and 2025, with the Treasury par yield curve",
+    "facts": [
+      "16 auctions qualify, 8 new issues and 8 reopenings. Total accepted is 747.672015 billion USD, of which 643.989293 billion was awarded to the three bidder groups, 101.671435 billion to the open market account and 2.011287 billion non-competitively. The largest per-auction difference between total accepted and the five components is 0.00 USD.",
+      "On the three-group base the median indirect share is 66.4874 percent, dealer 14.3242 and direct 19.1795. On total accepted the indirect median falls to 58.0174 and the dealer median to 11.9080, so the indirect figure is understated by 8.4700 percentage points.",
+      "Dealer share is highest at 23.9552 percent on 2024-04-10, where bid-to-cover was 2.3400, and lowest at 8.9269 percent on 2025-05-06, where it was 2.6000. Across the sixteen auctions the correlation between dealer share and bid-to-cover is -0.6463 and the median bid-to-cover is 2.5100.",
+      "Eleven auctions clear above the same-day ten-year par yield, with a median difference of 0.8000 basis points. The widest is 9.5000 basis points on 2025-04-09, where the dealer share was 10.7006 percent. Fifteen of the sixteen auctions carry a positive open market account amount."
+    ],
+    "known_overclaims": [
+      "Computing bidder demand shares on total accepted.",
+      "Treating the open market account rollover as competitive demand.",
+      "Reading the par curve difference as the concession a dealer would quote.",
+      "Mixing inflation-indexed auctions into a nominal population because they share a term label."
+    ]
+  }
+}

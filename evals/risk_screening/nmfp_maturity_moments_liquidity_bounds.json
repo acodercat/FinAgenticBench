@@ -1,0 +1,116 @@
+{
+  "name": "nmfp_maturity_moments_liquidity_bounds",
+  "module": "evals.risk_screening.nmfp_maturity_moments_liquidity_bounds",
+  "task_family": "risk_screening",
+  "data_sources": [
+    "sec_nmfp_series_filings",
+    "treasury_yield_curve"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "For N-MFP series S000001111 reported June 30, 2025, select the latest filing date, breaking ties by greatest accession. Its reported cash plus portfolio-securities value defines a new hypothetical pool; reported WAM and WAL are exact target days for its noncash holdings. Eight divisible credit-free templates have rate-reset/final-maturity days (1,1), (7,7), (30,30), (90,90), (180,180), (1,90), (1,180), (1,365). Noncash opening market-value weights are nonnegative, sum to one and match both reported moments exactly. Cash is outside those moments. Report opening pool value and whether a compatible set exists. Retain full precision internally.",
+          "stores": [
+            "opening_pool_mn",
+            "compatible_set"
+          ],
+          "validator": "validate_turn_1",
+          "claims": []
+        },
+        {
+          "query": "Within that compatible set, find the sharp minimum and maximum share of opening noncash value in templates with final maturity within seven calendar days inclusive. Interpret what the two bounds establish about the pool. For later turns, price the templates on the 2024-12-31 Treasury yields for 1, 2, 3, 6 months and 1, 2, 3, 5, 7, 10, 20, 30 years, read as zero rates compounded semiannually, interpolated linearly in years with flat ends, discounting on ACT/365 with no credit spread. The first five are zero-coupon claims worth USD 1 at opening; the last three have USD 1 principal and a locked first coupon set so that coupon plus principal at reset is worth USD 1, then reset to par, repaying principal only at final maturity.",
+          "stores": [
+            "liquidity_lower_pct",
+            "liquidity_upper_pct"
+          ],
+          "validator": "validate_turn_2",
+          "claims": [
+            {
+              "id": "partial_identification",
+              "description": "The response explains that the maturity summary identifies a range of compatible maturity shares rather than a unique underlying holding vector.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "At time zero, before any payment or reset, shift every zero yield up 100 basis points. Redeem 70% of opening pool units immediately at the opening USD 100 price. Use cash first, which earns nothing, then sell divisible holdings at stressed marks less execution spreads of 2, 5, 12, 35, 65, 18, 28 and 45 basis points of stressed value in template order, at least cost while funding exactly the payout; value retained holdings at stressed marks. Across every compatible book, report the maximum optimized execution cost and the minimum remaining-unit NAV. Explain how the unknown holdings relate to the guarantee, and read the execution-cost and remaining-NAV results together.",
+          "stores": [
+            "worst_70pct_liquidation_cost_mn",
+            "worst_70pct_remaining_nav"
+          ],
+          "validator": "validate_turn_3",
+          "claims": [
+            {
+              "id": "nested_liquidation",
+              "description": "The response distinguishes each book's optimal execution from the outer guarantee across all compatible books.",
+              "mode": "required"
+            },
+            {
+              "id": "execution_valuation_attribution",
+              "description": "The response distinguishes stressed market-value losses from execution costs in explaining the remaining-unit NAV.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "An additional investment mandate confirms total floating-note opening-value weight is at most 20%, with no 180-day fixed claim and no 365-day floating note. This restricts the same original compatible set; earlier redemption was an evaluation, not an executed portfolio change. Retain the shock and 70% redemption contract. Report the revised sharp upper seven-day final-maturity share, maximum optimized execution cost and whether all mandated books meet a cost budget of 9 basis points of opening pool value. Explain how the additional information changes the earlier assessment.",
+          "stores": [
+            "capped_liquidity_upper_pct",
+            "capped_70pct_cost_mn",
+            "budget_guarantee"
+          ],
+          "validator": "validate_turn_4",
+          "claims": [
+            {
+              "id": "disclosure_guarantee",
+              "description": "The response explains that the mandate excludes the earlier expensive compatible books, so the 70% request can now meet the cost budget across the reduced set under the same stressed prices.",
+              "mode": "required"
+            },
+            {
+              "id": "actual_holdings_overreach",
+              "description": "If the response identifies the compatible books as the source fund's actual securities, it distinguishes hypothetical model constraints from observed portfolio holdings.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "On that mandated compatible set, retain all pricing, execution and cash terms. Permit redemption requests from zero through 95% of opening units, paid immediately at the opening price, with the same cost budget. Find the largest request guaranteed feasible for every compatible book after its least-cost execution. Report robust capacity and the condition limiting it. Explain the relationship between the capacity boundary and the portfolio uncertainty.",
+          "stores": [
+            "robust_redemption_capacity_pct",
+            "capacity_binding"
+          ],
+          "validator": "validate_turn_5",
+          "claims": [
+            {
+              "id": "robust_boundary",
+              "description": "The response explains that the cost budget binds in at least one compatible book at maximum capacity while execution remains feasible for the others.",
+              "mode": "required",
+              "overlap_waiver": "The public request leaves the limiting condition unknown. This claim requires the earned worst-book cap relationship and remaining execution feasibility, neither of which is given in the query."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen governed dataset_new tables; explicitly hypothetical financial contracts in the conversation.",
+    "facts": [
+      "opening_pool_mn: 171.5393",
+      "compatible_set: FEASIBLE",
+      "liquidity_lower_pct: 0.0000",
+      "liquidity_upper_pct: 76.4435",
+      "worst_70pct_liquidation_cost_mn: 0.1697",
+      "worst_70pct_remaining_nav: 99.3769",
+      "capped_liquidity_upper_pct: 50.7034",
+      "capped_70pct_cost_mn: 0.1488",
+      "budget_guarantee: YES",
+      "robust_redemption_capacity_pct: 71.7685",
+      "capacity_binding: COST"
+    ],
+    "known_overclaims": []
+  }
+}

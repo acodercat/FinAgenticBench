@@ -1,0 +1,214 @@
+{
+  "benchmark_cutoff": "2025-12-31",
+  "canonical_cross_source_window": {
+    "start": "2024-01-01",
+    "end": "2025-12-31"
+  },
+  "coverage_classes": {
+    "direct_2024_2025": {
+      "description": "Release vintages, event files, or annual/quarterly observations concentrated in 2024-2025.",
+      "datasets": [
+        "bls_qcew",
+        "cftc_cot",
+        "dol_form5500",
+        "eia_steo_vintages",
+        "fdic_sod",
+        "fed_stress_tests",
+        "fed_z1_vintages",
+        "fema_nfip",
+        "ffiec_call_reports",
+        "ffiec_y9c",
+        "finra_short_volume",
+        "hmda",
+        "ncua_call_reports",
+        "noaa_storm_events",
+        "sec_13f",
+        "sec_bdc",
+        "sec_form_c",
+        "sec_form_d",
+        "sec_ftd",
+        "sec_insider",
+        "sec_midas_security_exchange",
+        "sec_nmfp",
+        "sec_notes",
+        "sec_nport",
+        "treasury_debt",
+        "treasury_dts"
+      ]
+    },
+    "long_history_overlapping_2024_2025": {
+      "description": "Longer time series or current bulk snapshots that contain a usable 2024-2025 slice.",
+      "datasets": [
+        "bis",
+        "eia_bulk",
+        "fdic_bankfind",
+        "fema_disasters",
+        "fhfa_hpi",
+        "ken_french",
+        "nyfed_rates",
+        "ofr_market_stress",
+        "rtdsm",
+        "sba_7a_504",
+        "sec",
+        "treasury_auctions",
+        "treasury_rates",
+        "treasury_tic",
+        "treasury_usfr"
+      ]
+    },
+    "lagged_official_annual": {
+      "description": "Latest official micro/annual release available by the cutoff, but it does not overlap 2024-2025 at the observation level; do not present it as contemporaneous 2024-2025 evidence.",
+      "datasets": [
+        "fed_scf"
+      ],
+      "latest_observation": {
+        "fed_scf": "2022"
+      }
+    },
+    "reference_crosswalk": {
+      "description": "Official identifier or geography bridges used to join observations; these are not themselves 2024-2025 economic measurements.",
+      "datasets": [
+        "census_geo_crosswalk",
+        "ffiec_nic_structure"
+      ]
+    }
+  },
+  "linkage_clusters": {
+    "public_companies_and_securities": {
+      "datasets": [
+        "sec",
+        "sec_notes",
+        "sec_insider",
+        "sec_13f",
+        "sec_ftd",
+        "sec_midas_security_exchange",
+        "finra_short_volume",
+        "ken_french"
+      ],
+      "join_dimensions": [
+        "CIK",
+        "ticker",
+        "CUSIP/security identifier",
+        "LEI",
+        "filing/trade date",
+        "industry"
+      ]
+    },
+    "funds_and_advisers": {
+      "datasets": [
+        "sec_nport",
+        "sec_nmfp",
+        "sec_13f"
+      ],
+      "join_dimensions": [
+        "CIK",
+        "series/class identifiers",
+        "adviser identifiers",
+        "LEI",
+        "security identifier",
+        "report date"
+      ]
+    },
+    "banks_credit_and_housing": {
+      "datasets": [
+        "ffiec_call_reports",
+        "ffiec_y9c",
+        "ffiec_nic_structure",
+        "fdic_bankfind",
+        "fdic_sod",
+        "hmda",
+        "fed_stress_tests",
+        "fhfa_hpi",
+        "fema_nfip",
+        "fema_disasters"
+      ],
+      "join_dimensions": [
+        "RSSD/FDIC certificate/LEI",
+        "institution",
+        "state/county/tract",
+        "quarter/year"
+      ]
+    },
+    "macro_rates_energy_and_public_finance": {
+      "datasets": [
+        "fed_z1_vintages",
+        "rtdsm",
+        "nyfed_rates",
+        "ofr_market_stress",
+        "treasury_rates",
+        "treasury_auctions",
+        "treasury_debt",
+        "treasury_dts",
+        "treasury_usfr",
+        "eia_bulk",
+        "eia_steo_vintages"
+      ],
+      "join_dimensions": [
+        "observation/release date",
+        "quarter",
+        "maturity/tenor",
+        "sector",
+        "forecast vintage"
+      ]
+    },
+    "international_entities_and_flows": {
+      "datasets": [
+        "bis",
+        "treasury_tic"
+      ],
+      "join_dimensions": [
+        "country/economy",
+        "currency",
+        "LEI/entity",
+        "sector",
+        "period"
+      ]
+    },
+    "households_and_small_business": {
+      "datasets": [
+        "fed_scf",
+        "bls_qcew",
+        "census_geo_crosswalk",
+        "hmda",
+        "fhfa_hpi",
+        "sba_7a_504"
+      ],
+      "join_dimensions": [
+        "state/county",
+        "year",
+        "product/loan type",
+        "industry",
+        "borrower/recipient category"
+      ]
+    },
+    "climate_emissions_and_local_economy": {
+      "datasets": [
+        "noaa_storm_events",
+        "fema_disasters",
+        "fema_nfip",
+        "eia_bulk",
+        "bls_qcew",
+        "census_geo_crosswalk",
+        "fdic_sod",
+        "hmda",
+        "sba_7a_504"
+      ],
+      "join_dimensions": [
+        "county/state",
+        "event/report year",
+        "industry/NAICS",
+        "facility/power-plant identifier",
+        "physical-risk exposure"
+      ]
+    }
+  },
+  "usage_policy": [
+    "For ordinary cross-source cases, use the common 2024-2025 observation window.",
+    "Require both the economic observation/event date and the artifact availability date to be no later than 2025-12-31 for strict point-in-time cases.",
+    "Treat BEA MNE 2023, EPA GHGRP 2023, SCF 2022, and FHFA UAD 2022 as lagged structural evidence, not same-year 2024-2025 measurements.",
+    "Treat Census geography and current FFIEC NIC structure as reference bridges, not economic observations or frozen 2025 ownership state.",
+    "For strict cutoff cases, exclude post-cutoff retrospective artifacts including 2025 annual QCEW/trade totals, 2025Q4 Y-9C, and current revised NOAA/NIC snapshots.",
+    "Do not join entity-level tables on names alone; use stable identifiers or an explicit reviewed crosswalk.",
+    "Aggregate daily, monthly, quarterly, and annual sources to a declared common frequency before comparing them."
+  ]
+}

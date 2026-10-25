@@ -1,0 +1,118 @@
+{
+  "name": "frn_reopening_sofr_financed_credit_limit",
+  "module": "evals.scenario_analysis.frn_reopening_sofr_financed_credit_limit",
+  "task_family": "scenario_analysis",
+  "data_sources": [
+    "treasury_auctions",
+    "nyfed_reference_rates"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Identify the U.S. Treasury floating-rate note auctioned in March 2025. The auction record does not carry a floating-rate security type, so use the field that flags a floating rate rather than the security-type label. If more than one qualifies, take the latest auction date and break a remaining tie by CUSIP ascending. Buy USD 1,000,000 of face value at that auction's published price and published accrued interest, with no fees or haircut. Report the CUSIP, the settlement date, the first interest payment date after settlement, and the cash required at settlement in USD thousands to five decimals, the precision a cent-exact amount needs in that unit. Settle every cash amount to the nearest cent with half a cent rounded up, and carry the note, its dates and the settlement cash forward. Explain what the accrued interest represents in the buyer's settlement cash.",
+          "validator": "validate_purchase",
+          "stores": [
+            "selected_cusip",
+            "settlement_date",
+            "first_payment_date",
+            "settlement_cash_usd_thousands"
+          ],
+          "claims": [
+            {
+              "id": "accrued_interest_role",
+              "description": "The response explains that the accrued interest reimburses the seller for the part of the current interest period already elapsed, so the buyer pays it out and recovers it in the first coupon.",
+              "mode": "required"
+            },
+            {
+              "id": "floating_rate_identification",
+              "description": "The response states that the note is recorded under the same security type as fixed-rate notes and was separated by the floating-rate flag rather than by that label.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Finance the whole settlement cash at realized SOFR with no additional spread. A date carrying a published SOFR observation is a business day; one simple ACT/360 factor covers each interval between consecutive observations, including any non-business days inside it, and the factors compound across intervals. The note's coupon accrues daily from its dated date on an index equal to the high discount rate of the most recent thirteen-week bill auction, converted to an ACT/360 money-market yield over that bill's own term from issue to maturity, plus the note's spread. An index takes effect only on days after the auction that set it, and the index in force is held fixed for the final two business days before each payment date. Round the converted index and each day's interest per USD 100 of face to nine decimals. At the first payment, accrue financing through but excluding the payment date and apply the entire coupon to the loan. Report the first coupon received and the loan balance immediately after that payment, both in USD thousands to five decimals. Explain how the period the coupon covers differs from the period the buyer has funded.",
+          "validator": "validate_first_coupon",
+          "stores": [
+            "first_coupon_usd_thousands",
+            "first_post_payment_loan_usd_thousands"
+          ],
+          "claims": [
+            {
+              "id": "accrual_versus_funding_period",
+              "description": "The response contrasts the coupon's accrual period, which begins at the dated date, with the buyer's funding period, which begins at settlement, and connects the difference to the accrued interest paid at purchase.",
+              "mode": "required"
+            },
+            {
+              "id": "index_lockout_reasoning",
+              "description": "The response states that holding the index fixed before payment changes which bill auction applies to the closing days of the period, and that the convention has to be pinned for the coupon to be determined.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Hold the same face amount through the following quarterly payment date, which follows the note's month-end dated date rather than falling three calendar months after the first payment. Continue financing the outstanding loan under the same conventions and again apply the whole coupon on its payment date. Report that payment date, its coupon in USD thousands, and the loan balance immediately after repayment in USD thousands, both to five decimals. Discuss what this balance establishes about the funded position, and what further observation would be needed before it could be read as a return.",
+          "validator": "validate_second_coupon",
+          "stores": [
+            "second_payment_date",
+            "second_coupon_usd_thousands",
+            "second_post_payment_loan_usd_thousands"
+          ],
+          "claims": [
+            {
+              "id": "balance_versus_return_boundary",
+              "description": "The response states that the loan balance is a financing position rather than a return, and names the missing observation, the note's market price, that a liquidation would require.",
+              "mode": "required"
+            },
+            {
+              "id": "carry_direction_reasoning",
+              "description": "The response attributes the movement in the loan to the difference between the financed rate and the coupon index rather than to the level of either one.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Return to the loan immediately after the first coupon payment and impose, for this scenario only, a USD 1,005,000 credit limit running to the second payment date. At each SOFR business-day boundary in that window, capitalize the preceding interval's financing interest, apply any coupon falling due that day, and then test the balance. If it strictly exceeds the limit, the borrower contributes external cash at once, enough to bring the loan to no more than USD 1,000,000, rounded up to the next whole cent, and the loan falls by the cash actually contributed. Leave the holding and every other convention unchanged. Report the number of contributions, the date of the first one as a date or the token NONE, and the total contributed in USD thousands to five decimals. Discuss the liquidity this scenario demands and the evidentiary scope of the exercise.",
+          "validator": "validate_credit_limit",
+          "stores": [
+            "credit_contribution_count",
+            "first_contribution_date",
+            "total_contribution_usd_thousands"
+          ],
+          "claims": [
+            {
+              "id": "path_dependence_result",
+              "description": "The response explains that the contributions depend on the order in which financing accrued within the window, so the quarter-end balances alone would not determine them.",
+              "mode": "required"
+            },
+            {
+              "id": "scenario_scope_boundary",
+              "description": "The response states that the credit limit is a condition this exercise imposes rather than a term the actual holder faced, and that the contributed cash is a funding requirement rather than a loss on the note.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen Treasury auction records and New York Fed SOFR reference rates",
+    "facts": [
+      "One floating-rate auction settles in March 2025: CUSIP 91282CMJ7, auctioned 2025-03-26 and settling 2025-03-28, a reopening dated 2025-01-31 with a 0.098 spread. It is recorded with security type Note; the floating-rate flag identifies it.",
+      "At a price of 99.984794 and accrued interest of 0.677046 per 100, USD 1,000,000 of face costs 999,847.94 plus 6,770.46, or 1,006,618.40 at settlement.",
+      "The first coupon, paid 2025-04-30, is 10,757.14 and leaves the loan at 999,876.20 after the sweep. The second payment falls 2025-07-31, pays 11,214.93, and leaves 999,755.79.",
+      "Without freezing the index for the final two business days the first coupon would be 10,756.43, a difference of 0.71 on a million of face and more than ten times the scored tolerance.",
+      "Under the credit limit the borrower contributes twice, first on 2025-06-12, for a total of 10,091.46."
+    ],
+    "known_overclaims": [
+      "Reading the post-payment loan balance as a profit or loss on the note.",
+      "Treating the credit limit as a term the actual holder faced rather than a condition of the exercise.",
+      "Calling the contributed cash a loss rather than a funding requirement.",
+      "Attributing the drift in the loan to the level of SOFR or of the coupon index rather than to the difference between them."
+    ]
+  }
+}

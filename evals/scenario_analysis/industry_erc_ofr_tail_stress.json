@@ -1,0 +1,207 @@
+{
+  "name": "industry_erc_ofr_tail_stress",
+  "module": "evals.scenario_analysis.industry_erc_ofr_tail_stress",
+  "task_family": "scenario_analysis",
+  "data_sources": [
+    "ofr_market_stress",
+    "ken_french_10_industry_portfolios",
+    "ken_french_daily_factors"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Build one common-date panel from the daily OFR Financial Stress Index, the Ken French value-weighted 10-industry portfolios and the daily Fama-French factors. Among common dates from 2019-01-01 through 2025-12-31, select the maximum OFR FSI level, breaking an exact tie by earlier date. Let the training end be the common date exactly 20 observations before that peak, use 504 common observations ending there, and define the disjoint stress window from the common date immediately after that training end through the common date 40 observations after the peak, so the window straddles the peak. Report the peak date and FSI level, both training boundaries, both stress boundaries and the stress observation count. On the training window, rank all ten industries by annualized sample volatility using 252 days and report the five highest-volatility canonical Ken French industry tokens in descending order, breaking an exact tie alphabetically. Carry the windows and ordered five-industry cohort forward, and explain the information boundary created by this construction.",
+          "validator": "validate_stress_windows",
+          "stores": [
+            "selected_stress_peak_date",
+            "selected_stress_peak_fsi",
+            "training_start_date",
+            "training_end_date",
+            "stress_start_date",
+            "stress_end_date",
+            "stress_observation_count",
+            "volatility_rank_1_industry",
+            "volatility_rank_2_industry",
+            "volatility_rank_3_industry",
+            "volatility_rank_4_industry",
+            "volatility_rank_5_industry"
+          ],
+          "claims": [
+            {
+              "id": "episode_selection_status",
+              "description": "The response identifies the maximum OFR level as an ex-post anchor used to define the stress episode.",
+              "mode": "required"
+            },
+            {
+              "id": "cohort_information_boundary",
+              "description": "The response explains that cohort selection uses only the carried training window and no stress-window industry return.",
+              "mode": "required"
+            },
+            {
+              "id": "realtime_forecast_overclaim",
+              "description": "If the response calls the construction a real-time forecast, it states that the future-selected OFR peak prevents that interpretation.",
+              "mode": "conditional"
+            },
+            {
+              "id": "data_vintage_boundary",
+              "description": "If the response calls the supplied histories the exact files available at the selected 2020 dates, it states instead that they are later current-revised or retrospective snapshots.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Using only the carried 504-date training window and the five retained industries, estimate the sample covariance matrix of daily decimal industry returns with the sample denominator. Report its minimum eigenvalue and spectral condition number. Separately run five Fama-French three-factor OLS regressions with an intercept, each industry's daily excess return as dependent variable, and Mkt-RF, SMB and HML in the source table's percentage units. Among the five fitted market betas, report the highest and lowest canonical industry tokens and values, breaking an exact beta tie alphabetically. Carry the covariance matrix and all fitted factor loadings forward, and interpret what the eigenvalue, condition number and fitted betas establish and do not establish.",
+          "validator": "validate_covariance_and_factors",
+          "stores": [
+            "minimum_covariance_eigenvalue",
+            "covariance_condition_number",
+            "highest_market_beta_industry",
+            "highest_market_beta",
+            "lowest_market_beta_industry",
+            "lowest_market_beta"
+          ],
+          "claims": [
+            {
+              "id": "covariance_positive_definite_meaning",
+              "description": "The response interprets the positive minimum eigenvalue as evidence that the fitted sample covariance is positive definite.",
+              "mode": "required"
+            },
+            {
+              "id": "covariance_conditioning_meaning",
+              "description": "The response interprets the finite condition number as a numerical sensitivity diagnostic for the fitted sample covariance.",
+              "mode": "required"
+            },
+            {
+              "id": "factor_estimate_scope",
+              "description": "The response treats the fitted factor loadings as in-sample descriptive estimates for the training window.",
+              "mode": "required"
+            },
+            {
+              "id": "covariance_stability_overclaim",
+              "description": "If the response claims that the diagnostics prove future covariance stability, it states that sample conditioning does not establish future stability.",
+              "mode": "conditional"
+            },
+            {
+              "id": "factor_causality_overclaim",
+              "description": "If the response gives the fitted loadings a causal interpretation, it states that the regressions estimate association rather than causality.",
+              "mode": "conditional"
+            },
+            {
+              "id": "factor_performance_overclaim",
+              "description": "If the response infers future persistence or outperformance from the fitted loadings, it states that the in-sample estimates do not establish future performance.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "From the carried sample covariance matrix, solve the fully invested, strictly positive, long-only equal-risk-contribution portfolio with equal variance-risk budgets across the five industries. Report each weight in the cohort order established in the first turn, the annualized training volatility using 252 days, and the maximum absolute deviation of a component variance-contribution share from 20 percent. Using the carried regression loadings, also report the portfolio's fitted Mkt-RF, SMB and HML betas. Carry the frozen weights forward and explain how equal risk contribution differs from equal capital weighting and what the factor exposures add to the risk-budget result.",
+          "validator": "validate_equal_risk_contribution",
+          "stores": [
+            "erc_weight_rank_1_pct",
+            "erc_weight_rank_2_pct",
+            "erc_weight_rank_3_pct",
+            "erc_weight_rank_4_pct",
+            "erc_weight_rank_5_pct",
+            "erc_annualized_training_volatility_pct",
+            "maximum_erc_share_deviation_pp",
+            "erc_market_beta",
+            "erc_smb_beta",
+            "erc_hml_beta"
+          ],
+          "claims": [
+            {
+              "id": "erc_not_equal_weight",
+              "description": "The response explains that equal-risk contribution equalizes covariance-aware component variance contributions rather than assigning equal capital to industries.",
+              "mode": "required"
+            },
+            {
+              "id": "factor_overlay_meaning",
+              "description": "The response interprets the portfolio factor betas as an exposure overlay to the covariance-based risk budget.",
+              "mode": "required"
+            },
+            {
+              "id": "factor_neutrality_overclaim",
+              "description": "If the response treats equal risk contribution as factor neutrality, it states that equal component variance shares do not force factor betas to zero.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Apply the frozen target weights to each daily-return vector in the carried 60-date stress window, treating both portfolios as daily rebalanced and performing no weight re-estimation. Report the tail observation count, compounded portfolio return, annualized realized volatility using 252 days, maximum drawdown from a wealth index initialized at one, and positive-loss 97.5-percent non-interpolated historical expected shortfall using the worst ceiling-tail count. For an equal-capital-weight portfolio on the same cohort and dates, report compounded return and expected shortfall under the same convention. On the ERC portfolio's own tail dates, calculate component expected-shortfall contributions from each weighted industry loss; report the largest contributor by its canonical industry token and its contribution, breaking an exact contribution tie alphabetically, and component-sum minus portfolio expected shortfall. Compare the two portfolios, explain what the component contributions represent and over which observations they are defined, and give the material limits of the tail estimate.",
+          "validator": "validate_tail_stress",
+          "stores": [
+            "stress_tail_observation_count",
+            "erc_stress_cumulative_return_pct",
+            "erc_stress_annualized_volatility_pct",
+            "erc_stress_maximum_drawdown_pct",
+            "erc_stress_expected_shortfall_pct",
+            "equal_weight_stress_cumulative_return_pct",
+            "equal_weight_stress_expected_shortfall_pct",
+            "largest_erc_es_contributor_industry",
+            "largest_erc_es_contribution_pct",
+            "erc_es_additivity_residual_pct"
+          ],
+          "claims": [
+            {
+              "id": "stress_loss_interpretation",
+              "description": "The response explains that equal training-sample risk contributions did not preclude a material loss in the selected stress window.",
+              "mode": "required"
+            },
+            {
+              "id": "episode_scope",
+              "description": "The response treats the selected episode as a descriptive stress observation rather than broad strategy evidence.",
+              "mode": "required"
+            },
+            {
+              "id": "tail_sample_boundary",
+              "description": "The response interprets the reported tail count as a sparse empirical basis for historical expected shortfall.",
+              "mode": "required"
+            },
+            {
+              "id": "component_es_meaning",
+              "description": "The response interprets component expected shortfall as an allocation of portfolio loss on the portfolio's own selected tail dates.",
+              "mode": "required"
+            },
+            {
+              "id": "stress_causality_overclaim",
+              "description": "If the response claims causal protection from the comparison, it states that one selected historical episode does not identify a causal effect.",
+              "mode": "conditional"
+            },
+            {
+              "id": "stress_forecast_overclaim",
+              "description": "If the response presents the stress comparison as forecast evidence, it states that the ex-post episode does not establish forecast performance.",
+              "mode": "conditional"
+            },
+            {
+              "id": "strategy_superiority_overclaim",
+              "description": "If the response calls ERC generally superior from this comparison, it states that one episode does not establish general strategy superiority.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen OFR daily Financial Stress Index, Kenneth French value-weighted 10-industry daily returns and daily Fama-French factors.",
+    "facts": [
+      "The selected OFR peak is 10.266 on 2020-03-19. The 504-date training window is 2018-02-20 through 2020-02-20; the 60-date stress window is 2020-02-21 through 2020-05-15.",
+      "The retained volatility cohort is Enrgy, Durbl, HiTec, Shops and Manuf in that order. The decimal-return covariance minimum eigenvalue is 0.0000177402 and its condition number is 30.6366.",
+      "HiTec has the highest fitted market beta at 1.2070 and Shops the lowest at 0.9574.",
+      "The equal-risk-contribution weights are 18.8873, 17.8592, 18.1841, 22.8658 and 22.2038 percent. Annualized training volatility is 16.2711 percent and the maximum risk-share deviation is zero at ten decimals.",
+      "The ERC portfolio factor betas are 1.0790 to Mkt-RF, 0.1287 to SMB and 0.1185 to HML.",
+      "In the stress window the ERC portfolio returns -17.1339 percent, realizes 67.0642 percent annualized volatility, draws down 39.3280 percent and has 11.2729 percent historical expected shortfall from two tail observations.",
+      "The equal-capital portfolio returns -17.4264 percent with 11.3630 percent expected shortfall. Manuf is the largest ERC component contributor at 2.3647 percentage points and component additivity residual is zero at ten decimals."
+    ],
+    "known_overclaims": [
+      "Calling the ex-post OFR peak and later revised histories a real-time signal or vintage.",
+      "Using stress-window returns in the training covariance or volatility cohort selection.",
+      "Substituting equal capital weights for equal covariance-aware risk contributions.",
+      "Treating in-sample factor betas, one stress episode or a two-observation historical tail as causal or predictive evidence."
+    ]
+  }
+}

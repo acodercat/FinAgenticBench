@@ -1,0 +1,113 @@
+{
+  "name": "mortgage_denial_support_institution_influence",
+  "module": "evals.comparison_ranking.mortgage_denial_support_institution_influence",
+  "task_family": "comparison_ranking",
+  "data_sources": [
+    "hmda",
+    "ffiec_nic_institutions"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Use the frozen current NIC institution identifiers to link HMDA lenders to FDIC certificates. Retain LEIs with exactly one distinct nonmissing certificate among their nonmissing mappings. In the 2024 HMDA data, study California owner-occupied, first-lien home-purchase applications with outcomes originated, approved but not accepted, or denied; count each supplied application row once. Report the number of distinct linked LEIs represented in this application population before restricting race. Then compare the derived-race categories Black or African American and White, excluding other categories: report each group's application count and denial rate. Explain the outcome population and temporal scope of this linked sample.",
+          "stores": [
+            "linked_bank_count",
+            "black_application_count",
+            "white_application_count",
+            "black_denial_pct",
+            "white_denial_pct"
+          ],
+          "validator": "validate_linked_decision_population",
+          "claims": [
+            {
+              "id": "decision_population",
+              "description": "The response distinguishes a lender approval outcome from subsequent borrower acceptance or loan origination.",
+              "mode": "required"
+            },
+            {
+              "id": "identity_time_scope",
+              "description": "The response identifies this as a retrospective sample linked using a later-observed current identity snapshot.",
+              "mode": "required"
+            },
+            {
+              "id": "historical_bank_universe",
+              "description": "If the sample is described as the complete bank population known in 2024 or as 2024 ownership, the response provides historical identity evidence beyond the current NIC snapshot.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Within that two-group sample, define cells by county and loan type. Retain cells with at least thirty applications from each group; records missing either cell identifier cannot enter the retained cells. Report the retained cell count, each group's retained application count, and the pooled unweighted denial-rate gap within the retained population. Throughout this analysis, a gap means Black or African American minus White. Explain which applications drop out once the thirty-per-group cell rule is applied, and how that reshapes each group's presence in what remains.",
+          "stores": [
+            "support_cell_count",
+            "black_support_count",
+            "white_support_count",
+            "support_gap_pp"
+          ],
+          "validator": "validate_common_support",
+          "claims": [
+            {
+              "id": "support_selection",
+              "description": "The response explains that the common-support restriction changes which applications are represented and retains differing proportions of the two groups.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "For that retained support, directly standardize both groups' denial rates to the same county-by-loan-type distribution, using each retained cell's share of the two groups' combined applications as its weight. Report the standardized denial-rate gap. Compare its interpretation with the preceding unweighted comparison. Retain full input precision in this and subsequent calculations.",
+          "stores": [
+            "standardized_gap_pp"
+          ],
+          "validator": "validate_direct_standardization",
+          "claims": [
+            {
+              "id": "selection_vs_weighting",
+              "description": "The response treats sample trimming and composition adjustment as distinct analytical operations.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Assess institutional influence on that standardized gap. Omit each LEI represented in the original two-group sample one at a time, keeping the established cells and their original weights fixed. An omission is valid if both groups retain a positive application count in every fixed cell; do not reapply the thirty-application threshold. Select the valid omission with the largest absolute change from the original standardized gap, breaking exact ties by LEI ascending. Report the omitted LEI, the resulting standardized gap and the number of valid omissions. Interpret the institutional influence and the explanatory scope of this comparison.",
+          "stores": [
+            "influential_lei",
+            "leave_out_gap_pp",
+            "valid_leave_out_count"
+          ],
+          "validator": "validate_lender_influence",
+          "claims": [
+            {
+              "id": "descriptive_scope",
+              "description": "The response identifies at least one substantive limit on explaining the remaining difference, such as omitted credit-risk or underwriting information.",
+              "mode": "required"
+            },
+            {
+              "id": "causal_discrimination",
+              "description": "If discrimination, a causal institution effect or a population-wide explanation is asserted, the response supplies identification evidence beyond this descriptive standardization and leave-one-out calculation.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen 2024 HMDA applications and current FFIEC NIC identifiers observed 2026-08-13",
+    "facts": [
+      "The linked outcome population represents 175 LEIs before the race restriction. Black or African American and White groups contain 1,022 and 18,503 applications with denial rates of 21.8200 and 13.5275 percent.",
+      "Seven county-by-loan-type cells meet the thirty-per-group support rule, retaining 678 and 9,631 applications; their unweighted denial-rate gap is 7.8239 percentage points.",
+      "Direct standardization to the retained pooled application mix produces a 6.4440-percentage-point gap.",
+      "There are 153 valid fixed-weight lender omissions. Omitting LEI 593C3GZG957YOJPS2Z63 produces the largest absolute change and a 5.6482-percentage-point gap."
+    ],
+    "known_overclaims": [
+      "Excluding approved-but-not-accepted applications from the lender-decision denominator.",
+      "Attributing the change from the full sample to the standardized result solely to reweighting while ignoring common-support exclusions.",
+      "Re-selecting cells, reapplying the thirty-row threshold or re-estimating weights after every lender omission.",
+      "Describing the current NIC-linked sample as the complete bank population known in 2024, or interpreting the descriptive gap as a causal discrimination estimate."
+    ]
+  }
+}

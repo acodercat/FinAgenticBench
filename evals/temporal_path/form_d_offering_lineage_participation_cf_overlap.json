@@ -1,0 +1,113 @@
+{
+  "name": "form_d_offering_lineage_participation_cf_overlap",
+  "task_family": "temporal_path",
+  "data_sources": [
+    "sec_form_d",
+    "sec_form_c"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "module": "evals.temporal_path.form_d_offering_lineage_participation_cf_overlap",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Build Form D offering lineages rooted in original notices filed in 2024, using disclosures filed on or before 2024-12-31. Retain notices traceable to an original through complete, acyclic, same-issuer predecessor links. Select each lineage’s latest notice by filing date, then accession descending. Keep nonnegative sold amounts and reported industries other than Pooled Investment Fund. Report offering count, distinct issuer count and aggregate reported sold amount. Explain what each item behind your total stands for, and how the two counts you reported can differ from one another.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "offering_count",
+            "issuer_count",
+            "reported_sold_bn"
+          ],
+          "claims": [
+            {
+              "id": "offering_unit",
+              "description": "The response explains that a lineage contributes the cumulative amount in its selected disclosure once, whereas a single issuer can have multiple distinct offerings.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Within that cohort, compare industries having at least 100 finite, positive offering ceilings. Select the industry with the largest aggregate reported sold amount in that finite-ceiling subset; break ties alphabetically. Report its label, aggregate sold-to-ceiling percentage and the share of all its cohort offerings with an Indefinite ceiling. Explain which offerings sit behind each of the two percentages you reported and what each percentage is measuring about the industry.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "selected_industry",
+            "finite_sold_to_ceiling_pct",
+            "indefinite_offering_share_pct"
+          ],
+          "claims": [
+            {
+              "id": "finite_subset_interpretation",
+              "description": "The response interprets the sold-to-ceiling percentage as utilization within the finite-positive-ceiling subset.",
+              "mode": "required"
+            },
+            {
+              "id": "indefinite_interpretation",
+              "description": "The response interprets the Indefinite share as the incidence of offerings without a stated finite ceiling in the entire selected-industry cohort.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "For all cohort offerings in that industry, group reported non-accredited investor counts into positive, zero and missing. Report each group’s offering count and the median sold amount for the positive and zero groups. Take every median and percentile asked for here with linear interpolation. Interpret the relationship between participation and offering size, including missing-data coverage.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "positive_participation_count",
+            "zero_participation_count",
+            "missing_participation_count",
+            "positive_group_median_sold_usd",
+            "zero_group_median_sold_usd"
+          ],
+          "claims": [
+            {
+              "id": "participation_size_result",
+              "description": "The response recognizes that offerings reporting positive non-accredited counts have a higher median sold amount than those explicitly reporting zero.",
+              "mode": "required"
+            },
+            {
+              "id": "missing_coverage",
+              "description": "The response explains that the comparison of reported positive and zero counts cannot characterize the much larger group with missing counts.",
+              "mode": "required"
+            },
+            {
+              "id": "participation_causality",
+              "description": "If the response attributes fundraising outcomes or sold dollars to non-accredited investors, it distinguishes the reported headcounts from invested amounts and from evidence of a causal effect.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Match those industry issuers to original Form C notices filed in 2024. For each issuer and crowdfunding file number, retain the earliest original by filing date then accession ascending; then retain positive, finite maximum offering amounts. Report matched issuers, matched crowdfunding offerings and the median issuer-level ratio of selected-industry cohort Form D sold amounts to summed Form C maxima. Take every median and percentile asked for here with linear interpolation. Explain what each side of this median ratio actually records about an issuer, and whether the number ranks the two exemption routes against each other.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "matched_issuer_count",
+            "matched_cf_offering_count",
+            "median_issuer_cross_regime_ratio"
+          ],
+          "claims": [
+            {
+              "id": "matched_scale_boundary",
+              "description": "The response explains that matching issuers preserves entity identity but compares reported Form D sales with Form C offering maxima, rather than two measures of realized proceeds.",
+              "mode": "required"
+            },
+            {
+              "id": "regime_success_boundary",
+              "description": "If the response ranks the exemptions by fundraising success, it qualifies that inference because the ratio compares distinct reporting objects under different exemptions.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen governed runtime tables declared by this case",
+    "facts": [
+      "The offering population built from disclosures filed on or before 2024-12-31 is 17001 offerings from 15230 issuers; selected-notice sold amounts are cumulative offering disclosures.",
+      "Other Technology leads finite-positive-ceiling sold amounts. The sold/ceiling ratio is 77.5221817217%; Indefinite offerings represent 5.5690809495% of all its cohort offerings.",
+      "Positive, zero and missing investor-count groups contain 68, 71 and 3147 offerings. Positive and zero sold medians are USD 255000 and USD 5000.",
+      "There are 23 matched issuers and 26 original Form C offerings. The median issuer ratio is 0.8137740909. Form D sold amounts and Form C maxima are not equivalent realized funding measures."
+    ]
+  }
+}

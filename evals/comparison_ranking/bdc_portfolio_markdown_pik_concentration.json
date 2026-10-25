@@ -1,0 +1,190 @@
+{
+  "name": "bdc_portfolio_markdown_pik_concentration",
+  "module": "evals.comparison_ranking.bdc_portfolio_markdown_pik_concentration",
+  "task_family": "comparison_ranking",
+  "data_sources": [
+    "sec_bdc",
+    "nyfed_reference_rates"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "turns": [
+        {
+          "query": "Build a business-development-company portfolio cross-section at the 2024-12-31 report date. Keep for each filer only the rows from its latest filed accession that covers that date, then keep only investments reporting both cost and fair value, and retain filers holding at least fifty such priced investments. Define each filer's signed net markdown as summed cost minus summed fair value. Report the number of filers, number of investments, total cost and total fair value in USD billions, and cohort fair value as a percent of cohort cost. Carry the cohort forward. Explain what the signed mark represents and how the treatment of rows reporting only one of the two amounts shapes this cohort.",
+          "validator": "validate_cohort_construction",
+          "stores": [
+            "cohort_filer_count",
+            "cohort_investment_count",
+            "cohort_cost_usd_billions",
+            "cohort_fair_value_usd_billions",
+            "cohort_marked_pct"
+          ],
+          "claims": [
+            {
+              "id": "signed_mark_boundary",
+              "description": "The response states that cost minus fair value is a signed, unrealized schedule mark: positive denotes net markdown, negative denotes net appreciation, and neither is a realized gain or loss.",
+              "mode": "required",
+              "overlap_waiver": "The query asks what the signed mark represents without saying that a positive value is a markdown, that a negative one is appreciation, or that neither is realized."
+            },
+            {
+              "id": "single_sided_rows_boundary",
+              "description": "The response states that investments reporting only one of cost and fair value are excluded from the cohort rather than treated as carrying a zero on the missing side.",
+              "mode": "required"
+            },
+            {
+              "id": "unrealized_versus_realized_boundary",
+              "description": "If the response describes the net markdown as a loss the filer has taken, it corrects that the schedule records an unrealized valuation difference and does not establish later recovery or exit proceeds.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Within that cohort, identify two leaders, breaking ties by central index key ascending. First, report the filer with the largest signed net markdown: its name, markdown in USD millions, fair value as a percent of cost, and dollar margin over the next filer. Second, report the filer with the lowest fair-value-to-cost percentage: its name, percentage, signed net markdown in USD millions, percentage-point margin to the next filer, and rank in the dollar ordering. Explain what a filer needs to top each of these two orderings, and why the same portfolio can place very differently in them.",
+          "validator": "validate_markdown_leadership",
+          "stores": [
+            "largest_depreciation_filer",
+            "largest_depreciation_usd_millions",
+            "largest_depreciation_marked_pct",
+            "largest_depreciation_margin_usd_millions",
+            "lowest_marked_filer",
+            "lowest_marked_pct",
+            "lowest_marked_depreciation_usd_millions",
+            "lowest_marked_margin_pct",
+            "lowest_marked_depreciation_rank"
+          ],
+          "claims": [
+            {
+              "id": "scale_versus_severity",
+              "description": "The response explains that the dollar ordering reflects portfolio scale alongside mark severity while the percentage ordering is scale-normalized, so the two rankings answer different questions.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Stay with the same cohort and define a PIK-tagged investment as one whose reported paid-in-kind rate is strictly positive; treat a missing or zero rate as outside that set. Report how many cohort filers hold at least one tagged investment and tagged fair value as a percent of cohort fair value. Then identify the filer with the highest tagged share of its own fair value, breaking ties by central index key ascending, and report its name, share and percentage-point margin over the next filer. Finally report the tagged share of the turn-1 lowest-marked filer. Describe the contrast between those two filers without inferring a population-wide relationship, and explain what this share measures and how it relates, if at all, to interest income received in kind during a period.",
+          "validator": "validate_pik_concentration",
+          "stores": [
+            "pik_reporting_filer_count",
+            "cohort_pik_fair_value_share_pct",
+            "highest_pik_share_filer",
+            "highest_pik_share_pct",
+            "highest_pik_share_margin_pct",
+            "lowest_marked_filer_pik_share_pct"
+          ],
+          "claims": [
+            {
+              "id": "pik_concentration_result",
+              "description": "The response reports the cohort paid-in-kind share, the leading filer and its margin, and the paid-in-kind share of the most marked-down filer.",
+              "mode": "required"
+            },
+            {
+              "id": "independent_signals_reasoning",
+              "description": "The response describes the difference between the highest tagged-share filer and the lowest-marked filer while stating that two selected observations do not establish a population-wide relationship.",
+              "mode": "required"
+            },
+            {
+              "id": "tagging_versus_income_boundary",
+              "description": "The response notes that the measure is fair value in rows carrying a strictly positive reported PIK rate, not the share of interest income actually received in kind or capitalized during a period.",
+              "mode": "required",
+              "overlap_waiver": "The query asks how the tagged share relates to interest income received in kind; that it does not measure it is the response's own finding from the definition of the tagged rows."
+            }
+          ]
+        },
+        {
+          "query": "Stay with the same cohort and analyze investments reporting both a total interest rate and a basis spread. The frozen schedule mixes decimal fractions with percentage-point values: normalize each field independently by dividing a raw value above 1 by 100 and leaving a value at or below 1 unchanged. Report the raw paired-row count and how many paired rows require normalization because either raw field exceeds 1. After normalization, exclude a row if either component is negative or the all-in rate is below its spread; report the excluded and retained counts. On retained rows, report the median normalized all-in rate and spread in percent and the median implied base rate in percent, defined row by row as all-in minus spread. Report the Secured Overnight Financing Rate published for 2024-12-31 in percent and the median implied base minus SOFR in basis points. Interpret the aggregate proximity descriptively, while stating that an arithmetic residual and a cohort median cannot identify the contractual reference rate of an individual investment.",
+          "validator": "validate_rate_structure",
+          "stores": [
+            "rate_pair_row_count",
+            "rate_unit_normalized_row_count",
+            "rate_invalid_row_count",
+            "floating_rate_investment_count",
+            "median_all_in_rate_pct",
+            "median_spread_pct",
+            "median_implied_base_rate_pct",
+            "reference_rate_pct",
+            "implied_base_minus_reference_bp"
+          ],
+          "claims": [
+            {
+              "id": "rate_decomposition_result",
+              "description": "The response reports the paired, normalized, excluded and retained row counts, the three retained-row medians in percent, and the implied-base difference from published SOFR in basis points.",
+              "mode": "required"
+            },
+            {
+              "id": "base_rate_alignment_reasoning",
+              "description": "The response treats proximity between the aggregate residual median and SOFR as descriptive.",
+              "mode": "required"
+            },
+            {
+              "id": "reference_rate_identification_boundary",
+              "description": "If the response names a contractual reference rate, it states that the aggregate proximity does not identify the rate of any individual investment.",
+              "mode": "conditional"
+            },
+            {
+              "id": "rate_unit_boundary",
+              "description": "The response applies the visible field-by-field mixed-unit normalization and excludes negative components and normalized all-in-below-spread rows before calculating medians.",
+              "mode": "required"
+            },
+            {
+              "id": "median_coverage_boundary",
+              "description": "If the response generalizes the median to the whole cohort, it notes that only retained rows reporting both fields enter the calculation.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Test the turn-1 percentage leaderboard's sensitivity to the population floor. Rebuild the cohort at the same report date and with the same filing and paired-pricing rules but retain filers holding at least twenty-five investments instead of fifty. Report the number of filers, name and fair-value-to-cost percentage of the lowest-marked filer, its percentage-point margin to the next filer, and the rank under this floor of the turn-1 percentage leader. Separately report how many rows at the report date, after the latest-filing rule, report exactly one of cost and fair value. Compare the two floors and margins, and state what the comparison establishes about the population rule and what it does not establish about the filers.",
+          "validator": "validate_floor_sensitivity",
+          "stores": [
+            "sensitivity_filer_count",
+            "sensitivity_lowest_marked_filer",
+            "sensitivity_lowest_marked_pct",
+            "sensitivity_margin_pct",
+            "sensitivity_rank_of_pinned_leader",
+            "excluded_single_sided_row_count"
+          ],
+          "claims": [
+            {
+              "id": "floor_sensitivity_result",
+              "description": "The response reports the lower-floor leader, its margin and the position the turn-1 leader falls to, and contrasts that margin with the one measured at the higher floor.",
+              "mode": "required"
+            },
+            {
+              "id": "ranking_confidence_reasoning",
+              "description": "The response explains that adding filers with 25 to 49 priced positions changes the leader and narrows the observed margin, demonstrating sensitivity to the chosen population floor without predicting a future reversal.",
+              "mode": "required"
+            },
+            {
+              "id": "small_portfolio_boundary",
+              "description": "The response states that the floor is an analyst-defined population rule.",
+              "mode": "required",
+              "overlap_waiver": "The query asks what the comparison establishes about the population rule; that the floor is analyst-defined rather than a source property has to come from the response."
+            },
+            {
+              "id": "restatement_inference_boundary",
+              "description": "If the response suggests that a filing was restated, it states that the comparison does not establish restatement.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen SEC business development company schedules of investments at the 2024-12-31 report date and the Federal Reserve Bank of New York reference rates",
+    "facts": [
+      "The cohort holds 130 filers and 41,036 investments with 446.666119 billion USD of cost and 443.794082 billion USD of fair value, marked at 99.3570 percent of cost. Blackstone Private Credit Fund leads by unrealized depreciation at 701.717 million USD on a book marked at 99.0876 percent, 145.255006 million USD ahead of the next filer. Oxford Square Capital Corp. is the lowest marked at 71.6673 percent with 556.461994 million USD of depreciation, 5.987647 percentage points below the next filer, and ranks second by dollars.",
+      "112 of the 130 filers hold at least one investment with a strictly positive reported PIK rate. Those tagged rows hold 11.2486 percent of cohort fair value. Hercules Capital, Inc. leads at 43.7034 percent, 13.0218 percentage points ahead of Monroe Capital Corp., while Oxford Square Capital Corp. has a zero tagged share.",
+      "22,757 cohort rows report both rate fields; 620 require percentage-point normalization and 237 are excluded after normalization, leaving 22,520 valid pairs. Their median all-in rate is 9.7900 percent, median spread 5.2500 percent and median implied base 4.4400 percent, against 2024-12-31 SOFR of 4.49 percent, a difference of -5.00 basis points.",
+      "Lowering the floor to twenty-five investments admits 142 filers and moves the lowest-marked leader to TCW Direct Lending LLC at 71.5313 percent, 0.1360 percentage points ahead of Oxford Square Capital Corp., which ranks second. 3,853 latest-accession rows report exactly one of cost and fair value."
+    ],
+    "known_overclaims": [
+      "Treating unrealized depreciation as a realized loss.",
+      "Reading the positive-PIK-rate fair-value share as the share of interest income received in kind or capitalized during a period.",
+      "Treating the median arithmetic residual as proof of the contractual reference rate of any individual position.",
+      "Claiming that a narrow lower-floor margin proves a restatement occurred or predicts a future ranking reversal."
+    ]
+  }
+}

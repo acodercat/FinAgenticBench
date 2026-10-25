@@ -1,0 +1,125 @@
+{
+  "name": "hpi_estimation_error_and_thin_market_ranking",
+  "module": "evals.comparison_ranking.hpi_estimation_error_and_thin_market_ranking",
+  "task_family": "comparison_ranking",
+  "data_sources": [
+    "fhfa_hpi",
+    "hmda"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "judge_reference": {
+    "source": "FHFA house price indexes and the 2024 HMDA mortgage register, as frozen in the runtime layer. A repeat-sales index is estimated from paired transactions of the same property; the expanded-data metropolitan series publishes a standard error beside every level it reports, the purchase-only metropolitan series does not, and the all-transactions series publishes neither a standard error nor a seasonally adjusted level.",
+    "facts": [
+      "The traditional expanded-data metropolitan quarterly series covers 410 metropolitan areas and publishes a standard error on every level. Over the year to 2025 Q4 the median area gained 2.978911 percent, and the median standard error on the ending level is 2.380000 index points.",
+      "For 41 of the 410 areas the whole annual change in the index, measured in index points, is smaller than the standard error published on the level it ended at. 87 are inside twice that error and 135 inside three times it.",
+      "The purchase-only metropolitan series covers 100 areas. On those 100, annual growth differs from the expanded-data figure by 1.749336 percentage points on average and by 5.957833 at the widest, and on 23 of them the two published series disagree about whether prices rose or fell.",
+      "The 2024 register records 6,191,825 originations, 5,395,611 of them inside the 410 covered areas. 783,114 carry no metropolitan area at all and a further 13,100 fall in Puerto Rico metropolitan areas the panel does not cover, so 796,214 originations, 12.8591 percent, sit outside it.",
+      "The rank correlation between an area's origination count and its published standard error is -0.879796. The 41 areas with the fewest originations carry a median standard error of 5.900000 index points against 0.590000 for the 41 with the most, a tenfold spread.",
+      "The fastest riser is Elmira, New York, code 21300, at 23.991991 percent with a standard error of 5.990000 on 1,352 originations. Anniston-Oxford, Alabama is second at 16.246396. The ten fastest areas have a median of 2,037 originations against 5,536 across the whole panel.",
+      "Growth is measured on the not-seasonally-adjusted level between the same quarter of two years, so no seasonal convention enters the comparison.",
+      "No tie binds either selection on this extract: the forty-first thinnest market records 2,027 originations against 2,033 for the forty-second, the forty-first busiest records 37,120 against 34,318 for the next, and the tenth fastest grows 10.214351 percent against 10.119635 for the eleventh. Six pairs of areas do share an origination count elsewhere in the panel, so the tie rule is stated rather than assumed unnecessary."
+    ],
+    "known_overclaims": [
+      "Reading a published index level as an exact measurement; it is an estimate and the series states how imprecise it is.",
+      "Ranking metropolitan areas on this index without regard to the standard error, which selects the areas where the estimate is least reliable.",
+      "Treating the difference between the two published series as one of them being wrong; they are built from different transaction populations.",
+      "Reading the register's origination count as the number of sales behind the index; the index pairs repeat sales and the register counts new loans, so the two populations only overlap.",
+      "Treating the panel as covering the whole country; rural lending and Puerto Rico are outside it."
+    ]
+  },
+  "conversations": [
+    {
+      "turns": [
+        {
+          "query": "A metropolitan house price index is estimated from repeated sales of the same properties, and one published series reports a standard error beside every level. Take that series, the traditional expanded-data metropolitan quarterly index, and measure each area's growth on the not-seasonally-adjusted level from the fourth quarter of 2024 to the fourth quarter of 2025. Report how many metropolitan areas it covers, the median growth in percent, the median standard error published on the ending level, and how many areas moved fewer index points over the year, in either direction, than the error published on their own ending level. Take every median and percentile asked for here with linear interpolation. Explain which published figure the margin attaches to, and what that margin implies when comparing an area's yearly move against it.",
+          "validator": "validate_published_error",
+          "stores": [
+            "msa_index_count",
+            "median_annual_growth_pct",
+            "median_ending_standard_error",
+            "change_within_standard_error_msa_count"
+          ],
+          "claims": [
+            {
+              "id": "index_is_an_estimate",
+              "mode": "required",
+              "description": "The published number is a fitted value with a stated margin, so a year's movement can be entirely inside what the fitting procedure admits it might be wrong by."
+            },
+            {
+              "id": "error_is_on_the_level",
+              "mode": "conditional",
+              "description": "If the response treats the published margin as belonging to the change rather than to the level, it should say which quantity the programme attaches it to."
+            }
+          ]
+        },
+        {
+          "query": "The same programme publishes a second metropolitan index built only from purchase transactions, which carries no standard error. Measure annual growth on it over the same two quarters and on the same basis, then compare the two series area by area. Report how many metropolitan areas carry both, the mean absolute difference between their annual growth in percentage points, the widest such difference, and how many areas the two disagree about on the direction of the year. Explain what a reader should take from two official numbers for the same place disagreeing.",
+          "validator": "validate_series_disagreement",
+          "stores": [
+            "dual_flavor_msa_count",
+            "mean_absolute_flavor_difference_pp",
+            "largest_flavor_difference_pp",
+            "opposite_sign_flavor_msa_count"
+          ],
+          "claims": [
+            {
+              "id": "different_transaction_populations",
+              "mode": "required",
+              "description": "The two series are fitted to different sets of sales, so a gap between them is a difference of construction rather than one of them being mistaken."
+            },
+            {
+              "id": "sign_disagreement_weight",
+              "mode": "required",
+              "description": "For almost a quarter of the places carrying both, one official figure has values rising over the twelve months while the other has them falling."
+            }
+          ]
+        },
+        {
+          "query": "Now bring in the 2024 mortgage register, keeping the records it marks as originated, and group them by the metropolitan area it derives for each. Report how many originations fall inside the metropolitan areas the standard-error series covers and how many the register places in no metropolitan area, which it marks with the code 99999. Then rank the covered areas by origination count, breaking a tie by the lower area code, and report the median standard error published on the ending level among the forty-one areas with the fewest originations and among the forty-one with the most, forty-one being a tenth of the areas the series covers. Take every median and percentile asked for here with linear interpolation. Explain what that comparison says about where this index is precise and where it is not.",
+          "validator": "validate_volume_and_precision",
+          "stores": [
+            "matched_origination_count",
+            "unplaced_origination_count",
+            "thin_market_median_standard_error",
+            "deep_market_median_standard_error"
+          ],
+          "claims": [
+            {
+              "id": "precision_follows_volume",
+              "mode": "required",
+              "description": "Markets with more lending give the fitting procedure more paired sales to work from, and the stated margin falls by about a factor of ten from the thinnest markets to the busiest."
+            },
+            {
+              "id": "register_is_not_the_index_sample",
+              "mode": "conditional",
+              "description": "If the response treats the loan count as the number of observations behind the index, it should note that one counts new loans while the other pairs repeat sales."
+            }
+          ]
+        },
+        {
+          "query": "Finally rank the covered areas by annual growth instead. Report the five-digit code of the metropolitan area with the highest annual growth on the standard-error series, its growth in percent, the standard error published on its ending level, and the median origination count across the ten fastest-growing areas, breaking a tie by the lower area code as before. Take every median and percentile asked for here with linear interpolation. Explain what those ten have in common and what it implies for anyone ranking places on this index.",
+          "validator": "validate_thin_market_leader",
+          "stores": [
+            "fastest_growth_msa_code",
+            "fastest_growth_pct",
+            "fastest_ending_standard_error",
+            "fastest_ten_median_origination_count"
+          ],
+          "claims": [
+            {
+              "id": "ranking_selects_noise",
+              "mode": "required",
+              "description": "Sorting on an estimate puts the least precisely measured places at the top, because a wide margin gives an area more room to land far from the middle."
+            },
+            {
+              "id": "thin_market_leader",
+              "mode": "required",
+              "description": "The leaders are small markets: the ten fastest see roughly a third of the lending the typical covered area does."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

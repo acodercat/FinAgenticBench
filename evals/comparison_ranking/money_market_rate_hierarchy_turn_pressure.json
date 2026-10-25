@@ -1,0 +1,176 @@
+{
+  "name": "money_market_rate_hierarchy_turn_pressure",
+  "module": "evals.comparison_ranking.money_market_rate_hierarchy_turn_pressure",
+  "task_family": "comparison_ranking",
+  "data_sources": [
+    "nyfed_reference_rates",
+    "treasury_yield_curve"
+  ],
+  "difficulty": "medium",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "turns": [
+        {
+          "query": "Five overnight benchmarks are published daily: TGCR, BGCR and SOFR for nested Treasury-repo transaction populations, and OBFR and EFFR for unsecured bank-funding populations. Restrict to 2024 dates on which all five publish a rate and report the date count and each median in percent. For each complete date compute SOFR minus EFFR in basis points; report its median, widest date and widest value, breaking a tie by earlier date. Explain that the ordering and spread compare different transaction populations and do not by themselves identify credit risk, dealer balance-sheet constraints or another causal driver.",
+          "validator": "validate_rate_hierarchy",
+          "stores": [
+            "complete_business_day_count",
+            "median_tri_party_rate_pct",
+            "median_broad_collateral_rate_pct",
+            "median_secured_overnight_rate_pct",
+            "median_bank_funding_rate_pct",
+            "median_fed_funds_rate_pct",
+            "median_secured_minus_unsecured_bp",
+            "widest_secured_minus_unsecured_date",
+            "widest_secured_minus_unsecured_bp"
+          ],
+          "claims": [
+            {
+              "id": "hierarchy_result",
+              "description": "The response gives the day count, the five central levels and the spread statistics including where it peaks.",
+              "mode": "required"
+            },
+            {
+              "id": "benchmark_population_reasoning",
+              "description": "The response distinguishes the nested Treasury-repo populations from the unsecured bank-funding populations and treats their median ordering as descriptive rather than a universal collateral-pricing rule.",
+              "mode": "required"
+            },
+            {
+              "id": "spread_causality_boundary",
+              "description": "The response treats the widest SOFR-minus-EFFR observation as a relative divergence between benchmark populations.",
+              "mode": "required"
+            },
+            {
+              "id": "spread_driver_boundary",
+              "description": "If the response names a causal driver of the divergence, it states that the two rates alone identify none.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "The FOMC target range applies to the federal funds rate, and the EFFR rows carry that range. Read its lower and upper bounds in effect on 2024-12-31. Report that day's SOFR, SOFR minus the lower bound in basis points, and EFFR minus the lower bound in basis points. Explain that EFFR is a market statistic steered within the target range through administered tools, whereas SOFR is a repo benchmark and is not subject to that target-range compliance test; state that SOFR's one-day location within the range does not by itself diagnose funding pressure.",
+          "validator": "validate_target_band_placement",
+          "stores": [
+            "year_end_target_floor_pct",
+            "year_end_target_ceiling_pct",
+            "year_end_secured_rate_pct",
+            "year_end_secured_above_floor_bp",
+            "year_end_fed_funds_above_floor_bp"
+          ],
+          "claims": [
+            {
+              "id": "band_placement_result",
+              "description": "The response gives both bounds and where each of the two rates sits relative to the lower one.",
+              "mode": "required"
+            },
+            {
+              "id": "administered_versus_market_reasoning",
+              "description": "The response explains that the federal funds target range governs the federal funds rate, that EFFR is steered through administered tools, and that SOFR is a repo benchmark rather than the policy target.",
+              "mode": "required"
+            },
+            {
+              "id": "range_position_boundary",
+              "description": "The response states that SOFR has no target-range compliance boundary.",
+              "mode": "required"
+            },
+            {
+              "id": "range_position_diagnosis_boundary",
+              "description": "If the response reads SOFR's one-day position within the range as a funding-pressure signal, it states that the position alone does not diagnose pressure.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Measure SOFR deviations on the named quarter-end or last-business-day observations 2024-03-28, 2024-06-28, 2024-09-30 and 2024-12-31. For each, subtract the median SOFR over the five preceding complete-panel dates and report the signed result in basis points. Report the date with the largest signed deviation and its value, breaking a tie by earlier date. Describe whether the four deviations are uniform, but state that these observations alone do not identify balance-sheet management or prove a reporting-date mechanism.",
+          "validator": "validate_quarter_end_pressure",
+          "stores": [
+            "quarter_one_deviation_bp",
+            "quarter_two_deviation_bp",
+            "quarter_three_deviation_bp",
+            "quarter_four_deviation_bp",
+            "largest_deviation_quarter_end_date",
+            "largest_deviation_bp"
+          ],
+          "claims": [
+            {
+              "id": "turn_pressure_result",
+              "description": "The response gives all four signed deviations and identifies the largest under the stated rule.",
+              "mode": "required"
+            },
+            {
+              "id": "reporting_date_causality_boundary",
+              "description": "If the response explains the four observations, it attributes them neither to balance-sheet management nor to a proven reporting-date mechanism.",
+              "mode": "conditional"
+            },
+            {
+              "id": "uneven_effect_boundary",
+              "description": "The response describes the observed heterogeneity, including any zero deviation, without generalizing beyond the four selected dates.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "For every 2024 SOFR date compute the published 99th volume-weighted percentile minus the published volume-weighted median rate in basis points. Report how many dates reach at least 25bp, how many fall in December, and the widest date and value, breaking ties by earlier date. At 2024-12-31 report the one-month and three-month Treasury constant-maturity par yields from the daily par curve. Explain what the percentile gap describes about the underlying transactions, and what the two rate differences establish given how each of the two rates is constructed and what horizon each covers.",
+          "validator": "validate_tail_and_front_curve",
+          "stores": [
+            "wide_tail_day_count",
+            "wide_tail_december_day_count",
+            "widest_tail_date",
+            "widest_tail_bp",
+            "year_end_one_month_treasury_par_yield_pct",
+            "year_end_three_month_treasury_par_yield_pct"
+          ],
+          "claims": [
+            {
+              "id": "tail_and_curve_result",
+              "description": "The response gives the wide-tail counts and widest observation plus both Treasury par yields and SOFR-minus-par-yield comparisons.",
+              "mode": "required"
+            },
+            {
+              "id": "distribution_tail_reasoning",
+              "description": "The response reads the 99th-percentile gap as dispersion in the upper-rate tail of transaction volume.",
+              "mode": "required"
+            },
+            {
+              "id": "tail_borrower_boundary",
+              "description": "If the response describes who transacted in that tail, it states that the percentile fields identify neither borrowers nor motives.",
+              "mode": "conditional"
+            },
+            {
+              "id": "cross_instrument_spread_boundary",
+              "description": "The response treats SOFR-minus-Treasury-par-yield signs as cross-instrument and cross-horizon spreads.",
+              "mode": "required"
+            },
+            {
+              "id": "cross_instrument_labelling_boundary",
+              "description": "If the response labels those signs, it states that they are neither a causal reporting-date effect nor a single-curve inversion.",
+              "mode": "conditional"
+            },
+            {
+              "id": "instrument_comparability_boundary",
+              "description": "The response states that Treasury constant-maturity par yields are interpolated from indicative bid-side quotes rather than observed bill transaction yields.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen Federal Reserve Bank of New York reference rates for 2024 and the Treasury par yield curve",
+    "facts": [
+      "250 dates in 2024 carry all five rates. Medians: TGCR 5.3000, BGCR 5.3000, SOFR 5.3100, OBFR 5.3200 and EFFR 5.3300 percent. SOFR minus EFFR has a median of -1.0000 basis points and is widest at 22.0000 on 2024-10-01. These benchmarks cover different secured-repo and unsecured-bank-funding transaction populations.",
+      "The target range on 2024-12-31 is 4.2500 to 4.5000. The secured overnight financing rate is 4.4900, 24.0000 basis points above the lower bound, while the effective federal funds rate sits 8.0000 basis points above it.",
+      "Against the median of the prior five complete-panel dates, SOFR deviations are 3.0000, 0.0000, 12.0000 and 9.0000 basis points on the four named dates; 2024-09-30 is largest at 12.0000. The four observations do not identify a reporting-date mechanism.",
+      "The 99th volume-weighted percentile exceeded the published SOFR volume-weighted median by at least 25bp on 6 dates, 4 in December; the widest is 52.0000bp on 2024-09-19. At 2024-12-31 the one- and three-month Treasury constant-maturity par yields are 4.4000 and 4.3700 percent, so SOFR exceeds them by 9.0000 and 12.0000bp. These are interpolated par yields and the comparisons mix instruments and horizons."
+    ],
+    "known_overclaims": [
+      "Treating the five overnight rates as interchangeable measures of one funding cost.",
+      "Inferring dealer constraints, credit risk or another causal driver from the SOFR-minus-EFFR spread alone.",
+      "Reading SOFR near a federal-funds target-range edge as a policy breach or as standalone proof of funding pressure.",
+      "Attributing four selected date deviations to balance-sheet management without evidence in the rate table.",
+      "Calling interpolated Treasury par yields observed bill transaction yields or treating SOFR-minus-par-yield spreads as one yield curve."
+    ]
+  }
+}

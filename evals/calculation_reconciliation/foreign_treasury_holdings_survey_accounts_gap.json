@@ -1,0 +1,160 @@
+{
+  "name": "foreign_treasury_holdings_survey_accounts_gap",
+  "module": "evals.calculation_reconciliation.foreign_treasury_holdings_survey_accounts_gap",
+  "task_family": "calculation_reconciliation",
+  "data_sources": [
+    "treasury_tic",
+    "fed_z1_vintages"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "turns": [
+        {
+          "query": "The Treasury International Capital Major Foreign Holders table publishes monthly Treasury-security holdings as country rows plus aggregate rows. For the December 2024 observation month report the country-row count and sum in USD billions, the `All Other` residual aggregate, and the published `Grand Total`. Report Grand Total minus the country sum minus All Other. Rank only country rows by holdings, breaking ties by country name ascending; report the leading label, its holding, share of Grand Total, margin over the next country, and the top five countries' combined share. Explain that the country labels reflect reported legal residence but can be affected by foreign custody chains, so they are not clean beneficial-owner locations, and that a small displayed component residual can arise because published rows are rounded.",
+          "validator": "validate_survey_composition",
+          "stores": [
+            "tic_country_row_count",
+            "tic_country_sum_usd_billions",
+            "tic_residual_row_usd_billions",
+            "tic_grand_total_usd_billions",
+            "tic_rounding_residual_usd_billions",
+            "tic_leading_holder",
+            "tic_leading_holder_usd_billions",
+            "tic_leading_holder_share_pct",
+            "tic_leading_holder_margin_usd_billions",
+            "tic_top_five_share_pct"
+          ],
+          "claims": [
+            {
+              "id": "survey_composition_result",
+              "description": "The response covers the country-row count and sum, All Other, Grand Total, the displayed component residual, and the requested country-only ranking and concentration measures.",
+              "mode": "required"
+            },
+            {
+              "id": "aggregate_row_reasoning",
+              "description": "The response keeps country rows separate from All Other and Grand Total so aggregate rows are neither discarded nor added twice in ranking or composition arithmetic.",
+              "mode": "required"
+            },
+            {
+              "id": "rounding_residual_boundary",
+              "description": "The response attributes the small displayed component residual to rounding of published rows rather than inventing an unreported country holding.",
+              "mode": "required"
+            },
+            {
+              "id": "country_attribution_boundary",
+              "description": "The response states that TIC country labels use reported legal residence but custody chains can place an ultimate owner's holdings under an intermediary country's label, so the ranking is not a beneficial-owner ranking.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Now use the Financial Accounts rest-of-world sector's Treasury-securities asset at market value, series LM263061105.Q in table l133, reported in millions of USD. Select the newest release available in the vintage table and report its release date. For 2024-03-31 and 2024-12-31 report that release's values in USD billions. Explain that this is an aggregate rest-of-world sector line with no country allocation in the runtime table, and that TIC data underlie many rest-of-world Financial Accounts items; therefore it is not an independent residence-based country measure to contrast with the TIC custody chain.",
+          "validator": "validate_accounts_series",
+          "stores": [
+            "accounts_newest_vintage_date",
+            "accounts_first_quarter_usd_billions",
+            "accounts_final_quarter_usd_billions"
+          ],
+          "claims": [
+            {
+              "id": "accounts_series_result",
+              "description": "The response identifies which restatement it worked from and gives both levels and their movement in the denomination it was asked for.",
+              "mode": "required"
+            },
+            {
+              "id": "shared_lineage_and_grain_boundary",
+              "description": "The response states that the Financial Accounts line is an aggregate with no country attribution here and that TIC data are inputs to many rest-of-world Financial Accounts items, so the sources are not independent residence-versus-custody measures.",
+              "mode": "required"
+            },
+            {
+              "id": "unit_conversion_boundary",
+              "description": "The response states that the Financial Accounts values are in millions while TIC values are in billions and converts before comparing.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "For each 2024 quarter end, report that month's TIC Grand Total minus the newest-vintage Financial Accounts value, in USD billions. Identify the quarter with the largest absolute gap, report its signed gap as a percent of the same TIC total, and identify the quarter with the smallest absolute gap; break any equal absolute gaps by earlier quarter end. Describe the observed path, but state that the gap alone cannot isolate compilation, valuation, timing or revision causes and cannot designate either publication as correct.",
+          "validator": "validate_source_gap_path",
+          "stores": [
+            "gap_first_quarter_usd_billions",
+            "gap_second_quarter_usd_billions",
+            "gap_third_quarter_usd_billions",
+            "gap_final_quarter_usd_billions",
+            "widest_gap_quarter",
+            "widest_gap_pct_of_survey",
+            "closest_gap_quarter"
+          ],
+          "claims": [
+            {
+              "id": "gap_path_result",
+              "description": "The response gives the difference at each of the four dates and names the widest and narrowest, with the widest expressed against the survey level.",
+              "mode": "required"
+            },
+            {
+              "id": "gap_path_calibration",
+              "description": "The response describes how the signed gap changes across the four observations without claiming that the path identifies an accumulating mechanism.",
+              "mode": "required"
+            },
+            {
+              "id": "no_arbitration_boundary",
+              "description": "If the response explains the gap or ranks the two publications, it states that the tables identify no compilation, valuation, timing or revision cause and make neither publication the correct benchmark.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "For 2024-12-31, report how many Financial Accounts vintages carry the line, the earliest covering release date and its value in USD billions. Against the same TIC Grand Total, report the gap using that earliest release and the newest-minus-earliest revision as a percent of the earliest-release gap. Explain why any quoted gap must name the Financial Accounts vintage, and state that movement toward the TIC level does not establish that TIC was the revision target.",
+          "validator": "validate_release_dependence",
+          "stores": [
+            "vintages_covering_final_quarter",
+            "first_covering_vintage_date",
+            "first_published_accounts_usd_billions",
+            "gap_at_first_release_usd_billions",
+            "accounts_revision_as_pct_of_first_gap"
+          ],
+          "claims": [
+            {
+              "id": "release_dependence_result",
+              "description": "The response states how many vintages carry the quarter, what the first of them said, the distance that first reading implies, and how much of it later restatement accounts for.",
+              "mode": "required"
+            },
+            {
+              "id": "statement_qualification_reasoning",
+              "description": "The response explains that the quoted gap is incomplete without the Financial Accounts vintage because revisions materially change the same-quarter comparison.",
+              "mode": "required"
+            },
+            {
+              "id": "revision_direction_boundary",
+              "description": "The response reports the signed revision direction.",
+              "mode": "required"
+            },
+            {
+              "id": "revision_target_boundary",
+              "description": "If the response reads movement toward the TIC level as evidence about the revision's purpose, it states that the direction does not establish TIC as the revision target.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen Treasury International Capital major foreign holders table and the Federal Reserve Financial Accounts vintage panel",
+    "facts": [
+      "For December 2024 the TIC Major Foreign Holders table reports 37 country rows summing to 7,949.6 billion USD, an All Other row of 669.5 billion and a Grand Total of 8,619.3 billion. The 0.2 billion displayed component residual is consistent with rounded publication rows. Japan leads at 1,061.5 billion, 12.3154 percent of the total and 302.5 billion ahead of China, Mainland; the five largest hold 39.3327 percent.",
+      "In the 2025-09-11 Financial Accounts release the rest-of-world holding of Treasury securities at market value is 8,107.871 billion USD at 2024-03-31 and 8,558.360 billion at 2024-12-31, a rise of 450.489 billion.",
+      "TIC Grand Total minus Financial Accounts across 2024 gives 0.029, 49.804, 51.099 and 60.940 billion USD. The widest absolute gap is 2024-12-31, whose signed gap is 0.7070 percent of TIC; the closest is 2024-03-31.",
+      "Three releases cover 2024-12-31. The earliest, 2025-03-13, published 8,494.099 billion, producing a 125.201 billion gap. The newest value is 64.261 billion higher, equal to 51.3263 percent of the first gap; the direction does not establish that TIC was a revision target."
+    ],
+    "known_overclaims": [
+      "Summing the named countries and calling it foreign holdings of Treasury securities.",
+      "Treating either source as the correct one and the other as its error.",
+      "Quoting a single number for the distance between the two sources without naming the release.",
+      "Treating TIC and the Financial Accounts as independent residence-versus-custody measurements; TIC data underlie many rest-of-world Financial Accounts items.",
+      "Reading a TIC country label as a clean beneficial-owner location despite custodial chains."
+    ]
+  }
+}

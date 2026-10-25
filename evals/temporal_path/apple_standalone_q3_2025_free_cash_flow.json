@@ -1,0 +1,81 @@
+{
+  "name": "apple_standalone_q3_2025_free_cash_flow",
+  "module": "evals.temporal_path.apple_standalone_q3_2025_free_cash_flow",
+  "task_family": "temporal_path",
+  "data_sources": [
+    "sec_companyfacts",
+    "sec_submissions"
+  ],
+  "difficulty": "medium",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "From SEC submissions metadata, identify Apple's non-amended Forms 10-Q for report dates 2025-03-29 and 2025-06-28. For the earlier six-month filing and the later nine-month filing, report the accession number and EDGAR acceptance timestamp. Explain the difference between a report date and an acceptance timestamp.",
+          "validator": "validate_filing_selection",
+          "stores": [
+            "six_month_accession",
+            "six_month_acceptance_datetime",
+            "nine_month_accession",
+            "nine_month_acceptance_datetime"
+          ],
+          "claims": [
+            {
+              "id": "filing_time_boundary",
+              "description": "The response distinguishes each fiscal report date from the later timestamp when EDGAR accepted the filing.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Using those two accessions, retrieve Apple's cumulative operating cash flow and payments to acquire property, plant and equipment from Company Facts, requiring the four facts to share the fiscal-year start date 2024-09-29. Report the six- and nine-month operating cash flow and capital expenditures as positive outflows in USD billions. Derive standalone third-quarter free cash flow as the nine-month minus six-month operating-cash-flow difference, less the corresponding capital-expenditure difference. Explain the derivation and the scope of the resulting measure.",
+          "validator": "validate_standalone_q3_fcf",
+          "stores": [
+            "six_month_operating_cash_flow_usd_billions",
+            "nine_month_operating_cash_flow_usd_billions",
+            "six_month_capex_usd_billions",
+            "nine_month_capex_usd_billions",
+            "standalone_q3_free_cash_flow_usd_billions"
+          ],
+          "claims": [
+            {
+              "id": "cumulative_period_alignment",
+              "description": "The response uses fiscal-2025 six- and nine-month operating cash flow and capex values sharing the same fiscal-year start date.",
+              "mode": "required"
+            },
+            {
+              "id": "standalone_quarter_derivation",
+              "description": "The response subtracts each six-month cumulative value from its nine-month counterpart before subtracting standalone-quarter capex from standalone-quarter operating cash flow.",
+              "mode": "required"
+            },
+            {
+              "id": "derived_free_cash_flow_scope",
+              "description": "The response labels the result as a derived standalone-quarter measure under the stated formula rather than a directly reported GAAP subtotal.",
+              "mode": "required"
+            },
+            {
+              "id": "cashflow_inference_boundary",
+              "description": "If the response discusses sustainability, quality, valuation or investment merit, it does not present those conclusions as established by this one derived quarter alone.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "SEC CompanyFacts and submissions frozen at 2025-12-31",
+    "facts": [
+      "Fiscal-2025 six- and nine-month operating cash flow were 53.887 and 81.754 billion USD.",
+      "Fiscal-2025 six- and nine-month capex were 6.011 and 9.473 billion USD.",
+      "Standalone Q3 operating cash flow was 27.867 billion USD, standalone Q3 capex was 3.462 billion USD and derived standalone Q3 free cash flow was 24.405 billion USD."
+    ],
+    "known_overclaims": [
+      "Using the nine-month cash-flow value as the standalone quarter.",
+      "Subtracting cumulative nine-month capex directly from standalone operating cash flow.",
+      "Calling the result a directly reported GAAP free-cash-flow subtotal."
+    ]
+  }
+}

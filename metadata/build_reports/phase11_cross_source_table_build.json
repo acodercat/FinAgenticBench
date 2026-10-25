@@ -1,0 +1,44 @@
+{
+  "noaa_storm_event_details": {
+    "rows": 69801,
+    "state_dc_rows": 66387,
+    "reported_property_damage_rows": 54755,
+    "output": "noaa_storm_events/storm_event_details_2024.csv.gz",
+    "source_file": "StormEvents_details-ftp_v1.0_d2024_c20260728.csv.gz"
+  },
+  "fema_nfip_claims": {
+    "rows": 102045,
+    "represented_policy_count": 208437,
+    "max_policy_count_per_record": 618,
+    "signed_negative_net_payment_cells": 42,
+    "output": "fema_nfip/claims_2024.csv.gz",
+    "source_file": "NfipClaims_2024.parquet"
+  },
+  "bea_affiliate_goods_trade": {
+    "rows": 76,
+    "source_marker_d_cells": 111,
+    "source_marker_star_cells": 7,
+    "output": "bea_mne/affiliate_goods_trade_by_geography_2023.csv.gz",
+    "source_member": "Part-II-H1-H14.xls"
+  },
+  "census_country_end_use_trade": {
+    "rows": 48268,
+    "country_codes": 236,
+    "directions": [
+      "exports",
+      "imports"
+    ],
+    "output": "census_international_trade/country_end_use_trade_2016_2025.csv.gz",
+    "source_files": [
+      "country_enduse_exports_2016_2025.xlsx",
+      "country_enduse_imports_2016_2025.xlsx"
+    ]
+  },
+  "rules": [
+    "NOAA K/M/B damage suffixes are decoded to USD while source tokens and missing values remain separate; only the standard 50-state-plus-DC USPS bridge is added.",
+    "NFIP physical claim records retain source IDs, policyCount, signed gross/net payment fields and coverage fields; no record is expanded, deduplicated or netted away.",
+    "BEA Table II.H 1 row order, geography labels, preliminary status and nonnumeric (D)/(*) source markers are preserved without assigning an unfrozen legend; marker cells are missing, never zero.",
+    "Census country/end-use rows remain unaggregated and retain both source country/end-use identifiers and all annual values from 2016 through 2025.",
+    "All four projections support retrospective analysis from later-frozen source artifacts, not strict historical as-known snapshots."
+  ]
+}

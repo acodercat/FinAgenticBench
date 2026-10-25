@@ -1,0 +1,89 @@
+{
+  "name": "money_fund_outflow_sofr_positioning",
+  "module": "evals.risk_screening.money_fund_outflow_sofr_positioning",
+  "task_family": "risk_screening",
+  "data_sources": ["sec_nmfp", "cftc_cot"],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [{
+    "id": "main",
+    "turns": [
+      {
+        "query": "Screen original Form N-MFP3 accessions with 2025 report dates and report-date net assets of at least $10 billion. Within each accession's report-date calendar month, order its reported liquidity observations by date and form consecutive steps. Retain steps whose weekly-liquid-asset amount and reported fraction are both positive at both endpoints. Rank by the most negative ending-minus-starting weekly-liquid-assets fraction, breaking a tie by earlier ending date, series name and accession. Report the eligible accession and step counts; selected accession, series, report date and net assets; step dates; both weekly-liquid-asset amounts and fractions; and decline-magnitude margin over the runner-up. Explain what the ranking actually picked out about this fund's reported liquid-asset share, and which other things it deliberately does not rank on.",
+        "validator": "validate_nmfp_liquidity_drawdown",
+        "stores": ["eligible_nmfp_accession_count", "eligible_liquidity_step_count", "liquidity_drawdown_leader_accession", "liquidity_drawdown_leader_series_name", "liquidity_drawdown_leader_report_date", "liquidity_drawdown_leader_net_assets_usd_billions", "liquidity_drawdown_start_date", "liquidity_drawdown_end_date", "start_weekly_liquid_assets_usd_billions", "end_weekly_liquid_assets_usd_billions", "start_weekly_liquid_assets_pct", "end_weekly_liquid_assets_pct", "liquidity_drawdown_leader_margin_pp"],
+        "claims": [{
+          "id": "liquidity_drawdown_result",
+          "description": "The response identifies the selected step as the largest decline in the reported weekly-liquid-assets fraction among the governed positive-observation population, rather than a ranking of fund size or shareholder flows.",
+          "mode": "required"
+        }]
+      },
+      {
+        "query": "For the accession and ending date selected above, aggregate all reported share-class flow rows on that exact date. Report the contributing row count, gross subscriptions, gross redemptions, and net outflow, redemptions minus subscriptions, divided by report-date net assets. Also report net outflow divided by the turn-1 decline in weekly liquid assets. Explain how much of the drop in liquid assets the day's net redemptions can account for, and what each of those two figures actually measures.",
+        "validator": "validate_event_flow_bridge",
+        "stores": ["event_flow_share_class_count", "event_gross_subscriptions_usd_billions", "event_gross_redemptions_usd_billions", "event_net_outflow_to_net_assets_pct", "net_outflow_to_weekly_liquidity_decline_pct"],
+        "claims": [
+          {
+            "id": "flow_liquidity_nonidentity_result",
+            "description": "The response concludes from the computed amounts that the same-day net shareholder outflow explains only part of the reported weekly-liquid-assets decline, so the two changes do not form an accounting reconciliation.",
+            "mode": "required"
+          },
+          {
+            "id": "flow_liquidity_measure_boundary",
+            "description": "The response distinguishes share-class subscriptions and redemptions from a reported portfolio-liquidity classification and treats the weekly-bucket decline as a classification change distinct from realized asset sales or settlement funding.",
+            "mode": "required"
+          }
+        ]
+      },
+      {
+        "query": "Bracket the selected liquidity-step ending date with the immediately prior and immediately following CFTC report dates for the futures-only 3-month SOFR contract code 134741. For each endpoint calculate leveraged-money long minus short contracts. Report both dates, both net positions, their change, both open-interest levels and the open-interest change. Explain what this market-positioning overlay does and does not establish about the fund event.",
+        "validator": "validate_cftc_bracket",
+        "stores": ["prior_cftc_report_date", "next_cftc_report_date", "prior_sofr3m_lev_money_net_contracts", "next_sofr3m_lev_money_net_contracts", "sofr3m_lev_money_net_change_contracts", "prior_sofr3m_open_interest_contracts", "next_sofr3m_open_interest_contracts", "sofr3m_open_interest_change_contracts"],
+        "claims": [
+          {
+            "id": "positioning_scope_result",
+            "description": "The response identifies from the signed results that leveraged-money positioning becomes more net short while aggregate open interest declines across the bracket.",
+            "mode": "required"
+          },
+          {
+            "id": "fund_positioning_causality_boundary",
+            "description": "The response explains that the weekly market-wide CFTC category is separate from the selected fund's portfolio classifications and shareholder flows, leaving any causal link unestablished.",
+            "mode": "required"
+          }
+        ]
+      },
+      {
+        "query": "Decompose the turn-1 dollar change in weekly liquid assets. At both step endpoints report daily liquid assets; weekly liquid assets minus daily liquid assets is the other component. Compute the ending-minus-starting change in each component and report their summed change minus the reported weekly-liquid-assets change. Explain which component drives the drawdown and the scope of this additive bridge.",
+        "validator": "validate_liquidity_decomposition",
+        "stores": ["start_daily_liquid_assets_usd_billions", "end_daily_liquid_assets_usd_billions", "weekly_liquidity_decomposition_residual_usd_millions"],
+        "claims": [
+          {
+            "id": "liquidity_decomposition_result",
+            "description": "The response identifies from the decomposition that the daily-liquid-assets bucket supplies almost all of the weekly-liquid-assets decline, while the weekly-minus-daily increment also decreases.",
+            "mode": "required"
+          },
+          {
+            "id": "liquidity_bucket_boundary",
+            "description": "The response treats weekly minus daily liquid assets as an arithmetic residual between overlapping reported buckets, not as a separately reported security portfolio or independently liquidated balance.",
+            "mode": "required"
+          }
+        ]
+      }
+    ]
+  }],
+  "judge_reference": {
+    "source": "Frozen SEC N-MFP filings/flows/liquidity and 2025 CFTC financial-futures reports",
+    "facts": [
+      "Among 1,137 large original accessions and 22,383 positive consecutive steps, Columbia Short-Term Cash Fund accession 0001145549-25-006380 falls from 70.73% to 61.03% weekly liquid assets on 2025-01-30 to 2025-01-31.",
+      "The ending date has one flow row, a 0.775476 billion USD net outflow and a 2.534270 billion USD decline in reported weekly liquid assets; these movements do not reconcile.",
+      "The CFTC bracket is 2025-01-28 to 2025-02-04; leveraged-money net declines by 53,279 contracts and open interest declines by 8,865.",
+      "Daily liquid assets decline by 2.482902 billion USD and the weekly-minus-daily increment declines by 0.051368 billion, exactly decomposing the weekly-bucket change at source precision."
+    ],
+    "known_overclaims": [
+      "Treating nonreported zero-liquidity rows as economic liquidation events.",
+      "Equating a reported liquidity-bucket change with shareholder flows or realized sales.",
+      "Attributing the fund event to aggregate CFTC positioning.",
+      "Calling weekly minus daily liquid assets a separately reported asset portfolio."
+    ]
+  }
+}

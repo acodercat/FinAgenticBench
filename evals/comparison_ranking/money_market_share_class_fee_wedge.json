@@ -1,0 +1,138 @@
+{
+  "name": "money_market_share_class_fee_wedge",
+  "module": "evals.comparison_ranking.money_market_share_class_fee_wedge",
+  "task_family": "comparison_ranking",
+  "data_sources": [
+    "sec_nmfp_series_filings",
+    "sec_nmfp_class_yields",
+    "treasury_yield_curve"
+  ],
+  "case_type": "baseline",
+  "difficulty": "hard",
+  "judge_reference": {
+    "source": "SEC Form N-MFP series filings and share-class seven-day yields, with the daily Treasury par yield curve for the three-month point.",
+    "facts": [
+      "The 2025-06-30 yield date carries 1,062 share-class rows across 308 series, of which 183 report more than one class and all 183 report one identical gross yield across their classes.",
+      "At that date 29 rows report a zero net yield against a positive gross yield, 15 of them for a class holding no assets, and across the whole table 274 rows report a net yield above the gross yield; the case treats both patterns as candidate anomalies under its stated screen without asserting their cause.",
+      "After screening, 1,008 rows across 292 series remain.",
+      "The median class gives up 33.0000 basis points and the mean class 39.5427, but weighting by class assets a dollar gives up only 21.4018.",
+      "The largest single-class wedge is 234.0000 basis points, and within Allspring Money Market Fund the cheapest and dearest classes are 116.0000 basis points apart on one portfolio.",
+      "Of the 11,931 yield rows dated before 2025, 99.8156 percent come from amended filings, and June 2024 carries 79 distinct share classes against 1,029 in June 2025.",
+      "Within 2025 the asset-weighted gross yield falls from 4.4327 to 4.0241 percent while the three-month bill averages fall from 4.3429 to 3.9372, declines of 40.86 and 40.57 basis points.",
+      "A seven-day yield is an annualized snapshot, and the wedge inferred from it is a yield reduction rather than a stated expense ratio."
+    ],
+    "known_overclaims": [
+      "Reporting the mean across classes as what investors pay, when the asset-weighted figure is nearly half of it.",
+      "Reading a zero net yield against a positive gross yield as a class charging its whole yield away.",
+      "Differencing the 2024 window against the 2025 window when the earlier rows are almost entirely amendments covering 79 classes.",
+      "Describing the gross-minus-net difference as the fund's stated expense ratio."
+    ]
+  },
+  "conversations": [
+    {
+      "turns": [
+        {
+          "query": "Using the SEC N-MFP share-class yield table joined to the series filings on the accession number, take every row whose yield date is 2025-06-30 and that carries a series identifier. Report how many class rows there are and how many distinct series they belong to. Then report how many of those series report more than one distinct share class, and among those, how many report a single identical seven-day gross yield across every class. Finally report the median number of distinct classes per series across all series at that date. Briefly explain what identical within-series gross yields do and do not establish about the class rows.",
+          "validator": "validate_class_structure",
+          "stores": [
+            "class_rows",
+            "series_count",
+            "multi_class_series",
+            "identical_gross_series",
+            "median_classes_per_series"
+          ],
+          "claims": [
+            {
+              "id": "field_grain_interpretation",
+              "description": "The response explains that the gross yield is a series-level portfolio measure repeated across class rows while the net yield and class assets are class-level measures, so the repeated gross values are not independent class observations.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Before measuring anything, apply a reporting-quality screen to the same 2025-06-30 rows. Report how many rows carry a seven-day net yield of exactly zero alongside a positive gross yield, and how many of those belong to a share class whose reported class net assets are zero. Separately, across the entire yield table and not only this date, report how many rows carry a net yield strictly above the gross yield. Then build the screened population by keeping only 2025-06-30 rows with positive class net assets, a positive gross yield, and a net yield that is above zero and not above the gross yield, and report how many rows and how many distinct series survive. Briefly discuss what this screen can and cannot establish about the observations it excludes.",
+          "validator": "validate_reporting_screen",
+          "stores": [
+            "zero_net_rows",
+            "zero_net_empty_class_rows",
+            "net_above_gross_rows",
+            "clean_rows",
+            "clean_series"
+          ],
+          "claims": [
+            {
+              "id": "screening_boundary",
+              "description": "The response explains that net-above-gross and zero-net observations are screened as anomalies under the stated field interpretation, while the available fields do not establish whether filing, matching, rounding or another data issue caused a particular row.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "On the screened population, define each class's wedge as its gross yield minus its net yield, expressed in basis points. Report the median wedge and the mean wedge across classes. Then report the wedge weighted by each class's net assets. Report the largest wedge borne by any single class. Finally, among series that still have more than one screened class, identify the series whose cheapest and dearest classes are furthest apart, and report its name and that spread in basis points. Interpret the difference between the equal-class and asset-weighted averages using only measures available in the declared sources.",
+          "validator": "validate_fee_wedge",
+          "stores": [
+            "median_wedge_bp",
+            "mean_wedge_bp",
+            "asset_weighted_wedge_bp",
+            "widest_class_wedge_bp",
+            "widest_series_name",
+            "widest_series_spread_bp"
+          ],
+          "claims": [
+            {
+              "id": "weighting_interpretation",
+              "description": "The response explains that the asset-weighted and equal-class averages answer different questions and that a lower asset-weighted value means higher-asset classes carry lower wedges in this observed population, without assigning an unreported investor type or causal explanation.",
+              "mode": "required"
+            },
+            {
+              "id": "expense_ratio_boundary",
+              "description": "If the response relates the wedge to fees, it notes that a yield reduction is not the same as a stated expense ratio because waivers can separate them.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Finally check whether the table supports a comparison over time before making one. Report how many distinct share classes appear in June 2024 and how many in June 2025 by calendar month of the yield date. Report how many yield rows are dated before 2025-01-01, and what percentage of those come from a filing whose form type ends in \"/A\". Explain what comparison that observed pre-2025 coverage can and cannot support. Then, restricting to 2025 and using the same screen as before, report the asset-weighted gross yield across all classes for January 2025 and for November 2025, each in percent. Report the mean three-month Treasury bill yield for each of those two months, in percent, and state how the two declines compare, including the evidentiary limits of using two endpoints.",
+          "validator": "validate_coverage_and_passthrough",
+          "stores": [
+            "early_month_classes",
+            "late_month_classes",
+            "pre_2025_rows",
+            "amended_pre_2025_share_pct",
+            "january_gross_yield_pct",
+            "november_gross_yield_pct",
+            "january_bill_pct",
+            "november_bill_pct"
+          ],
+          "claims": [
+            {
+              "id": "coverage_boundary",
+              "description": "The response explains that the much smaller, amendment-dominated pre-2025 population limits the year-over-year comparison, and notes that a comparison over an explicitly common observed sample would answer a narrower question.",
+              "mode": "required"
+            },
+            {
+              "id": "industrywide_inference_boundary",
+              "description": "If the response states an industry-wide year-over-year conclusion, it qualifies it by the pre-2025 population's size and amendment dominance.",
+              "mode": "conditional"
+            },
+            {
+              "id": "decline_comparison",
+              "description": "The response compares changes computed from the reported endpoint levels and notes that the fund and bill declines are close in magnitude.",
+              "mode": "required"
+            },
+            {
+              "id": "pass_through_boundary",
+              "description": "If the response reads that closeness as pass-through, it states that two endpoints establish no causal relation.",
+              "mode": "conditional"
+            },
+            {
+              "id": "level_relationship",
+              "description": "If the response compares levels rather than changes, it notes that the asset-weighted gross yield sits slightly above the bill average at both ends of 2025.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

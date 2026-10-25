@@ -1,0 +1,1752 @@
+{
+  "schema_version": 1,
+  "policy": {
+    "purpose": [
+      "capability-aware sampling",
+      "capability-by-difficulty reporting",
+      "coverage-gap review"
+    ],
+    "assignment_rule": "Assign exactly one primary capability and zero to three secondary capabilities. Tags describe the reasoning needed to solve the case, not every concept mentioned by the query.",
+    "non_goal": "This taxonomy does not replace the task-oriented case directories and is not a case-writing quota."
+  },
+  "families": {
+    "record_selection": {
+      "label": "Record and concept selection",
+      "definition": "Locate the correct entity, filing, form, row, concept, unit, and reported value among plausible alternatives."
+    },
+    "period_alignment": {
+      "label": "Period and fiscal alignment",
+      "definition": "Align instant versus duration facts, fiscal versus calendar periods, standalone versus cumulative periods, and comparable windows."
+    },
+    "point_in_time_versioning": {
+      "label": "Point-in-time versioning",
+      "definition": "Respect an as-of cutoff and select the information vintage, filing, amendment, or recast available at that time without look-ahead."
+    },
+    "component_reconciliation": {
+      "label": "Component reconciliation",
+      "definition": "Reconcile components, totals, residuals, roll-forwards, or accounting identities while preserving the stated scope."
+    },
+    "ratio_denominator": {
+      "label": "Ratio and denominator design",
+      "definition": "Construct a financial ratio or rate using the correct numerator, denominator, averaging rule, and economic basis."
+    },
+    "aggregation_weighting": {
+      "label": "Aggregation and weighting",
+      "definition": "Aggregate records at the correct grain and apply the required weights before computing totals, averages, or portfolio measures."
+    },
+    "scope_dimension_population": {
+      "label": "Scope, dimension, and population",
+      "definition": "Define the eligible population and distinguish consolidated from dimensional, component, subgroup, or form-specific records."
+    },
+    "missing_dirty_normalization": {
+      "label": "Missing and dirty data normalization",
+      "definition": "Handle null keys, missing values, mixed encodings, irregular footnotes, and other data-quality conditions without silently changing the population."
+    },
+    "event_lineage": {
+      "label": "Event and amendment lineage",
+      "definition": "Trace originals, amendments, reopenings, replacements, corrections, and related event records without treating them as independent events."
+    },
+    "time_series_path": {
+      "label": "Time-series path and compounding",
+      "definition": "Reason over ordered observations using compounding, drawdowns, recovery, time under water, or time-grain conversion."
+    },
+    "statistical_estimation": {
+      "label": "Statistical estimation",
+      "definition": "Estimate and interpret regression, correlation, volatility, downside risk, or another sample statistic under a defined window."
+    },
+    "comparative_ranking": {
+      "label": "Comparison, ranking, and extrema",
+      "definition": "Compare entities or periods, identify leaders or extrema, and apply explicit ranking and tie conventions."
+    },
+    "sign_unit_measure": {
+      "label": "Sign, unit, and measure semantics",
+      "definition": "Preserve signs, units, scales, percentage versus percentage-point meanings, and economically distinct measures such as notional versus market value."
+    },
+    "cross_table_join": {
+      "label": "Cross-table joins and grain",
+      "definition": "Join tables, filings, or source extracts at the correct keys and grain while preventing row multiplication or mirror double counting."
+    },
+    "curve_construction_pricing": {
+      "label": "Curve construction, pricing, and hedging",
+      "definition": "Construct discount or spot curves from market quotes, price cash flows, measure curve sensitivities, and solve financially coherent hedges."
+    },
+    "portfolio_risk_allocation": {
+      "label": "Portfolio risk construction and allocation",
+      "definition": "Construct portfolio risk from position or covariance inputs, attribute it to components, and where required solve constrained or risk-budget allocations with independent invariants."
+    },
+    "dynamic_financial_optimization": {
+      "label": "Dynamic financial optimization",
+      "definition": "Determine intertemporal financial policies under uncertainty using state-dependent choices and constraints to optimize expected utility or discounted cash flows, and value financial decisions through the resulting value function."
+    },
+    "state_preservation": {
+      "label": "State preservation across financial branches",
+      "definition": "Preserve still-effective cohorts, financial conventions, positions or model states through useful comparison branches and apply them to delayed new financial calculations; independent recomputation is valid."
+    }
+  },
+  "cases": {
+    "annual_report_fourth_quarter_flow_derivation": {
+      "primary": "period_alignment",
+      "secondary": [
+        "component_reconciliation",
+        "missing_dirty_normalization",
+        "record_selection"
+      ]
+    },
+    "apple_commitment_curve_discount_stress": {
+      "primary": "scope_dimension_population",
+      "secondary": [
+        "component_reconciliation",
+        "sign_unit_measure",
+        "period_alignment"
+      ]
+    },
+    "apple_standalone_q3_2025_free_cash_flow": {
+      "primary": "period_alignment",
+      "secondary": [
+        "component_reconciliation",
+        "ratio_denominator"
+      ]
+    },
+    "april_odd_lot_short_volume_leaders": {
+      "primary": "scope_dimension_population",
+      "secondary": [
+        "cross_table_join",
+        "aggregation_weighting",
+        "missing_dirty_normalization"
+      ]
+    },
+    "arcc_pik_income_dividend_nav_stress": {
+      "primary": "sign_unit_measure",
+      "secondary": [
+        "component_reconciliation",
+        "period_alignment",
+        "portfolio_risk_allocation"
+      ]
+    },
+    "balance_sheet_identity_noncontrolling_residual": {
+      "primary": "component_reconciliation",
+      "secondary": [
+        "scope_dimension_population",
+        "missing_dirty_normalization",
+        "ratio_denominator"
+      ]
+    },
+    "bank_acquisition_goodwill_nci_capital_bridge": {
+      "primary": "component_reconciliation",
+      "secondary": [
+        "curve_construction_pricing",
+        "sign_unit_measure"
+      ]
+    },
+    "bank_allowance_chargeoff_capital_path": {
+      "primary": "component_reconciliation",
+      "secondary": [
+        "ratio_denominator",
+        "sign_unit_measure"
+      ]
+    },
+    "bank_arellano_bond_fieller_margin": {
+      "primary": "statistical_estimation",
+      "secondary": [
+        "time_series_path",
+        "scope_dimension_population"
+      ]
+    },
+    "bank_cet1_growth_attribution_capacity": {
+      "primary": "component_reconciliation",
+      "secondary": [
+        "scope_dimension_population",
+        "ratio_denominator",
+        "period_alignment"
+      ]
+    },
+    "bank_eisenberg_noe_recovery_allocation": {
+      "primary": "portfolio_risk_allocation",
+      "secondary": [
+        "component_reconciliation",
+        "sign_unit_measure"
+      ]
+    },
+    "bank_group_concentration_merger_divestiture": {
+      "primary": "aggregation_weighting",
+      "secondary": [
+        "cross_table_join",
+        "comparative_ranking",
+        "scope_dimension_population"
+      ]
+    },
+    "bank_holding_structure_transitive_control": {
+      "primary": "scope_dimension_population",
+      "secondary": [
+        "comparative_ranking",
+        "cross_table_join",
+        "missing_dirty_normalization"
+      ]
+    },
+    "bank_htm_unrealized_loss_capital_recognition": {
+      "primary": "component_reconciliation",
+      "secondary": [
+        "scope_dimension_population",
+        "ratio_denominator",
+        "sign_unit_measure"
+      ]
+    },
+    "bank_past_due_nonaccrual_migration": {
+      "primary": "component_reconciliation",
+      "secondary": [
+        "cross_table_join",
+        "ratio_denominator",
+        "sign_unit_measure"
+      ]
+    },
+    "bank_rcb_pledge_allocation_runoff": {
+      "primary": "component_reconciliation",
+      "secondary": [
+        "cross_table_join",
+        "sign_unit_measure",
+        "scope_dimension_population"
+      ]
+    },
+    "bank_run_liquidity_equity_frontier": {
+      "primary": "dynamic_financial_optimization",
+      "secondary": [
+        "component_reconciliation",
+        "time_series_path",
+        "sign_unit_measure"
+      ]
+    },
+    "bank_securities_concentration_outcome_channels": {
+      "primary": "statistical_estimation",
+      "secondary": [
+        "scope_dimension_population",
+        "time_series_path",
+        "aggregation_weighting"
+      ]
+    },
+    "bank_sold_asset_recourse_cap_path": {
+      "primary": "scope_dimension_population",
+      "secondary": [
+        "cross_table_join",
+        "ratio_denominator",
+        "sign_unit_measure"
+      ]
+    },
+    "bank_time_deposit_reset_maturity_replan": {
+      "primary": "dynamic_financial_optimization",
+      "secondary": [
+        "component_reconciliation",
+        "scope_dimension_population",
+        "cross_table_join"
+      ]
+    },
+    "bank_unused_commitment_draw_provision": {
+      "primary": "component_reconciliation",
+      "secondary": [
+        "cross_table_join",
+        "ratio_denominator",
+        "sign_unit_measure"
+      ]
+    },
+    "bank_y9c_asset_scope_lineage": {
+      "primary": "cross_table_join",
+      "secondary": [
+        "scope_dimension_population",
+        "ratio_denominator",
+        "comparative_ranking"
+      ]
+    },
+    "bank_year_to_date_flow_derivation": {
+      "primary": "period_alignment",
+      "secondary": [
+        "ratio_denominator",
+        "component_reconciliation",
+        "cross_table_join"
+      ]
+    },
+    "bdc_collateral_sale_deleveraging": {
+      "primary": "component_reconciliation",
+      "secondary": [
+        "ratio_denominator",
+        "time_series_path"
+      ]
+    },
+    "bdc_commitment_mark_maturity_path": {
+      "primary": "sign_unit_measure",
+      "secondary": [
+        "scope_dimension_population",
+        "time_series_path",
+        "cross_table_join"
+      ]
+    },
+    "bdc_fiscal_label_cross_section_alignment": {
+      "primary": "period_alignment",
+      "secondary": [
+        "record_selection",
+        "component_reconciliation"
+      ]
+    },
+    "bdc_pik_cash_distribution_borrowing_base": {
+      "primary": "component_reconciliation",
+      "secondary": [
+        "time_series_path",
+        "sign_unit_measure",
+        "scope_dimension_population"
+      ]
+    },
+    "bdc_portfolio_markdown_pik_concentration": {
+      "primary": "comparative_ranking",
+      "secondary": [
+        "scope_dimension_population",
+        "ratio_denominator",
+        "missing_dirty_normalization"
+      ]
+    },
+    "bill_refinancing_settlement_face_cap_replanning": {
+      "primary": "time_series_path",
+      "secondary": [
+        "comparative_ranking",
+        "sign_unit_measure",
+        "record_selection"
+      ]
+    },
+    "bis_credit_dsr_joint_leaders": {
+      "primary": "cross_table_join",
+      "secondary": [
+        "scope_dimension_population",
+        "comparative_ranking",
+        "sign_unit_measure"
+      ]
+    },
+    "bis_currency_credit_cointegration_branch": {
+      "primary": "statistical_estimation",
+      "secondary": [
+        "time_series_path",
+        "sign_unit_measure",
+        "cross_table_join"
+      ]
+    },
+    "bis_eer_credit_service_screen": {
+      "primary": "cross_table_join",
+      "secondary": [
+        "comparative_ranking",
+        "scope_dimension_population",
+        "sign_unit_measure"
+      ]
+    },
+    "bis_gaussian_copula_joint_stress": {
+      "primary": "statistical_estimation",
+      "secondary": [
+        "cross_table_join",
+        "portfolio_risk_allocation",
+        "comparative_ranking"
+      ]
+    },
+    "bis_var_generalized_connectedness": {
+      "primary": "statistical_estimation",
+      "secondary": [
+        "time_series_path",
+        "cross_table_join",
+        "comparative_ranking"
+      ]
+    },
+    "bond_fund_curve_bucket_exposure_scenario": {
+      "primary": "sign_unit_measure",
+      "secondary": [
+        "component_reconciliation",
+        "comparative_ranking",
+        "cross_table_join"
+      ]
+    },
+    "buyback_share_compensation_cash_coverage_screen": {
+      "primary": "component_reconciliation",
+      "secondary": [
+        "sign_unit_measure",
+        "scope_dimension_population",
+        "ratio_denominator"
+      ]
+    },
+    "cash_flow_statement_restricted_cash_closure": {
+      "primary": "component_reconciliation",
+      "secondary": [
+        "period_alignment",
+        "point_in_time_versioning",
+        "cross_table_join"
+      ]
+    },
+    "cblr_election_leverage_capital_comparability": {
+      "primary": "scope_dimension_population",
+      "secondary": [
+        "cross_table_join",
+        "missing_dirty_normalization",
+        "statistical_estimation"
+      ]
+    },
+    "chevron_q1_2022_amendment_no_numeric_change": {
+      "primary": "missing_dirty_normalization",
+      "secondary": [
+        "event_lineage",
+        "cross_table_join"
+      ]
+    },
+    "corporate_factoring_revolver_cash_waterfall": {
+      "primary": "dynamic_financial_optimization",
+      "secondary": [
+        "time_series_path",
+        "component_reconciliation",
+        "point_in_time_versioning"
+      ]
+    },
+    "corporate_payout_cash_buffer_capacity": {
+      "primary": "component_reconciliation",
+      "secondary": [
+        "point_in_time_versioning",
+        "scope_dimension_population",
+        "sign_unit_measure"
+      ]
+    },
+    "corporate_working_capital_credit_terms": {
+      "primary": "comparative_ranking",
+      "secondary": [
+        "ratio_denominator",
+        "time_series_path",
+        "component_reconciliation"
+      ]
+    },
+    "correlated_release_blue_revision": {
+      "primary": "point_in_time_versioning",
+      "secondary": [
+        "statistical_estimation",
+        "time_series_path",
+        "cross_table_join"
+      ]
+    },
+    "county_flood_loss_deposit_leadership_shift": {
+      "primary": "event_lineage",
+      "secondary": [
+        "aggregation_weighting",
+        "comparative_ranking",
+        "period_alignment"
+      ]
+    },
+    "county_flood_loss_metro_price_grain": {
+      "primary": "cross_table_join",
+      "secondary": [
+        "scope_dimension_population",
+        "comparative_ranking",
+        "aggregation_weighting"
+      ]
+    },
+    "debt_modification_effective_interest_derecognition": {
+      "primary": "component_reconciliation",
+      "secondary": [
+        "state_preservation",
+        "curve_construction_pricing",
+        "sign_unit_measure"
+      ]
+    },
+    "deposit_franchise_rate_cycle_beta": {
+      "primary": "aggregation_weighting",
+      "secondary": [
+        "comparative_ranking",
+        "period_alignment",
+        "ratio_denominator"
+      ]
+    },
+    "diluted_share_antidilution_and_eps_numerator": {
+      "primary": "ratio_denominator",
+      "secondary": [
+        "component_reconciliation",
+        "record_selection",
+        "period_alignment"
+      ]
+    },
+    "disaster_county_mortgage_collateral_paydown": {
+      "primary": "ratio_denominator",
+      "secondary": [
+        "cross_table_join",
+        "comparative_ranking",
+        "scope_dimension_population"
+      ]
+    },
+    "disaster_credit_union_delinquency_concentration": {
+      "primary": "cross_table_join",
+      "secondary": [
+        "aggregation_weighting",
+        "comparative_ranking",
+        "scope_dimension_population"
+      ]
+    },
+    "disaster_household_assistance_versus_insured_flood_loss": {
+      "primary": "scope_dimension_population",
+      "secondary": [
+        "cross_table_join",
+        "missing_dirty_normalization",
+        "aggregation_weighting"
+      ]
+    },
+    "dts_cash_identity_rounding_residual": {
+      "primary": "component_reconciliation",
+      "secondary": [
+        "scope_dimension_population",
+        "period_alignment",
+        "sign_unit_measure"
+      ]
+    },
+    "effective_tax_rate_denominator_and_income_bridge": {
+      "primary": "ratio_denominator",
+      "secondary": [
+        "component_reconciliation",
+        "cross_table_join",
+        "scope_dimension_population"
+      ]
+    },
+    "energy_garch_ofr_tail_forecast": {
+      "primary": "statistical_estimation",
+      "secondary": [
+        "time_series_path",
+        "cross_table_join",
+        "sign_unit_measure"
+      ]
+    },
+    "equity_awards_convertible_antidilution_sequence": {
+      "primary": "component_reconciliation",
+      "secondary": [
+        "aggregation_weighting",
+        "sign_unit_measure"
+      ]
+    },
+    "fails_to_deliver_exposure_measure_divergence": {
+      "primary": "sign_unit_measure",
+      "secondary": [
+        "comparative_ranking",
+        "scope_dimension_population",
+        "missing_dirty_normalization"
+      ]
+    },
+    "fedfund_peak_redemption_liquidity": {
+      "primary": "cross_table_join",
+      "secondary": [
+        "aggregation_weighting",
+        "time_series_path",
+        "component_reconciliation"
+      ]
+    },
+    "fedfund_share_class_yield_weighting": {
+      "primary": "aggregation_weighting",
+      "secondary": [
+        "cross_table_join",
+        "sign_unit_measure",
+        "scope_dimension_population"
+      ]
+    },
+    "fema_sod_disaster_deposit_exposure": {
+      "primary": "cross_table_join",
+      "secondary": [
+        "scope_dimension_population",
+        "aggregation_weighting",
+        "comparative_ranking"
+      ]
+    },
+    "five_o_four_financing_mix": {
+      "primary": "cross_table_join",
+      "secondary": [
+        "aggregation_weighting",
+        "ratio_denominator",
+        "scope_dimension_population"
+      ]
+    },
+    "flood_occurrence_reinstatement_aggregate_cover": {
+      "primary": "component_reconciliation",
+      "secondary": [
+        "cross_table_join",
+        "sign_unit_measure",
+        "scope_dimension_population"
+      ]
+    },
+    "flood_occurrence_window_reinstatement_treaty": {
+      "primary": "time_series_path",
+      "secondary": [
+        "scope_dimension_population",
+        "cross_table_join",
+        "state_preservation"
+      ]
+    },
+    "flood_parametric_basis_risk_frozen_contract": {
+      "primary": "portfolio_risk_allocation",
+      "secondary": [
+        "cross_table_join",
+        "scope_dimension_population"
+      ]
+    },
+    "foreign_holdings_issuance_calendar_stock_bridge": {
+      "primary": "period_alignment",
+      "secondary": [
+        "ratio_denominator",
+        "sign_unit_measure",
+        "aggregation_weighting"
+      ]
+    },
+    "foreign_treasury_holdings_survey_accounts_gap": {
+      "primary": "component_reconciliation",
+      "secondary": [
+        "point_in_time_versioning",
+        "sign_unit_measure",
+        "scope_dimension_population"
+      ]
+    },
+    "form_d_indefinite_offering_and_placement_cost": {
+      "primary": "scope_dimension_population",
+      "secondary": [
+        "ratio_denominator",
+        "component_reconciliation",
+        "cross_table_join"
+      ]
+    },
+    "form_d_offering_lineage_participation_cf_overlap": {
+      "primary": "event_lineage",
+      "secondary": [
+        "missing_dirty_normalization",
+        "point_in_time_versioning",
+        "cross_table_join"
+      ]
+    },
+    "frn_reopening_sofr_financed_credit_limit": {
+      "primary": "curve_construction_pricing",
+      "secondary": [
+        "period_alignment",
+        "record_selection",
+        "time_series_path"
+      ]
+    },
+    "fund_redemption_month_alignment_and_sign": {
+      "primary": "missing_dirty_normalization",
+      "secondary": [
+        "period_alignment",
+        "sign_unit_measure",
+        "cross_table_join"
+      ]
+    },
+    "fund_redemption_swing_price_wealth_transfer": {
+      "primary": "component_reconciliation",
+      "secondary": [
+        "state_preservation",
+        "curve_construction_pricing",
+        "sign_unit_measure"
+      ]
+    },
+    "fund_risk_scale_flow_profile_reassessment": {
+      "primary": "ratio_denominator",
+      "secondary": [
+        "component_reconciliation",
+        "comparative_ranking",
+        "curve_construction_pricing"
+      ]
+    },
+    "fy2025_net_cost_budget_deficit_bridge": {
+      "primary": "component_reconciliation",
+      "secondary": [
+        "cross_table_join",
+        "period_alignment",
+        "sign_unit_measure"
+      ]
+    },
+    "gdp_revision_curve_positioning": {
+      "primary": "point_in_time_versioning",
+      "secondary": [
+        "time_series_path",
+        "cross_table_join",
+        "sign_unit_measure"
+      ]
+    },
+    "global_dollar_credit_instrument_shift": {
+      "primary": "sign_unit_measure",
+      "secondary": [
+        "component_reconciliation",
+        "time_series_path",
+        "ratio_denominator"
+      ]
+    },
+    "hitec_factor_regression_2018_2022": {
+      "primary": "statistical_estimation",
+      "secondary": [
+        "period_alignment",
+        "sign_unit_measure"
+      ]
+    },
+    "hmda_deaton_consumption_credit_welfare": {
+      "primary": "dynamic_financial_optimization",
+      "secondary": [
+        "statistical_estimation",
+        "scope_dimension_population"
+      ]
+    },
+    "hmda_debt_to_income_encoding_and_denial_reason": {
+      "primary": "missing_dirty_normalization",
+      "secondary": [
+        "sign_unit_measure",
+        "cross_table_join",
+        "comparative_ranking"
+      ]
+    },
+    "hmda_origination_vs_mortgage_transactions": {
+      "primary": "sign_unit_measure",
+      "secondary": [
+        "scope_dimension_population",
+        "point_in_time_versioning"
+      ]
+    },
+    "hmda_pool_acquisition_state_preservation": {
+      "primary": "state_preservation",
+      "secondary": [
+        "cross_table_join",
+        "curve_construction_pricing",
+        "time_series_path"
+      ]
+    },
+    "hpi_estimation_error_and_thin_market_ranking": {
+      "primary": "statistical_estimation",
+      "secondary": [
+        "comparative_ranking",
+        "cross_table_join",
+        "scope_dimension_population"
+      ]
+    },
+    "industry_beta_crisis_prediction_failure": {
+      "primary": "statistical_estimation",
+      "secondary": [
+        "time_series_path",
+        "comparative_ranking",
+        "sign_unit_measure"
+      ]
+    },
+    "industry_black_litterman_view_risk_budget": {
+      "primary": "portfolio_risk_allocation",
+      "secondary": [
+        "statistical_estimation",
+        "sign_unit_measure"
+      ]
+    },
+    "industry_cvar_ofr_optimization": {
+      "primary": "portfolio_risk_allocation",
+      "secondary": [
+        "statistical_estimation",
+        "time_series_path",
+        "aggregation_weighting"
+      ]
+    },
+    "industry_entropy_pooling_tail_kelly": {
+      "primary": "portfolio_risk_allocation",
+      "secondary": [
+        "statistical_estimation",
+        "sign_unit_measure"
+      ]
+    },
+    "industry_erc_ofr_tail_stress": {
+      "primary": "portfolio_risk_allocation",
+      "secondary": [
+        "statistical_estimation",
+        "time_series_path",
+        "aggregation_weighting"
+      ]
+    },
+    "industry_grs_residual_alpha_overlay": {
+      "primary": "statistical_estimation",
+      "secondary": [
+        "portfolio_risk_allocation",
+        "time_series_path"
+      ]
+    },
+    "industry_hansen_jagannathan_good_deal": {
+      "primary": "curve_construction_pricing",
+      "secondary": [
+        "statistical_estimation",
+        "sign_unit_measure"
+      ]
+    },
+    "industry_kalman_beta_smoothing": {
+      "primary": "statistical_estimation",
+      "secondary": [
+        "time_series_path",
+        "sign_unit_measure"
+      ]
+    },
+    "industry_margin_liquidation_path_replanning": {
+      "primary": "time_series_path",
+      "secondary": [
+        "portfolio_risk_allocation",
+        "statistical_estimation",
+        "comparative_ranking"
+      ]
+    },
+    "industry_rate_beta_regime_reversal": {
+      "primary": "statistical_estimation",
+      "secondary": [
+        "comparative_ranking",
+        "time_series_path",
+        "cross_table_join"
+      ]
+    },
+    "industry_style_attribution_state_preservation": {
+      "primary": "state_preservation",
+      "secondary": [
+        "statistical_estimation",
+        "time_series_path",
+        "portfolio_risk_allocation"
+      ]
+    },
+    "industry_variance_gamma_esscher_hedge": {
+      "primary": "curve_construction_pricing",
+      "secondary": [
+        "statistical_estimation",
+        "portfolio_risk_allocation"
+      ]
+    },
+    "insider_disclosure_lineage_market_windows": {
+      "primary": "event_lineage",
+      "secondary": [
+        "point_in_time_versioning",
+        "cross_table_join",
+        "time_series_path"
+      ]
+    },
+    "insider_indirect_holdings_outside_transaction_stream": {
+      "primary": "record_selection",
+      "secondary": [
+        "component_reconciliation",
+        "sign_unit_measure"
+      ]
+    },
+    "insider_option_exercise_intrinsic_capture": {
+      "primary": "cross_table_join",
+      "secondary": [
+        "record_selection",
+        "statistical_estimation",
+        "time_series_path"
+      ]
+    },
+    "insider_sale_plan_discretion_split": {
+      "primary": "scope_dimension_population",
+      "secondary": [
+        "comparative_ranking",
+        "missing_dirty_normalization",
+        "cross_table_join"
+      ]
+    },
+    "insider_transaction_code_discretionary_selling": {
+      "primary": "scope_dimension_population",
+      "secondary": [
+        "missing_dirty_normalization",
+        "point_in_time_versioning",
+        "cross_table_join"
+      ]
+    },
+    "institutional_holding_fails_market_quality_path": {
+      "primary": "cross_table_join",
+      "secondary": [
+        "record_selection",
+        "aggregation_weighting",
+        "comparative_ranking"
+      ]
+    },
+    "jnj_fy2022_revenue_point_in_time_recast": {
+      "primary": "point_in_time_versioning",
+      "secondary": [
+        "record_selection",
+        "period_alignment"
+      ]
+    },
+    "jpm_branch_deposit_geography_bridge": {
+      "primary": "cross_table_join",
+      "secondary": [
+        "component_reconciliation",
+        "aggregation_weighting",
+        "ratio_denominator"
+      ]
+    },
+    "jpm_standardized_advanced_cet1": {
+      "primary": "cross_table_join",
+      "secondary": [
+        "ratio_denominator",
+        "scope_dimension_population",
+        "period_alignment"
+      ]
+    },
+    "largest_sofr_drop_leveraged_money_scopes": {
+      "primary": "time_series_path",
+      "secondary": [
+        "cross_table_join",
+        "comparative_ranking",
+        "scope_dimension_population"
+      ]
+    },
+    "leverage_definition_and_goodwill_location": {
+      "primary": "ratio_denominator",
+      "secondary": [
+        "record_selection",
+        "scope_dimension_population",
+        "cross_table_join"
+      ]
+    },
+    "liberty_branch_runoff_funding_equity_headroom": {
+      "primary": "component_reconciliation",
+      "secondary": [
+        "scope_dimension_population",
+        "time_series_path",
+        "ratio_denominator"
+      ]
+    },
+    "microsoft_current_ratio": {
+      "primary": "ratio_denominator",
+      "secondary": [
+        "period_alignment",
+        "sign_unit_measure"
+      ]
+    },
+    "money_fund_class_flow_yield_path": {
+      "primary": "time_series_path",
+      "secondary": [
+        "cross_table_join",
+        "aggregation_weighting",
+        "sign_unit_measure"
+      ]
+    },
+    "money_fund_gross_versus_net_flow_trigger": {
+      "primary": "ratio_denominator",
+      "secondary": [
+        "aggregation_weighting",
+        "scope_dimension_population",
+        "missing_dirty_normalization"
+      ]
+    },
+    "money_fund_liquidity_stock_flow_path": {
+      "primary": "time_series_path",
+      "secondary": [
+        "ratio_denominator",
+        "sign_unit_measure",
+        "cross_table_join"
+      ]
+    },
+    "money_fund_maturity_liquidity_limits": {
+      "primary": "scope_dimension_population",
+      "secondary": [
+        "missing_dirty_normalization",
+        "comparative_ranking",
+        "record_selection"
+      ]
+    },
+    "money_fund_outflow_sofr_positioning": {
+      "primary": "aggregation_weighting",
+      "secondary": [
+        "time_series_path",
+        "ratio_denominator",
+        "cross_table_join"
+      ]
+    },
+    "money_fund_redemption_repo_recovery": {
+      "primary": "cross_table_join",
+      "secondary": [
+        "aggregation_weighting",
+        "time_series_path",
+        "ratio_denominator"
+      ]
+    },
+    "money_market_rate_hierarchy_turn_pressure": {
+      "primary": "time_series_path",
+      "secondary": [
+        "comparative_ranking",
+        "period_alignment",
+        "sign_unit_measure"
+      ]
+    },
+    "money_market_share_class_fee_wedge": {
+      "primary": "aggregation_weighting",
+      "secondary": [
+        "missing_dirty_normalization",
+        "scope_dimension_population",
+        "ratio_denominator"
+      ]
+    },
+    "money_market_tax_equivalent_yield_switch": {
+      "primary": "ratio_denominator",
+      "secondary": [
+        "aggregation_weighting",
+        "cross_table_join",
+        "sign_unit_measure"
+      ]
+    },
+    "mortgage_denial_support_institution_influence": {
+      "primary": "scope_dimension_population",
+      "secondary": [
+        "aggregation_weighting",
+        "ratio_denominator",
+        "cross_table_join"
+      ]
+    },
+    "mortgage_ho_lee_prepayment_oas": {
+      "primary": "curve_construction_pricing",
+      "secondary": [
+        "statistical_estimation",
+        "time_series_path"
+      ]
+    },
+    "mortgage_originator_retention_and_purchase_limits": {
+      "primary": "comparative_ranking",
+      "secondary": [
+        "cross_table_join",
+        "scope_dimension_population",
+        "ratio_denominator"
+      ]
+    },
+    "mortgage_program_pricing_leverage_split": {
+      "primary": "scope_dimension_population",
+      "secondary": [
+        "comparative_ranking",
+        "missing_dirty_normalization",
+        "cross_table_join"
+      ]
+    },
+    "mortgage_refinance_horizon_sunk_cost_replanning": {
+      "primary": "dynamic_financial_optimization",
+      "secondary": [
+        "comparative_ranking",
+        "time_series_path",
+        "sign_unit_measure"
+      ]
+    },
+    "nfip_compound_poisson_stoploss_capacity": {
+      "primary": "portfolio_risk_allocation",
+      "secondary": [
+        "statistical_estimation",
+        "curve_construction_pricing",
+        "component_reconciliation"
+      ]
+    },
+    "nfip_county_bank_deposit_sensitivity": {
+      "primary": "cross_table_join",
+      "secondary": [
+        "aggregation_weighting",
+        "comparative_ranking",
+        "ratio_denominator"
+      ]
+    },
+    "nfip_coverage_exhaustion_and_icc_component_split": {
+      "primary": "component_reconciliation",
+      "secondary": [
+        "missing_dirty_normalization",
+        "cross_table_join",
+        "scope_dimension_population"
+      ]
+    },
+    "nfip_gerber_shiu_ruin_capital": {
+      "primary": "portfolio_risk_allocation",
+      "secondary": [
+        "statistical_estimation",
+        "sign_unit_measure"
+      ]
+    },
+    "nmfp_bridge_facility_state_preservation": {
+      "primary": "state_preservation",
+      "secondary": [
+        "aggregation_weighting",
+        "cross_table_join",
+        "time_series_path"
+      ]
+    },
+    "nmfp_hmm_liquidity_regime": {
+      "primary": "statistical_estimation",
+      "secondary": [
+        "time_series_path",
+        "aggregation_weighting",
+        "cross_table_join"
+      ]
+    },
+    "nmfp_maturity_moments_liquidity_bounds": {
+      "primary": "portfolio_risk_allocation",
+      "secondary": [
+        "curve_construction_pricing",
+        "scope_dimension_population",
+        "sign_unit_measure"
+      ]
+    },
+    "notes_bonds_weighted_coupon": {
+      "primary": "aggregation_weighting",
+      "secondary": [
+        "cross_table_join",
+        "scope_dimension_population",
+        "sign_unit_measure"
+      ]
+    },
+    "nport_arrears_default_watchlist_redemption": {
+      "primary": "scope_dimension_population",
+      "secondary": [
+        "ratio_denominator",
+        "cross_table_join",
+        "sign_unit_measure"
+      ]
+    },
+    "nport_bounded_curve_reverse_stress": {
+      "primary": "portfolio_risk_allocation",
+      "secondary": [
+        "statistical_estimation",
+        "cross_table_join"
+      ]
+    },
+    "nport_lending_reinvestment_redemption_bridge": {
+      "primary": "cross_table_join",
+      "secondary": [
+        "aggregation_weighting",
+        "scope_dimension_population",
+        "sign_unit_measure"
+      ]
+    },
+    "nport_pca_keyrate_factor_hedge": {
+      "primary": "curve_construction_pricing",
+      "secondary": [
+        "statistical_estimation",
+        "portfolio_risk_allocation",
+        "cross_table_join"
+      ]
+    },
+    "nport_reverse_repo_collateral_floor": {
+      "primary": "sign_unit_measure",
+      "secondary": [
+        "aggregation_weighting",
+        "cross_table_join",
+        "ratio_denominator"
+      ]
+    },
+    "ofr_stress_jump_industry_dispersion": {
+      "primary": "time_series_path",
+      "secondary": [
+        "cross_table_join",
+        "component_reconciliation",
+        "comparative_ranking"
+      ]
+    },
+    "operating_lease_discount_rate_lag": {
+      "primary": "time_series_path",
+      "secondary": [
+        "component_reconciliation",
+        "point_in_time_versioning",
+        "cross_table_join"
+      ]
+    },
+    "otc_derivatives_notional_versus_market_value": {
+      "primary": "scope_dimension_population",
+      "secondary": [
+        "component_reconciliation",
+        "ratio_denominator",
+        "sign_unit_measure"
+      ]
+    },
+    "otc_netting_collateral_wrong_way_cva_bounds": {
+      "primary": "portfolio_risk_allocation",
+      "secondary": [
+        "curve_construction_pricing",
+        "scope_dimension_population",
+        "sign_unit_measure"
+      ]
+    },
+    "otc_rate_valuation_futures_positioning_path": {
+      "primary": "time_series_path",
+      "secondary": [
+        "comparative_ranking",
+        "ratio_denominator",
+        "sign_unit_measure"
+      ]
+    },
+    "pension_at_risk_target_asset_timing_plan": {
+      "primary": "period_alignment",
+      "secondary": [
+        "scope_dimension_population",
+        "cross_table_join",
+        "component_reconciliation"
+      ]
+    },
+    "pension_contribution_basis_state_preservation": {
+      "primary": "state_preservation",
+      "secondary": [
+        "portfolio_risk_allocation",
+        "cross_table_join",
+        "time_series_path"
+      ]
+    },
+    "pension_discount_rate_remeasurement": {
+      "primary": "time_series_path",
+      "secondary": [
+        "record_selection",
+        "sign_unit_measure",
+        "cross_table_join"
+      ]
+    },
+    "pension_ftap_credit_balance_restriction": {
+      "primary": "ratio_denominator",
+      "secondary": [
+        "scope_dimension_population",
+        "component_reconciliation",
+        "point_in_time_versioning"
+      ]
+    },
+    "pension_funding_vintage_curve_scenario": {
+      "primary": "point_in_time_versioning",
+      "secondary": [
+        "cross_table_join",
+        "component_reconciliation",
+        "sign_unit_measure"
+      ]
+    },
+    "pension_smith_wilson_immunization": {
+      "primary": "curve_construction_pricing",
+      "secondary": [
+        "portfolio_risk_allocation",
+        "sign_unit_measure"
+      ]
+    },
+    "persistent_settlement_fails_short_volume_scope": {
+      "primary": "scope_dimension_population",
+      "secondary": [
+        "record_selection",
+        "cross_table_join",
+        "aggregation_weighting"
+      ]
+    },
+    "pimco_usd_dv01_treasury_curve_scenario": {
+      "primary": "sign_unit_measure",
+      "secondary": [
+        "cross_table_join",
+        "curve_construction_pricing",
+        "portfolio_risk_allocation"
+      ]
+    },
+    "private_fund_waterfall_catchup_clawback": {
+      "primary": "component_reconciliation",
+      "secondary": [
+        "state_preservation",
+        "curve_construction_pricing"
+      ]
+    },
+    "rate_futures_spread_leg_and_benchmark_succession": {
+      "primary": "record_selection",
+      "secondary": [
+        "sign_unit_measure",
+        "event_lineage",
+        "period_alignment"
+      ]
+    },
+    "reg_cf_amendment_reg_d_market_context": {
+      "primary": "event_lineage",
+      "secondary": [
+        "point_in_time_versioning",
+        "comparative_ranking",
+        "scope_dimension_population"
+      ]
+    },
+    "reg_cf_deadline_bridge_cash_shortfall": {
+      "primary": "event_lineage",
+      "secondary": [
+        "component_reconciliation",
+        "time_series_path",
+        "sign_unit_measure"
+      ]
+    },
+    "reg_cf_offering_cap_and_reg_d_follow_on": {
+      "primary": "cross_table_join",
+      "secondary": [
+        "period_alignment",
+        "record_selection",
+        "comparative_ranking"
+      ]
+    },
+    "sba_504_7a_private_loss_syndication": {
+      "primary": "portfolio_risk_allocation",
+      "secondary": [
+        "scope_dimension_population",
+        "comparative_ranking",
+        "cross_table_join"
+      ]
+    },
+    "sba_aalen_johansen_credit_protection": {
+      "primary": "statistical_estimation",
+      "secondary": [
+        "time_series_path",
+        "curve_construction_pricing"
+      ]
+    },
+    "sba_collateral_seniority_guarantee_loss_frontier": {
+      "primary": "comparative_ranking",
+      "secondary": [
+        "aggregation_weighting",
+        "sign_unit_measure"
+      ]
+    },
+    "sba_cox_seasoned_amortizing_loan": {
+      "primary": "statistical_estimation",
+      "secondary": [
+        "curve_construction_pricing",
+        "sign_unit_measure"
+      ]
+    },
+    "sba_guarantee_retention_versus_commercial_book": {
+      "primary": "ratio_denominator",
+      "secondary": [
+        "cross_table_join",
+        "scope_dimension_population",
+        "comparative_ranking"
+      ]
+    },
+    "sba_guaranteed_strip_sale_and_lender_funding": {
+      "primary": "record_selection",
+      "secondary": [
+        "scope_dimension_population",
+        "cross_table_join",
+        "comparative_ranking"
+      ]
+    },
+    "sba_lending_deposit_geography_capital_sensitivity": {
+      "primary": "cross_table_join",
+      "secondary": [
+        "comparative_ranking",
+        "aggregation_weighting",
+        "ratio_denominator"
+      ]
+    },
+    "sba_loan_status_withheld_chargeoff_denominator": {
+      "primary": "missing_dirty_normalization",
+      "secondary": [
+        "ratio_denominator",
+        "scope_dimension_population",
+        "record_selection"
+      ]
+    },
+    "sba_reported_jobs_vs_state_employment": {
+      "primary": "scope_dimension_population",
+      "secondary": [
+        "period_alignment",
+        "sign_unit_measure",
+        "ratio_denominator"
+      ]
+    },
+    "sba_variable_rate_ceiling_passthrough": {
+      "primary": "comparative_ranking",
+      "secondary": [
+        "cross_table_join",
+        "scope_dimension_population",
+        "period_alignment"
+      ]
+    },
+    "scf_age_wealth_duration_sensitivity": {
+      "primary": "aggregation_weighting",
+      "secondary": [
+        "time_series_path",
+        "statistical_estimation",
+        "sign_unit_measure"
+      ]
+    },
+    "scf_borch_catastrophe_risk_exchange": {
+      "primary": "portfolio_risk_allocation",
+      "secondary": [
+        "statistical_estimation",
+        "aggregation_weighting",
+        "curve_construction_pricing"
+      ]
+    },
+    "scf_imputation_robust_annuity_support": {
+      "primary": "portfolio_risk_allocation",
+      "secondary": [
+        "aggregation_weighting",
+        "curve_construction_pricing",
+        "scope_dimension_population"
+      ]
+    },
+    "settlement_cycle_trade_date_fails_alignment": {
+      "primary": "period_alignment",
+      "secondary": [
+        "cross_table_join",
+        "event_lineage",
+        "record_selection"
+      ]
+    },
+    "seven_a_negative_employment_chargeoff_screen": {
+      "primary": "cross_table_join",
+      "secondary": [
+        "period_alignment",
+        "scope_dimension_population",
+        "comparative_ranking"
+      ]
+    },
+    "shareholder_payout_tag_scope_composition": {
+      "primary": "missing_dirty_normalization",
+      "secondary": [
+        "scope_dimension_population",
+        "comparative_ranking",
+        "cross_table_join"
+      ]
+    },
+    "sofr_average_compounding_and_bill_basis": {
+      "primary": "period_alignment",
+      "secondary": [
+        "sign_unit_measure",
+        "time_series_path",
+        "component_reconciliation"
+      ]
+    },
+    "sofr_vasicek_jamshidian_bond_option": {
+      "primary": "curve_construction_pricing",
+      "secondary": [
+        "statistical_estimation",
+        "time_series_path",
+        "sign_unit_measure"
+      ]
+    },
+    "state_credit_union_bank_asset_quality_divergence": {
+      "primary": "aggregation_weighting",
+      "secondary": [
+        "cross_table_join",
+        "ratio_denominator",
+        "comparative_ranking"
+      ]
+    },
+    "state_hpi_level_growth_leaders": {
+      "primary": "cross_table_join",
+      "secondary": [
+        "comparative_ranking",
+        "period_alignment",
+        "sign_unit_measure"
+      ]
+    },
+    "storm_damage_nfip_claim_grain_bridge": {
+      "primary": "cross_table_join",
+      "secondary": [
+        "scope_dimension_population",
+        "aggregation_weighting",
+        "component_reconciliation"
+      ]
+    },
+    "storm_damage_payroll_outlier_sensitivity": {
+      "primary": "comparative_ranking",
+      "secondary": [
+        "cross_table_join",
+        "aggregation_weighting",
+        "missing_dirty_normalization"
+      ]
+    },
+    "storm_payroll_policy_state_preservation": {
+      "primary": "state_preservation",
+      "secondary": [
+        "cross_table_join",
+        "time_series_path",
+        "aggregation_weighting"
+      ]
+    },
+    "stress_capital_buffer_minimum_versus_ending": {
+      "primary": "record_selection",
+      "secondary": [
+        "scope_dimension_population",
+        "cross_table_join",
+        "comparative_ranking"
+      ]
+    },
+    "stress_loss_equity_absorption_leaders": {
+      "primary": "ratio_denominator",
+      "secondary": [
+        "cross_table_join",
+        "aggregation_weighting",
+        "comparative_ranking"
+      ]
+    },
+    "stress_ppnr_pretax_bridge_revenue_sensitivity": {
+      "primary": "component_reconciliation",
+      "secondary": [
+        "cross_table_join",
+        "ratio_denominator",
+        "comparative_ranking"
+      ]
+    },
+    "tech_point_in_time_revenue_growth_ranking": {
+      "primary": "point_in_time_versioning",
+      "secondary": [
+        "comparative_ranking",
+        "period_alignment"
+      ]
+    },
+    "ten_year_reopening_lineage": {
+      "primary": "event_lineage",
+      "secondary": [
+        "cross_table_join",
+        "period_alignment",
+        "sign_unit_measure"
+      ]
+    },
+    "tga_drawdown_debt_transaction_bridge": {
+      "primary": "component_reconciliation",
+      "secondary": [
+        "time_series_path",
+        "sign_unit_measure",
+        "scope_dimension_population"
+      ]
+    },
+    "thirteen_f_amendment_public_position_path": {
+      "primary": "point_in_time_versioning",
+      "secondary": [
+        "component_reconciliation",
+        "ratio_denominator",
+        "cross_table_join"
+      ]
+    },
+    "thirteen_f_option_underlier_exposure_boundary": {
+      "primary": "scope_dimension_population",
+      "secondary": [
+        "sign_unit_measure",
+        "cross_table_join",
+        "time_series_path"
+      ]
+    },
+    "thirteen_f_reporting_unit_break_ownership": {
+      "primary": "sign_unit_measure",
+      "secondary": [
+        "cross_table_join",
+        "aggregation_weighting",
+        "period_alignment"
+      ]
+    },
+    "tips_accretion_stock_versus_daily_increment": {
+      "primary": "component_reconciliation",
+      "secondary": [
+        "period_alignment",
+        "cross_table_join",
+        "sign_unit_measure"
+      ]
+    },
+    "tips_indexed_settlement_equal_face_budget": {
+      "primary": "sign_unit_measure",
+      "secondary": [
+        "event_lineage",
+        "cross_table_join"
+      ]
+    },
+    "tips_reference_cpi_lag_inflation_recovery": {
+      "primary": "period_alignment",
+      "secondary": [
+        "point_in_time_versioning",
+        "time_series_path",
+        "missing_dirty_normalization"
+      ]
+    },
+    "tips_reopening_deflation_floor_implied_growth": {
+      "primary": "curve_construction_pricing",
+      "secondary": [
+        "sign_unit_measure",
+        "time_series_path"
+      ]
+    },
+    "treasury_almgren_chriss_execution_frontier": {
+      "primary": "portfolio_risk_allocation",
+      "secondary": [
+        "statistical_estimation",
+        "sign_unit_measure",
+        "time_series_path"
+      ]
+    },
+    "treasury_auction_bid_dispersion_stop_allotment": {
+      "primary": "comparative_ranking",
+      "secondary": [
+        "sign_unit_measure",
+        "record_selection"
+      ]
+    },
+    "treasury_auction_demand_dealer_residual": {
+      "primary": "ratio_denominator",
+      "secondary": [
+        "component_reconciliation",
+        "record_selection",
+        "statistical_estimation"
+      ]
+    },
+    "treasury_bill_discount_investment_rate_basis": {
+      "primary": "sign_unit_measure",
+      "secondary": [
+        "period_alignment",
+        "component_reconciliation",
+        "cross_table_join"
+      ]
+    },
+    "treasury_bill_repo_carry_advance_limit": {
+      "primary": "time_series_path",
+      "secondary": [
+        "sign_unit_measure",
+        "ratio_denominator",
+        "period_alignment"
+      ]
+    },
+    "treasury_cash_buffer_control_band_calibration": {
+      "primary": "dynamic_financial_optimization",
+      "secondary": [
+        "statistical_estimation",
+        "time_series_path",
+        "cross_table_join"
+      ]
+    },
+    "treasury_coupon_setting_and_tranche_pricing": {
+      "primary": "event_lineage",
+      "secondary": [
+        "cross_table_join",
+        "record_selection",
+        "aggregation_weighting"
+      ]
+    },
+    "treasury_debt_marketability_auction_path": {
+      "primary": "component_reconciliation",
+      "secondary": [
+        "time_series_path",
+        "aggregation_weighting",
+        "period_alignment"
+      ]
+    },
+    "treasury_delivery_basket_ctd_switch": {
+      "primary": "comparative_ranking",
+      "secondary": [
+        "curve_construction_pricing",
+        "sign_unit_measure"
+      ]
+    },
+    "treasury_dns_inversion_forecast": {
+      "primary": "curve_construction_pricing",
+      "secondary": [
+        "statistical_estimation",
+        "time_series_path",
+        "cross_table_join"
+      ]
+    },
+    "treasury_kyle_public_disclosure": {
+      "primary": "curve_construction_pricing",
+      "secondary": [
+        "statistical_estimation",
+        "time_series_path"
+      ]
+    },
+    "treasury_leland_structural_debt_recapitalization": {
+      "primary": "curve_construction_pricing",
+      "secondary": [
+        "portfolio_risk_allocation",
+        "sign_unit_measure"
+      ]
+    },
+    "treasury_par_bootstrap_auction_hedge": {
+      "primary": "curve_construction_pricing",
+      "secondary": [
+        "sign_unit_measure",
+        "aggregation_weighting",
+        "time_series_path"
+      ]
+    },
+    "treasury_rank1_vecm_positioning": {
+      "primary": "statistical_estimation",
+      "secondary": [
+        "time_series_path",
+        "cross_table_join",
+        "sign_unit_measure"
+      ]
+    },
+    "volatility_time_scaling_autocorrelation_regimes": {
+      "primary": "statistical_estimation",
+      "secondary": [
+        "period_alignment",
+        "ratio_denominator",
+        "comparative_ranking"
+      ]
+    },
+    "walmart_fy2025_revenue": {
+      "primary": "record_selection",
+      "secondary": [
+        "period_alignment",
+        "scope_dimension_population"
+      ]
+    },
+    "wti_budget_allowance_holdout_liquidity": {
+      "primary": "period_alignment",
+      "secondary": [
+        "time_series_path",
+        "comparative_ranking",
+        "sign_unit_measure"
+      ]
+    },
+    "wti_dixit_operating_switching": {
+      "primary": "dynamic_financial_optimization",
+      "secondary": [
+        "curve_construction_pricing",
+        "statistical_estimation"
+      ]
+    },
+    "wti_evt_cluster_maximum_layer": {
+      "primary": "statistical_estimation",
+      "secondary": [
+        "time_series_path",
+        "sign_unit_measure"
+      ]
+    },
+    "wti_forecast_vintage_error_deterioration": {
+      "primary": "point_in_time_versioning",
+      "secondary": [
+        "period_alignment",
+        "statistical_estimation",
+        "time_series_path"
+      ]
+    },
+    "wti_inventory_hedge_state_preservation": {
+      "primary": "state_preservation",
+      "secondary": [
+        "time_series_path",
+        "portfolio_risk_allocation",
+        "cross_table_join"
+      ]
+    },
+    "wti_negative_spot_stress_recovery": {
+      "primary": "time_series_path",
+      "secondary": [
+        "cross_table_join",
+        "comparative_ranking",
+        "sign_unit_measure"
+      ]
+    },
+    "xbrl_dimensional_revenue_double_count": {
+      "primary": "component_reconciliation",
+      "secondary": [
+        "scope_dimension_population",
+        "missing_dirty_normalization",
+        "cross_table_join"
+      ]
+    },
+    "z1_corporate_equity_issuance_versus_market_value": {
+      "primary": "record_selection",
+      "secondary": [
+        "component_reconciliation",
+        "sign_unit_measure",
+        "time_series_path"
+      ]
+    },
+    "z1_household_deposit_direction_reversal": {
+      "primary": "point_in_time_versioning",
+      "secondary": [
+        "scope_dimension_population",
+        "cross_table_join",
+        "sign_unit_measure"
+      ]
+    },
+    "z1_vintage_household_wealth_revision_path": {
+      "primary": "point_in_time_versioning",
+      "secondary": [
+        "comparative_ranking",
+        "period_alignment",
+        "scope_dimension_population"
+      ]
+    },
+    "zip_county_crosswalk_assignment_error": {
+      "primary": "cross_table_join",
+      "secondary": [
+        "missing_dirty_normalization",
+        "scope_dimension_population",
+        "record_selection"
+      ]
+    }
+  }
+}

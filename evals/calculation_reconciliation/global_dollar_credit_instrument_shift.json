@@ -1,0 +1,129 @@
+{
+  "name": "global_dollar_credit_instrument_shift",
+  "module": "evals.calculation_reconciliation.global_dollar_credit_instrument_shift",
+  "task_family": "calculation_reconciliation",
+  "data_sources": [
+    "bis_global_liquidity",
+    "bis_effective_exchange_rates"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "turns": [
+        {
+          "query": "The global liquidity indicators report credit to non-bank borrowers located in emerging market and developing economies, by currency of denomination, split into international debt securities reported for all lending sectors and bank loans reported for the banking sector. Report how many distinct periods the table covers and the earliest period label. For the 2025-Q4 period and the US dollar series, report credit, its debt-securities component and its bank-loan component in millions. Then report securities plus loans minus credit for the dollar series and for the euro and yen series. Explain what those three residuals establish about how the components relate to the published total, and note where each component is reported from.",
+          "validator": "validate_instrument_identity",
+          "stores": [
+            "period_count",
+            "earliest_period",
+            "dollar_credit_millions",
+            "dollar_securities_millions",
+            "dollar_loans_millions",
+            "dollar_identity_residual_millions",
+            "euro_identity_residual_millions",
+            "yen_identity_residual_millions"
+          ],
+          "claims": [
+            {
+              "id": "published_identity_boundary",
+              "description": "The response interprets closing residuals as a published component identity while preserving the fact that the bank-loan and debt-securities components originate from different stated reporting populations.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Still at 2025-Q4, report credit for the euro series and for the yen series in millions, the yen figure divided by the dollar figure exactly as published, and the euro figure divided by the dollar figure exactly as published. Then report how many distinct units of measure the series at that period carry. Explain what those two ratios do and do not tell you, and what would be required to compare the three series by size.",
+          "validator": "validate_denomination_boundary",
+          "stores": [
+            "euro_credit_millions",
+            "yen_credit_millions",
+            "yen_to_dollar_published_ratio",
+            "euro_to_dollar_published_ratio",
+            "distinct_unit_count"
+          ],
+          "claims": [
+            {
+              "id": "currency_unit_boundary",
+              "description": "The response explains that the published cross-currency quotients divide unlike units and therefore do not rank economic size; a common-currency comparison would require exchange rates not present in the liquidity table.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Composition can be compared even where levels cannot. For 2025-Q4 report the debt-securities component as a percent of credit for each of the dollar, euro and yen series, and name the currency with the highest such share. Explain why this comparison is legitimate where the one in turn 2 was not, what a higher share establishes about the published instrument mix, and what it cannot establish about ultimate holders.",
+          "validator": "validate_composition_by_currency",
+          "stores": [
+            "dollar_securities_share_pct",
+            "euro_securities_share_pct",
+            "yen_securities_share_pct",
+            "highest_securities_share_currency"
+          ],
+          "claims": [
+            {
+              "id": "ratio_scale_invariance_reasoning",
+              "description": "The response explains that dividing a part by its own whole cancels whatever unit both are counted in, which is exactly what the earlier attempt lacked.",
+              "mode": "required"
+            },
+            {
+              "id": "instrument_holder_boundary",
+              "description": "The response interprets a higher securities share as a different published instrument mix.",
+              "mode": "required"
+            },
+            {
+              "id": "securities_characteristics_boundary",
+              "description": "If the response describes the securities' ultimate holders, tradability, holding period or repricing behavior, it states that the aggregate table records none of them.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Trace the dollar series. Report the debt-securities share of dollar credit at 2010-Q4, 2015-Q4 and 2020-Q4 in percent, the level of dollar credit at 2010-Q4 in millions, and the growth in dollar credit from 2010-Q4 to 2025-Q4 in percent. Then, from the broad nominal effective exchange rate series for the United States, report the index for 2020-12 and for 2025-12 and the change between them in percent. Explain how the share path and reported level path should be interpreted together, and state the evidentiary limits of the two exchange-rate endpoints for explaining that path.",
+          "validator": "validate_shift_and_dollar_context",
+          "stores": [
+            "dollar_share_2010_pct",
+            "dollar_share_2015_pct",
+            "dollar_share_2020_pct",
+            "dollar_credit_2010_millions",
+            "dollar_credit_growth_pct",
+            "dollar_index_2020",
+            "dollar_index_2025",
+            "dollar_index_change_pct"
+          ],
+          "claims": [
+            {
+              "id": "funding_shift_reasoning",
+              "description": "The response describes the rising debt-securities share as a change in the composition of the published dollar credit stock.",
+              "mode": "required"
+            },
+            {
+              "id": "absolute_lending_boundary",
+              "description": "If the response concludes that bank lending declined in absolute terms, it states that a composition share alone does not establish it.",
+              "mode": "conditional"
+            },
+            {
+              "id": "exchange_rate_context_boundary",
+              "description": "The response treats the index readings as background on the currency in which these liabilities are owed rather than as a cause of the composition shift, and notes that the index covers only the most recent of the spans reported.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen BIS global liquidity indicators for non-bank borrowers in emerging economies and the BIS broad nominal effective exchange rates",
+    "facts": [
+      "The table covers 104 periods from 2000-Q1. At 2025-Q4 dollar credit is 4,345,181.7500 million, comprising 2,433,764.0510 of debt securities and 1,911,417.6990 of bank loans; securities plus loans minus credit is 0.0000 for the dollar, euro and yen series alike.",
+      "Euro credit is 857,934.7150 million and yen credit 10,178,921.8360 million at the same period. Dividing as published gives 2.3426 for yen over dollar and 0.1974 for euro over dollar, but the three series carry 3 distinct units of measure, so these ratios compare quantities in different currencies and no size ranking follows from them.",
+      "Debt securities carry 56.0106 percent of dollar credit, 38.5757 percent of euro credit and 28.5272 percent of yen credit. The dollar is highest and the spread between highest and lowest is 27.4835 percentage points.",
+      "The dollar securities share was 32.2782 percent at 2010-Q4, 34.2435 at 2015-Q4 and 48.9648 at 2020-Q4. Dollar credit stood at 1,991,574.7290 million at 2010-Q4 and grew 118.1782 percent by 2025-Q4. The broad nominal effective exchange rate for the United States reads 94.9100 at 2020-12 and 103.0400 at 2025-12, a rise of 8.5660 percent."
+    ],
+    "known_overclaims": [
+      "Ranking the three currencies of denomination by size from figures expressed in different currencies.",
+      "Treating the ratio of the yen figure to the dollar figure as a measure of relative borrowing.",
+      "Reading the rise in the securities share as banks lending less in absolute terms.",
+      "Presenting the exchange rate path as the cause of the shift in funding composition."
+    ]
+  }
+}

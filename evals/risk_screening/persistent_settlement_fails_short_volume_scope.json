@@ -1,0 +1,122 @@
+{
+  "name": "persistent_settlement_fails_short_volume_scope",
+  "module": "evals.risk_screening.persistent_settlement_fails_short_volume_scope",
+  "task_family": "risk_screening",
+  "data_sources": [
+    "sec_ftd",
+    "finra_short_volume"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Work with the fails-to-deliver record for settlement dates from 2025-01-01 through 2025-03-31 inclusive, keyed by trading symbol. Report how many distinct settlement dates the quarter holds and how many distinct symbols record at least one fail in it. Then form the cohort of symbols that record a fail on every one of those settlement dates, and report how many there are. Within that cohort select the symbol with the largest single-date fail quantity, breaking a tie by symbol ascending, and report the symbol and that quantity. Carry the cohort forward and explain what a fail to deliver records and what it does not.",
+          "validator": "validate_fail_population",
+          "stores": [
+            "settlement_date_count",
+            "failing_symbol_count",
+            "persistent_fail_symbol_count",
+            "persistent_peak_leader_symbol",
+            "persistent_peak_leader_quantity_shares"
+          ],
+          "claims": [
+            {
+              "id": "fail_measure_meaning",
+              "description": "The response describes a fail to deliver as an unsettled delivery obligation outstanding on a settlement date, and states that it is not a position, a short interest figure or evidence of intent.",
+              "mode": "required"
+            },
+            {
+              "id": "persistence_versus_size_reasoning",
+              "description": "The response distinguishes a security that fails on every date from one that fails by a large amount, and states that the cohort rule selects the first.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Bring in the daily short-volume file for the same calendar range, aggregating each symbol's short volume and reported volume over the quarter and keeping only symbols whose reported volume is above zero. Report how many distinct symbols that file covers, how many of the carried cohort it reports, and how many it does not. For the symbol selected in turn 1, report its quarter short volume divided by its quarter reported volume in percent. Explain what the unmatched members imply about the coverage of the two files.",
+          "validator": "validate_short_volume_match",
+          "stores": [
+            "short_volume_symbol_count",
+            "cohort_matched_symbol_count",
+            "cohort_unmatched_symbol_count",
+            "peak_leader_short_volume_share_pct"
+          ],
+          "claims": [
+            {
+              "id": "coverage_scope_result",
+              "description": "The response explains that the short-volume file covers what its reporting firms print rather than every security that can fail, so an unmatched member is missing coverage rather than a security with no short activity.",
+              "mode": "required"
+            },
+            {
+              "id": "flow_versus_position_boundary",
+              "description": "The response states that short volume is executed daily flow flagged short rather than an outstanding short position.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Compare the matched cohort with the whole reported population. Report the median short share across the matched cohort members and across every symbol the file reports, both in percent, and the median quarter reported volume for each of the same two groups in shares. Take every median and percentile asked for here with linear interpolation. Interpret whether the cohort looks like a set of heavily shorted securities or a set of heavily traded ones, and give the limits of a sixteen-member comparison.",
+          "validator": "validate_cohort_comparison",
+          "stores": [
+            "cohort_median_short_volume_share_pct",
+            "market_median_short_volume_share_pct",
+            "cohort_median_reported_volume_shares",
+            "market_median_reported_volume_shares"
+          ],
+          "claims": [
+            {
+              "id": "liquidity_confound_reasoning",
+              "description": "The response relates the cohort's volume level to its short share and states what would still be needed to separate shorting pressure from ordinary trading in liquid securities.",
+              "mode": "required"
+            },
+            {
+              "id": "small_sample_boundary",
+              "description": "The response states that a median over sixteen securities carries wide sampling uncertainty and describes it as evidence about those securities.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Return to the cohort members the short-volume file does not report. Select the one with the largest single-date fail quantity, breaking a tie by symbol ascending, and report the symbol and that quantity. Report whether the matched cohort's median short share is above the median for the whole reported population. Take every median and percentile asked for here with linear interpolation. Explain what this security shows about screening for shorting pressure by joining these two files.",
+          "validator": "validate_unreported_scope",
+          "stores": [
+            "largest_unmatched_symbol",
+            "largest_unmatched_peak_quantity_shares",
+            "cohort_short_share_exceeds_market"
+          ],
+          "claims": [
+            {
+              "id": "unreported_security_result",
+              "description": "The response explains that the selected security fails on every settlement date of the quarter yet contributes nothing to the short-volume comparison, so a screen built on the join silently drops it.",
+              "mode": "required"
+            },
+            {
+              "id": "causal_attribution_boundary",
+              "description": "If the response attributes the persistent fails to naked shorting, manipulation or a specific market participant, it states that neither file records the cause of a fail.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen SEC fails-to-deliver file and FINRA daily short-volume file, 2025-Q1",
+    "facts": [
+      "The quarter holds 61 settlement dates. 15,152 symbols record at least one fail and 44 record a fail on every settlement date.",
+      "Within that cohort PACB carries the largest single-date fail at 8,033,035 shares. Ranking the cohort by fails summed across dates instead selects CYDY at 198,947,427, which double counts a fail that stays open.",
+      "The short-volume file reports 11,548 symbols in the quarter and covers only 16 of the 44 cohort members. PACB's quarter short share is 58.6666 percent.",
+      "The matched cohort's median short share is 54.7488 percent against 46.4495 for the whole reported population, while its median reported volume is 23,297,682.5 shares against 2,862,359.5.",
+      "The largest unreported cohort member is CYDY at 6,783,255 shares, which fails on every settlement date and appears nowhere in the short-volume file."
+    ],
+    "known_overclaims": [
+      "Reading persistent fails as evidence of naked shorting, manipulation or a specific participant's activity.",
+      "Treating short volume as short interest or as an outstanding position.",
+      "Treating an unmatched symbol as a security with no short activity rather than one the file does not cover.",
+      "Generalising a sixteen-security median to the market."
+    ]
+  }
+}

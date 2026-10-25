@@ -1,0 +1,101 @@
+{
+  "name": "bank_allowance_chargeoff_capital_path",
+  "module": "evals.scenario_analysis.bank_allowance_chargeoff_capital_path",
+  "task_family": "scenario_analysis",
+  "data_sources": [
+    "fdic_bankfind",
+    "ffiec_call_reports_capital"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "For JPMorgan Chase Bank, National Association (FDIC certificate 628; RSSD 852218), use its September 30, 2025 FDIC bank financial report and consolidated FFIEC Call Report. Report net loans and leases, the allowance for loan and lease losses, noncurrent loans, and the standardized CET1 ratio calculated from reported capital and risk-weighted assets. Carry these unrounded amounts and assess what each credit measure describes.",
+          "validator": "validate_opening",
+          "stores": [
+            "opening_net_loans_bn",
+            "opening_allowance_bn",
+            "opening_noncurrent_bn",
+            "opening_cet1_pct"
+          ],
+          "claims": [
+            {
+              "id": "opening_credit_scope",
+              "description": "The response distinguishes the reported noncurrent-loan stock from a realized loss or allowance requirement.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "For an internal stress on that bank, set the required allowance equal to 225% of the carried noncurrent-loan amount. Recognize the change from the carried allowance as a current-period provision, with a symmetric 25% tax effect. Retain the after-tax effect in CET1 and hold standardized risk-weighted assets fixed. Report the provision and resulting CET1 ratio. Interpret the accounting and capital effect; this is a hypothetical policy, not an estimate of the bank's actual CECL requirement.",
+          "validator": "validate_provision",
+          "stores": [
+            "stress_provision_bn",
+            "post_provision_cet1_pct"
+          ],
+          "claims": [
+            {
+              "id": "provision_capital_meaning",
+              "description": "The response explains that the incremental provision changes earnings and CET1 while establishing a larger loss allowance.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "In the carried stress state, suppose 40% of the required allowance is now charged off against it, with no new loss recognition, recoveries or tax entry at this stage. Hold standardized risk-weighted assets fixed under this isolated scenario. Report the charged-off amount and remaining allowance. Explain the effect on CET1 relative to the previous turn.",
+          "validator": "validate_chargeoff",
+          "stores": [
+            "charged_off_bn",
+            "post_chargeoff_allowance_bn"
+          ],
+          "claims": [
+            {
+              "id": "chargeoff_capital_meaning",
+              "description": "The response concludes that this covered charge-off consumes the allowance without another CET1 reduction under the stated assumptions.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "After that charge-off, recover cash equal to 10% of the charged-off amount and credit it to the allowance, with no current earnings or tax entry. Then require an ending allowance of 2% of the net-loan balance carried from the first turn, which the charge-off leaves unchanged; record any additional provision with the same symmetric tax treatment. Keep risk-weighted assets fixed. Report the recovery, additional provision, final CET1 ratio, and the minimum new CET1 needed to restore the opening ratio; new capital proceeds earn nothing and add no risk-weighted assets. Explain which earlier movements the new capital amount traces back to, and how far these computed figures can stand as a real supervisory projection.",
+          "validator": "validate_reassessment",
+          "stores": [
+            "cash_recovery_bn",
+            "ending_topup_provision_bn",
+            "ending_cet1_pct",
+            "new_cet1_required_bn"
+          ],
+          "claims": [
+            {
+              "id": "capital_decision",
+              "description": "The response relates the required capital injection to the accumulated provision effects rather than treating the charged-off principal as a fresh capital expense.",
+              "mode": "required"
+            },
+            {
+              "id": "scenario_boundary",
+              "description": "If the response characterizes this as an actual regulatory capital forecast or the bank's reported CECL allowance, it qualifies that claim because the loss multipliers and constant risk-weighted assets are scenario assumptions.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen September 2025 FDIC BankFind and consolidated FFIEC capital reports for the same charter; the subsequent steps are an explicitly hypothetical accounting stress.",
+    "facts": [
+      "The bank has FDIC certificate 628 and RSSD 852218; its allowance, noncurrent loans, CET1 and standardized risk-weighted assets are distinct financial stocks.",
+      "The first stress stage raises an allowance target and records only the incremental provision through after-tax CET1.",
+      "The covered charge-off consumes the booked allowance. The later recovery credits the allowance before the separate ending-target reassessment.",
+      "Holding risk-weighted assets fixed isolates the numerator effects; the ending funding amount restores the opening ratio only within these assumptions."
+    ],
+    "known_overclaims": [
+      "Equating noncurrent loans with inevitable credit losses.",
+      "Reducing CET1 again when an already provided loss is charged off.",
+      "Treating the internal 225% and 2% targets as JPMorgan Chase's reported CECL estimate or an official regulatory stress scenario."
+    ]
+  }
+}

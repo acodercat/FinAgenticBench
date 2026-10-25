@@ -1,0 +1,107 @@
+{
+  "name": "seven_a_negative_employment_chargeoff_screen",
+  "module": "evals.comparison_ranking.seven_a_negative_employment_chargeoff_screen",
+  "task_family": "comparison_ranking",
+  "data_sources": [
+    "sba_7a",
+    "census_geo_crosswalk",
+    "bls_qcew"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Retrospectively combine SBA 7(a) approval-fiscal-year 2022 public loan rows with the frozen 2024 and 2025 BLS QCEW state annual totals, bridging geography through the Census Gazetteer's USPS-to-state-FIPS correspondence across the 50 states and the District of Columbia. Treat every reported SBA row as one observation without deduplicating exact-looking rows, and keep rows with a recorded first disbursement no later than 2025-12-31. Require at least 500 reported loan rows at state level, and derive 2024-to-2025 private annual-average employment growth from the two employment levels. Report the matched state count, the count meeting the minimum population, and the count with negative private employment growth. Carry the eligible states forward and explain how the restrictions shape the comparison.",
+          "validator": "validate_state_population",
+          "stores": [
+            "matched_state_and_dc_count",
+            "minimum_500_loan_state_count",
+            "negative_private_employment_growth_state_count"
+          ],
+          "claims": [
+            {
+              "id": "eligible_set_before_ranking",
+              "description": "The response establishes the eligible state population before any ranking, so later leaders are selected inside one screened set rather than from the raw file.",
+              "mode": "required"
+            },
+            {
+              "id": "minimum_population_threshold_boundary",
+              "description": "If the response treats the 500-row inclusion floor as a guarantee of statistical significance, precision or representativeness, it states that the threshold is a deterministic population rule and that no sampling-uncertainty analysis was performed.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Treat a charge-off as qualifying only when its event date is on or before the same calendar day 36 months after the approval date and no later than 2025-12-31. At state level calculate charge-off incidence, rank the eligible states by it, breaking an exact tie alphabetically, and report the overall leader, its incidence and its private employment growth. Carry the incidence measure forward and explain what the 36-month window can and cannot capture.",
+          "validator": "validate_overall_leader",
+          "stores": [
+            "overall_highest_chargeoff_incidence_state",
+            "overall_highest_chargeoff_incidence_pct",
+            "overall_leader_private_employment_growth_pct"
+          ],
+          "claims": [
+            {
+              "id": "time_grain_limitation",
+              "description": "The response explains that one state-level 2024-to-2025 annual employment change is not a loan-specific economic path matched to every loan's individual 36-month performance window.",
+              "mode": "required"
+            },
+            {
+              "id": "qcew_vintage_boundary",
+              "description": "If the response calls the 2025 QCEW observations final or available as of 2025-12-31, it states that the frozen annual table is a preliminary retrospective vintage released after year end.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Now restrict to the negative-employment-growth subset and report its charge-off incidence leader, its reported loan and qualifying charge-off counts, its incidence, its qualifying gross charge-off amount as a share of cohort gross approvals, both employment levels and its employment growth. Explain what the labor screen adds and what it cannot establish.",
+          "validator": "validate_screened_leader",
+          "stores": [
+            "negative_growth_highest_chargeoff_state",
+            "screen_leader_reported_loan_count",
+            "screen_leader_36_month_chargeoff_count",
+            "screen_leader_chargeoff_incidence_pct",
+            "screen_leader_chargeoff_amount_to_approval_pct",
+            "screen_leader_2024_private_annual_avg_employment",
+            "screen_leader_2025_private_annual_avg_employment",
+            "screen_leader_private_employment_growth_pct"
+          ],
+          "claims": [
+            {
+              "id": "labor_screen_changes_leader",
+              "description": "The response explains that applying the negative private-employment-growth screen changes the charge-off-incidence leader, because it changes the eligible state population rather than redefining the SBA outcome.",
+              "mode": "required"
+            },
+            {
+              "id": "incidence_dollar_loss_share_distinction",
+              "description": "The response distinguishes row-count charge-off incidence from cohort gross charge-off amount divided by all cohort gross approvals, characterizing the latter as a portfolio dollar loss share affected by incidence, loan-size mix and charge-off-amount mix rather than loss severity conditional only on charged-off rows.",
+              "mode": "required"
+            },
+            {
+              "id": "employment_causality_boundary",
+              "description": "If the response attributes the charge-offs or state ranking to employment contraction, it states that the retrospective descriptive screen does not identify a causal effect or control for borrower, lender, program and industry mix.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "SBA 7(a) public loan snapshot as of 2026-06-30, Census 2024 Gazetteer and preliminary BLS QCEW 2025 annual state totals",
+    "facts": [
+      "All reported rows are preserved because the privacy-reduced SBA extract lacks a guaranteed unique public loan identifier; exact-looking rows cannot be silently deduplicated.",
+      "Fifty-one state-level jurisdictions match; 24 have at least 500 qualifying FY2022 rows and six of those have negative private annual-average employment growth from 2024 to 2025.",
+      "New York leads all 24 states with a 3.4247 percent 36-month charge-off incidence and +0.7512 percent private-employment growth.",
+      "Maryland leads the negative-growth subset: 655 reported loans, 19 qualifying charge-offs, 2.9008 percent incidence and a 0.4545 percent charge-off-amount-to-approval ratio. Private annual-average employment falls from 2,238,248 to 2,230,280, or -0.3560 percent.",
+      "The QCEW annual employment observation is a coarse retrospective state measure, not a causal exposure matched to each SBA loan."
+    ],
+    "known_overclaims": [
+      "Deduplicating exact-looking privacy-reduced SBA rows as though they had a guaranteed unique loan key.",
+      "Using current CHGOFF status from the 2026 snapshot instead of dated events inside each 36-month window.",
+      "Calling the QCEW screen a causal explanation of charge-offs or calling the preliminary annual vintage final or point-in-time information available at 2025 year end."
+    ]
+  }
+}

@@ -1,0 +1,161 @@
+{
+  "name": "insider_transaction_code_discretionary_selling",
+  "module": "evals.calculation_reconciliation.insider_transaction_code_discretionary_selling",
+  "task_family": "calculation_reconciliation",
+  "data_sources": [
+    "sec_insider",
+    "ken_french_daily_factors"
+  ],
+  "case_type": "baseline",
+  "difficulty": "hard",
+  "judge_reference": {
+    "source": "SEC Form 3/4/5 insider submission records and non-derivative transaction rows for the covered 500-company universe filed 2019 through 2025, joined to the Fama-French daily research factors.",
+    "facts": [
+      "Restricted to submissions whose document type is exactly 4, the window carries 351,580 non-derivative transaction rows.",
+      "By transaction code the population holds 116,010 S rows, 76,360 A rows, 69,758 F rows, 55,061 M rows and 9,660 P rows. SEC defines S/P to include open-market or private transactions, F to include exercise-price or tax-liability delivery or withholding, and M as an exempt exercise or conversion.",
+      "Code F rows are 34.5657 percent of all disposition rows and code P rows are 6.4500 percent of all acquisition rows.",
+      "The acquired-or-disposed indicator gives 201,813 dispositions against 149,767 acquisitions, a ratio of 1.3475; the S/P codes give 12.0093; valid rows priced at their reported per-share amounts give 801.1562 against 36.8450 billion USD, a ratio of 21.7440.",
+      "The Rule 10b5-1 flag carries a value on 0 of the 28,124 Form 4 filings of 2022, on 16,664 of 2023, and on all 28,172 of 2024.",
+      "Among 2024 S rows, 68.9147 percent belong to filings with an affirmative Rule 10b5-1 checkbox and those rows are 29.1652 percent of S-row value; 3,993 inherit the word encoding. The checkbox is filing-level and does not identify which transaction row was under a plan.",
+      "Of the 252 trading days of 2024, 45.2381 percent carry a negative market excess return, and the unconditional mean is 0.0717 percent.",
+      "Code P rows fall on a negative day 55.0562 percent of the time with a transaction-row-weighted mean market excess return of -0.1818 percent; S rows in affirmative-plan filings average 0.0184 percent and those in non-affirmative filings 0.1422 percent.",
+      "The market comparison retains only transactions dated on a trading day, keeping 801 of the 908 purchases the year carries."
+    ],
+    "known_overclaims": [
+      "Treating the acquired-or-disposed indicator as a P/S measure, or treating every A, F, and M row as a discretionary decision.",
+      "Describing every code F row as tax withholding on vesting, when the SEC definition also covers exercise-price payment and other receipt or exercise events.",
+      "Reporting a Rule 10b5-1 share for years in which the field carries no value at all.",
+      "Reading filing-level checkbox groups as transaction-level plan status, or reading same-day mean-return differences as causal timing, discretion, or insider returns."
+    ]
+  },
+  "conversations": [
+    {
+      "turns": [
+        {
+          "query": "Using the SEC insider tables, restrict the submissions to those whose document type is exactly \"4\", so Forms 3 and 5 and every amended form are excluded, and keep those with a filing date in 2019 through 2025. Join the non-derivative transaction rows to that set of filings on the accession number and report how many transaction rows result. Then report how many of those rows carry each of these transaction codes: S, A, F, M and P. Finally, using the acquired-or-disposed indicator, report code F rows as a percentage of all rows marked as dispositions, and code P rows as a percentage of all rows marked as acquisitions. Explain why the acquired-or-disposed marker and these transaction codes answer different questions about activity.",
+          "validator": "validate_code_composition",
+          "stores": [
+            "transaction_rows",
+            "sale_rows",
+            "award_rows",
+            "code_f_rows",
+            "code_m_rows",
+            "purchase_rows",
+            "code_f_share_of_dispositions_pct",
+            "purchase_share_of_acquisitions_pct"
+          ],
+          "claims": [
+            {
+              "id": "code_scope",
+              "description": "The response explains that A, F and M are Rule 16b-3 transaction types while P and S are open-market-or-private purchases and sales, so the acquired/disposed marker is not a substitute for a P/S classification.",
+              "mode": "required"
+            },
+            {
+              "id": "f_code_boundary",
+              "description": "The response describes code F as payment of an exercise price or tax liability by delivering or withholding securities incident to receipt, exercise or vesting under Rule 16b-3.",
+              "mode": "required"
+            },
+            {
+              "id": "f_code_classification_boundary",
+              "description": "If the response classifies F rows collectively, it states that not every F row is a vesting-tax event and that F is not a code S sale.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Measure the sale-purchase imbalance of the same population three ways. First, report how many rows the acquired-or-disposed indicator marks as dispositions and how many as acquisitions, and their ratio. Second, report the ratio of code S rows to code P rows. Third, for code S and P rows with both numeric share count and reported price per share, value each as shares times price, excluding rows missing either input; report the two totals in USD billions and their ratio. Explain why the three measures differ and state what the reported-price totals exclude or do not represent.",
+          "validator": "validate_measure_divergence",
+          "stores": [
+            "disposition_rows",
+            "acquisition_rows",
+            "indicator_ratio",
+            "coded_sale_purchase_count_ratio",
+            "sale_value_usd_billions",
+            "purchase_value_usd_billions",
+            "coded_sale_purchase_value_ratio"
+          ],
+          "claims": [
+            {
+              "id": "order_of_magnitude",
+              "description": "The response explains that the all-code acquired/disposed ratio includes transaction types outside P and S, while the P/S count and reported-price value ratios measure narrower and differently weighted populations.",
+              "mode": "required"
+            },
+            {
+              "id": "pricing_boundary",
+              "description": "The response states that the totals cover only S/P rows with both numeric inputs, use the reported transaction price, and are aggregate filing-row values rather than insider profits, cash flows for every code, or a market-wide volume measure.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Turn to the Rule 10b5-1 indicator carried on the submission record. First, report how many Form 4 filings from each of 2022, 2023 and 2024 carry any value at all in that field. Then take code S transaction rows on Form 4 filings filed in 2024 and classify a row as belonging to an affirmative-plan filing when its filing-level indicator reads either the digit 1 or the word true in any letter case. Report the percentage of sale rows in affirmative-plan filings and the percentage of 2024 sale value those rows represent. Finally report how many of those sale rows carry the word rather than the digit. Explain the availability, encoding and filing-level grain limits of this proxy.",
+          "validator": "validate_plan_flag_availability",
+          "stores": [
+            "flagged_filings_2022",
+            "flagged_filings_2023",
+            "flagged_filings_2024",
+            "sale_rows_in_affirmative_plan_filings_pct",
+            "sale_value_in_affirmative_plan_filings_pct",
+            "word_affirmative_sale_rows"
+          ],
+          "claims": [
+            {
+              "id": "availability_constraint",
+              "description": "The response states that the field is unavailable in 2022, partial in 2023 and populated on all 2024 Form 4 filings in this frozen table, so the years are not directly comparable on this proxy.",
+              "mode": "required"
+            },
+            {
+              "id": "filing_grain_boundary",
+              "description": "The response states that the checkbox is filing-level: an affirmative filing says at least one transaction was under an intended Rule 10b5-1 plan, so assigning its status to every S row is only a filing-level proxy.",
+              "mode": "required"
+            },
+            {
+              "id": "checkbox_row_identification_boundary",
+              "description": "If the response assigns plan status to an individual S row, it states that the checkbox identifies no particular transaction row.",
+              "mode": "conditional"
+            },
+            {
+              "id": "encoding_hazard",
+              "description": "The response notes that affirmative values use both digit and word encodings, so testing only one encoding understates the proxy.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Finally compare transaction-date market conditions across the filing-level groups. Take the Fama-French daily factor table, keep 2024, and report how many trading days it carries and what percentage of them have a negative market excess return. Then match each 2024 Form 4 transaction to its own transaction date in that table, keeping only transactions that fall on a trading day. Report the percentage of code P transactions falling on a negative day, and the transaction-row-weighted mean market excess return on the transaction date, in percent, for three groups separately: code P rows, code S rows in affirmative-plan filings, and code S rows in non-affirmative filings. Explain what this descriptive comparison can and cannot establish about transaction timing or discretion.",
+          "validator": "validate_market_timing",
+          "stores": [
+            "trading_days",
+            "baseline_down_day_share_pct",
+            "purchase_down_day_share_pct",
+            "purchase_mean_market_return_pct",
+            "sale_in_affirmative_plan_filing_mean_market_return_pct",
+            "sale_in_nonaffirmative_filing_mean_market_return_pct"
+          ],
+          "claims": [
+            {
+              "id": "timing_inference_boundary",
+              "description": "The response treats the differences as descriptive transaction-date associations.",
+              "mode": "required"
+            },
+            {
+              "id": "timing_causality_boundary",
+              "description": "If the response infers causality, profits, or whether an individual row could exercise discretion, it states that a filing-level checkbox and a same-day market return establish none of them.",
+              "mode": "conditional"
+            },
+            {
+              "id": "purchase_contrarian",
+              "description": "If the response describes code P rows as occurring on negative-market days more often than the unconditional trading-day rate, it labels that pattern neither causal nor necessarily contrarian.",
+              "mode": "conditional"
+            },
+            {
+              "id": "row_weighting_boundary",
+              "description": "The response notes that the means weight transaction rows, so a date is repeated when multiple rows occur, and they are not returns earned by insiders or equally weighted date averages.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

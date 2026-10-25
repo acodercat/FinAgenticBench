@@ -1,0 +1,39 @@
+{
+  "eia_steo_wti_vintages": {
+    "rows": 576,
+    "publication_vintages": 24,
+    "target_months": 24,
+    "output": "eia_steo_vintages/wti_monthly_vintages.csv.gz"
+  },
+  "eia_pet_wti_monthly_actuals": {
+    "rows": 480,
+    "start_month": "1986-01",
+    "end_month": "2025-12",
+    "series_id": "PET.RWTC.M",
+    "output": "eia_bulk/wti_monthly_spot_prices.csv.gz",
+    "vintage": "current revised bulk snapshot downloaded 2026-08-12"
+  },
+  "eia_pet_wti_daily_actuals": {
+    "rows": 10091,
+    "start_date": "1986-01-02",
+    "end_date": "2025-12-31",
+    "series_id": "PET.RWTC.D",
+    "output": "eia_bulk/wti_daily_spot_prices.csv.gz",
+    "vintage": "current revised bulk snapshot downloaded 2026-08-12"
+  },
+  "fema_declaration_areas": {
+    "rows": 3567,
+    "disaster_numbers": 301,
+    "start_declaration_date": "2024-01-07",
+    "end_declaration_date": "2025-12-19",
+    "output": "fema_disasters/declaration_areas_2024_2025.csv.gz",
+    "vintage": "current OpenFEMA snapshot downloaded 2026-08-12"
+  },
+  "rules": [
+    "STEO rows retain both publication date and target month; later-vintage history is never substituted for an earlier forecast.",
+    "PET.RWTC.M is a current revised monthly spot-price snapshot filtered to observations through 2025-12.",
+    "PET.RWTC.D is a current revised daily spot-price snapshot filtered to observations through 2025-12-31; non-observation dates are not synthesized.",
+    "FEMA rows preserve declaration-area grain and repeated counties across disaster numbers; cases must explicitly choose declaration type, time window and deduplication grain.",
+    "FEMA declaration status is administrative evidence, not a dollar-loss or causal-impact measure."
+  ]
+}

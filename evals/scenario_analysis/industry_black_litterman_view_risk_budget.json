@@ -1,0 +1,105 @@
+{
+  "name": "industry_black_litterman_view_risk_budget",
+  "module": "evals.scenario_analysis.industry_black_litterman_view_risk_budget",
+  "task_family": "scenario_analysis",
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "data_sources": [
+    "ken_french_10_industry_portfolios",
+    "ken_french_daily_factors"
+  ],
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Use Kenneth French's value-weighted HiTec, Utils, Enrgy and NoDur daily portfolios and the daily risk-free return on common dates in 2018-2022. Estimate the covariance of daily decimal excess returns with the sample denominator and annualize it with 252 observations. For a stipulated equal-capital equilibrium benchmark and standard Markowitz risk aversion four on annual decimal returns, obtain the CAPM reverse-optimization equilibrium mean vector. Report the training count, HiTec's implied annual excess mean, the benchmark's annual volatility and the covariance spectral condition number. Carry the covariance and full equilibrium mean vector forward and discuss the prior's financial meaning.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "training_count",
+            "equilibrium_hitec_mean_pct",
+            "benchmark_volatility_pct",
+            "covariance_condition"
+          ],
+          "claims": [
+            {
+              "id": "industry_black_litterman_view_risk_budget_t1_interpretation",
+              "description": "The response distinguishes the reverse-equilibrium means for the stipulated benchmark from historical sample mean estimates.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Use the Gaussian hierarchical Black\u2013Litterman model with the carried equilibrium mean and prior mean-uncertainty scale 0.05. The two annual relative-return views are HiTec outperforming Utils by three percentage points and Enrgy outperforming NoDur by one percentage point; their independent Gaussian error standard deviations are respectively two and three percentage points, independent of the prior. Conditional on the unknown mean, annual returns have the carried covariance. Report the posterior HiTec and Enrgy annual excess means and the posterior standard deviation of HiTec's mean. Carry the complete posterior and posterior predictive distribution forward and interpret the views relative to the prior.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "posterior_hitec_mean_pct",
+            "posterior_enrgy_mean_pct",
+            "posterior_hitec_mean_sd_pct"
+          ],
+          "claims": [
+            {
+              "id": "industry_black_litterman_view_risk_budget_t2_interpretation",
+              "description": "The response explains why the positive Enrgy relative-return view can lower its posterior mean when the implied equilibrium relative mean is higher.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "With the carried posterior predictive mean and covariance, solve the fully invested four-industry Markowitz mean\u2013variance allocation with risk aversion four, unrestricted short positions and no cash asset. Report all four weights, annual tracking error to the equal-capital benchmark measured with the carried training covariance, and posterior predictive portfolio volatility. Carry the full allocation and tracking-risk level forward and interpret its risk profile.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "hitec_weight_pct",
+            "utils_weight_pct",
+            "enrgy_weight_pct",
+            "nodur_weight_pct",
+            "tracking_error_pct",
+            "predictive_volatility_pct"
+          ],
+          "claims": [
+            {
+              "id": "industry_black_litterman_view_risk_budget_t3_interpretation",
+              "description": "The response interprets the negative Enrgy allocation and its tracking risk as consequences of the posterior predictive optimization, rather than assuming positive views require long holdings.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Multiply both original view-error variances by one common factor, preserving their relative precision and all other prior and allocation conventions. Find the smallest factor in the inclusive interval from one to 100 whose recomputed posterior-predictive allocation has tracking error exactly half the carried allocation's level, using the original training covariance. Report that factor and the revised Enrgy weight. Apply this revised allocation as fixed daily-rebalanced weights on common dates in calendar 2023; report annualized arithmetic mean excess return and sample volatility using 252 observations per year. Explain what rescaling the uncertainty attached to the opinions does to conviction and active risk, and what calendar 2023 results can establish about those opinions.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "view_variance_multiplier",
+            "recalibrated_enrgy_weight_pct",
+            "heldout_mean_excess_pct",
+            "heldout_volatility_pct"
+          ],
+          "claims": [
+            {
+              "id": "industry_black_litterman_view_risk_budget_t4_interpretation",
+              "description": "The response interprets the larger view-error variances as weaker confidence that reduces active tracking risk.",
+              "mode": "required"
+            },
+            {
+              "id": "industry_black_litterman_view_risk_budget_heldout_scope",
+              "description": "The response assesses the held-out returns as a retrospective observation rather than validation of the subjective views.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen governed sources and the preregistered named-model analytical scenario.",
+    "facts": [
+      "{\"benchmark_volatility_pct\": 21.762978933067465, \"covariance_condition\": 31.02755960814027, \"enrgy_weight_pct\": -1.5868390073157186, \"equilibrium_hitec_mean_pct\": 19.434350476869238, \"heldout_mean_excess_pct\": 4.5264508098269225, \"heldout_volatility_pct\": 11.570986175552244, \"hitec_weight_pct\": 22.928108389642432, \"nodur_weight_pct\": 53.6381810015097, \"posterior_enrgy_mean_pct\": 16.257764419465694, \"posterior_hitec_mean_pct\": 17.593523166634064, \"posterior_hitec_mean_sd_pct\": 4.8440406613484415, \"predictive_volatility_pct\": 19.512066666254906, \"recalibrated_enrgy_weight_pct\": 11.887365657245569, \"tracking_error_pct\": 8.222820689856274, \"training_count\": 1259, \"utils_weight_pct\": 25.02054961616359, \"view_variance_multiplier\": 7.901927058223946}",
+      "The response distinguishes the reverse-equilibrium means for the stipulated benchmark from historical sample mean estimates.",
+      "The response explains why the positive Enrgy relative-return view can lower its posterior mean when the implied equilibrium relative mean is higher.",
+      "The response interprets the negative Enrgy allocation and its tracking risk as consequences of the posterior predictive optimization, rather than assuming positive views require long holdings.",
+      "The response interprets the increased view-error variance as weaker confidence that reduces active risk, while assessing the held-out result as a retrospective observation."
+    ],
+    "known_overclaims": [
+      "Treating retrospective model fit or a stipulated scenario as causal or deployable forecast evidence."
+    ]
+  }
+}

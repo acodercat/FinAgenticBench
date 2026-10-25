@@ -1,0 +1,94 @@
+{
+  "name": "bank_arellano_bond_fieller_margin",
+  "module": "evals.scenario_analysis.bank_arellano_bond_fieller_margin",
+  "task_family": "scenario_analysis",
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "data_sources": [
+    "fdic_bankfind",
+    "nyfed_reference_rates"
+  ],
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Use FDIC BankFind quarterly reports from 2021 Q1 through 2024 Q4. Keep the balanced bank panel with a nonmissing strictly positive reported net interest margin in every quarter, identifying banks by FDIC certificate. Use the reported annualized margin in percent. The rate regressor is the equal-fixing arithmetic mean of published New York Fed SOFR effective-date observations within each quarter, in percent. Fit a first-order dynamic individual-effects margin model with its own one-quarter lag and contemporaneous SOFR, constant slopes and no time effects. Use one-step Arellano–Bond difference GMM with homoskedastic differenced-error weighting. For the lagged dependent variable, use available level lags two through four only, collapsed by lag; there are no pre-2021 observations, and each differenced equation from 2021 Q3 onward retains its available instruments. Treat SOFR as strictly exogenous with one ordinary-IV instrument column containing its own differenced value. Include no level-equation moments or differenced intercept, and leave coefficients unrestricted. Report bank count and both coefficients. Carry the complete panel, instrument specification and fitted residuals forward, and interpret the estimated margin dynamics. Use unrounded inputs and state throughout.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "bank_count",
+            "one_step_persistence",
+            "one_step_sofr_coefficient"
+          ],
+          "claims": [
+            {
+              "id": "bank_arellano_bond_fieller_margin_t1_interpretation",
+              "description": "The response treats the fitted persistence and rate slope as a dynamic association for the balanced survivor panel, rather than a deposit-pricing beta or identified causal response.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Obtain the two-step heteroskedasticity-robust Arellano–Bond estimate for the carried model. Use the uncentered bank-cluster moment covariance from the preceding one-step residuals for the second-step weight, with no finite-sample multiplier or further weight update. Report both two-step coefficients and the Hansen overidentification statistic. Carry the complete two-stage estimator forward, and assess its overidentifying restrictions at the five-percent level.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "two_step_persistence",
+            "two_step_sofr_coefficient",
+            "hansen_j_statistic"
+          ],
+          "claims": [
+            {
+              "id": "bank_arellano_bond_fieller_margin_t2_interpretation",
+              "description": "The response uses the large overidentification statistic to reject the stipulated moment restrictions at five percent and treats that rejection as a limitation on the fitted model.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "For the carried two-step estimator, obtain the mean-centered delete-one-bank jackknife covariance by omitting each retained bank's complete trajectory and re-estimating both stages on the remaining fixed panel. Keep the quarterly SOFR series, model and instrument rules unchanged. Treat banks as independent clusters, and use neither bias-corrected coefficient centers nor an MSE covariance centered on the full-sample estimate. Report the standard errors of the persistence and SOFR coefficients and their sampling correlation. Carry the complete covariance and full-sample two-step coefficients forward, and assess the precision of the dynamic-rate relationship.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "jackknife_persistence_se",
+            "jackknife_sofr_se",
+            "jackknife_coefficient_correlation"
+          ],
+          "claims": [
+            {
+              "id": "bank_arellano_bond_fieller_margin_t3_interpretation",
+              "description": "The response recognizes substantial persistence uncertainty and strongly dependent coefficient errors, rather than treating the number of bank-quarter rows as independent precision evidence.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Use the carried full-sample two-step coefficients and complete jackknife covariance to construct the 95-percent Fieller confidence set for the model's algebraic long-run margin response to a permanent one-percentage-point SOFR increase. Use the standard-normal 97.5th percentile as the critical value and the unrestricted coefficient domain. Report the confidence-set topology and its finite boundary points in ascending order. Explain what the shape you just reported implies about how tightly this long-horizon response can be bounded, and how the interval between the endpoints should be read.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "fieller_set_topology",
+            "fieller_lower_finite_boundary",
+            "fieller_upper_finite_boundary"
+          ],
+          "claims": [
+            {
+              "id": "bank_arellano_bond_fieller_margin_t4_interpretation",
+              "description": "The response interprets the two disjoint unbounded rays as lack of a finite confidence bound on long-run sensitivity, rather than reporting the excluded middle interval as the confidence set.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Governed frozen dataset_new and the specified named-model contract.",
+    "facts": [
+      "The response treats the fitted persistence and rate slope as a dynamic association for the balanced survivor panel, rather than a deposit-pricing beta or identified causal response.",
+      "The response uses the large overidentification statistic to reject the stipulated moment restrictions at five percent and treats that rejection as a limitation on the fitted model.",
+      "The response recognizes substantial persistence uncertainty and strongly dependent coefficient errors, rather than treating the number of bank-quarter rows as independent precision evidence.",
+      "The response interprets the two disjoint unbounded rays as lack of a finite confidence bound on long-run sensitivity, rather than reporting the excluded middle interval as the confidence set."
+    ],
+    "known_overclaims": [
+      "Treating hypothetical or descriptive financial-model outputs as causal estimates, observed transactions or guaranteed coverage."
+    ]
+  }
+}

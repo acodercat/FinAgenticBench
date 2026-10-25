@@ -1,0 +1,50 @@
+{
+  "name": "bank_time_deposit_reset_maturity_replan",
+  "module": "evals.scenario_analysis.bank_time_deposit_reset_maturity_replan",
+  "task_family": "scenario_analysis",
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "data_sources": ["ffiec_call_reports_time_deposits", "fdic_bankfind"],
+  "conversations": [{
+    "id": "main",
+    "turns": [
+      {
+        "query": "Use the retrospective September 30, 2025 FFIEC 041 domestic-office RC-E time-deposit maturity/repricing data and same-date FDIC financials, matching the reported FDIC certificate. Keep banks with complete nonnegative RC-E amounts, FDIC assets above USD 5 billion, positive cash, positive combined true one-year time-deposit maturities, and a positive combined excess of one-year maturity-or-repricing buckets over those true maturities. Rank that excess descending, RSSD ascending for ties. Report the eligible count and leading RSSD ID. Explain the difference between a time deposit resetting its rate and one maturing.",
+        "validator": "validate_turn_1",
+        "stores": ["time_deposit_eligible_banks", "time_deposit_selected_rssd"],
+        "claims": [{"id": "rce_reset_maturity_meaning", "mode": "required", "description": "The response distinguishes a rate reset on a continuing time deposit from contractual principal maturity and cash repayment."}]
+      },
+      {
+        "query": "For that bank, separately report the one-year maturity-or-repricing bucket and the true one-year contractual-maturity amount for time deposits of at most USD 250,000 and for those above USD 250,000, in USD millions. Interpret the excess in each size class.",
+        "validator": "validate_turn_2",
+        "stores": ["time_deposit_small_short_m", "time_deposit_small_maturity_m", "time_deposit_large_short_m", "time_deposit_large_maturity_m"],
+        "claims": [{"id": "rce_excess_interpretation", "mode": "required", "description": "The response identifies the material over-USD-250,000 bucket excess as deposits that can reprice within one year while contractually maturing later, rather than an extra one-year cash outflow."}]
+      },
+      {
+        "query": "Carry both size classes forward to a one-year planning horizon. Assume exactly half of deposits contractually maturing within the year renew at maturity and half leave; all departures are paid from opening FDIC cash, with no other cash flows. Assume a 150-basis-point rise applies in full to the retained later-maturing deposits that reset within the year and to the renewed deposits. Report ending cash and the next-year annualized incremental interest expense, in USD millions. Explain the relationship between these cash and interest-cost effects. Treat this as a hypothetical run-rate after all resets and renewals, not interest accrued during the planning year.",
+        "validator": "validate_turn_3",
+        "stores": ["time_deposit_half_renewal_cash_m", "time_deposit_half_renewal_extra_expense_m"],
+        "claims": [{"id": "rce_cash_interest_split", "mode": "required", "description": "The response keeps later-maturing reset deposits in the interest-cost base without counting them as principal cash outflow, and treats renewal as retaining principal at a higher hypothetical rate."}]
+      },
+      {
+        "query": "Replan from the same opening bank and deposits, replacing the half-renewal assumption. Require at least USD 100 million of cash after all one-year contractual maturities; a common fraction of both size classes renews and the rest leave. With no borrowing or other flows, find the smallest feasible renewal percentage. Report its next-year annualized incremental interest expense under the same 150-basis-point pass-through. Carry unrounded amounts through the calculation and compare the cash-cost tradeoff with the prior plan.",
+        "validator": "validate_turn_4",
+        "stores": ["time_deposit_floor_min_renewal_pct", "time_deposit_floor_extra_expense_m"],
+        "claims": [{"id": "rce_replanning_tradeoff", "mode": "required", "description": "The response recognizes that retaining slightly more maturing deposits than in the half-renewal branch protects the stated cash floor but raises the annualized interest-cost run-rate."}]
+      }
+    ]
+  }],
+  "judge_reference": {
+    "source": "Frozen 2025Q3 FFIEC 041 RC-E domestic-office time-deposit memorandum fields and same-date FDIC BankFind cash/assets; all renewal and 150 bp pricing terms are hypothetical.",
+    "facts": [
+      "The eligible sample contains 86 banks and the largest observed long-maturity/near-reset excess belongs to RSSD 673440.",
+      "Its at-most-USD-250,000 short bucket and true maturities are 709.935 and 709.412 million USD; the over-USD-250,000 amounts are 804.584 and 372.448 million USD.",
+      "At 50 percent renewal, cash ends at 72.091 million USD and next-year incremental interest expense is 14.6038 million USD. An exact 100 million USD cash floor requires 52.5797 percent renewal, with 15.0225 million USD next-year expense."
+    ],
+    "known_overclaims": [
+      "Treating the entire mixed reset-or-maturity bucket as contractually due within one year.",
+      "Calling the 150 bp pass-through observed bank pricing or recognizing a full year of interest expense during the planning year.",
+      "Using the 50 percent branch's remaining cash as the opening cash for the final replanning branch."
+    ]
+  }
+}

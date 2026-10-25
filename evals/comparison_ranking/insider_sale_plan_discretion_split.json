@@ -1,0 +1,163 @@
+{
+  "name": "insider_sale_plan_discretion_split",
+  "module": "evals.comparison_ranking.insider_sale_plan_discretion_split",
+  "task_family": "comparison_ranking",
+  "data_sources": [
+    "sec_insider",
+    "sec_companyfacts"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "turns": [
+        {
+          "query": "Insider transaction reports carry a transaction code and an acquired-or-disposed marker on every line. Restrict submissions to document type exactly 4, excluding amendments and other forms, then take their transactions dated in calendar 2024 whose code is S and whose marker is D. Keep rows that report both a share count and a price per share, a reported price of zero included, and value each at shares times price. Aggregate issuers by central index key; for display choose the issuer-name variant with the largest contributing value, breaking a name-variant tie alphabetically. Report how many transaction rows there are, how many issuer keys they cover, and their total value in USD billions. Then identify the issuer with the largest total, breaking an issuer-value tie by central index key ascending, and report its selected name, total in USD billions, and lead over the next issuer. Explain what this report-row ranking measures and its transaction-code boundary.",
+          "validator": "validate_gross_sale_leadership",
+          "stores": [
+            "sale_transaction_count",
+            "sale_issuer_count",
+            "sale_value_usd_billions",
+            "gross_leader_issuer",
+            "gross_leader_value_usd_billions",
+            "gross_leader_margin_usd_billions"
+          ],
+          "claims": [
+            {
+              "id": "code_selection_reasoning",
+              "description": "The response identifies S as the SEC code for an open-market or private sale and distinguishes the S/D population from awards, Rule 16b-3 F/M rows, gifts and other transaction codes.",
+              "mode": "required"
+            },
+            {
+              "id": "sentiment_boundary",
+              "description": "The response treats the result as the value of qualifying exact-Form-4 report rows aggregated by issuer CIK, not unique insiders, beneficial owners, market-wide volume, profits, or a common sentiment view.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "The Rule 10b5-1 indicator is carried at submission level and arrives written as 1, 0, true, false or nothing. Read only 1 or true, in either case, as an affirmative-plan filing and treat every other value, including missing, as non-affirmative. Split the 2024 sale rows from turn 1 by the status of their filing and report the transaction-row count and value in USD billions on each side, affirmative-filing value as a percent of total sale value, and affirmative-filing rows as a percent of all sale rows. Explain what the relationship between those percentages says about row size, and state why filing-level status is not transaction-level plan identification.",
+          "validator": "validate_plan_decomposition",
+          "stores": [
+            "affirmative_plan_filing_sale_count",
+            "affirmative_plan_filing_sale_value_usd_billions",
+            "nonaffirmative_filing_sale_count",
+            "nonaffirmative_filing_sale_value_usd_billions",
+            "affirmative_plan_filing_share_of_value_pct",
+            "affirmative_plan_filing_share_of_transactions_pct"
+          ],
+          "claims": [
+            {
+              "id": "count_value_inversion_reasoning",
+              "description": "The response explains that affirmative-filing rows form a larger share of transaction rows than of reported-price value, so the two filing-level groups differ in average row size.",
+              "mode": "required"
+            },
+            {
+              "id": "flag_normalization_boundary",
+              "description": "The response records that the affirmative-only rule assigns false or missing filings to the non-affirmative proxy group.",
+              "mode": "required"
+            },
+            {
+              "id": "proxy_group_labelling_boundary",
+              "description": "If the response labels that proxy group, it states that the rule establishes it as neither discretionary nor unscheduled in fact.",
+              "mode": "conditional"
+            },
+            {
+              "id": "filing_grain_boundary",
+              "description": "The response notes that an affirmative filing indicates at least one transaction under an intended Rule 10b5-1 plan, so the split is a filing-level proxy.",
+              "mode": "required"
+            },
+            {
+              "id": "row_level_inference_boundary",
+              "description": "If the response draws a conclusion about an individual sale row, it states that the checkbox identifies no particular row and cannot prove informativeness or discretion for any of them.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Now rerank issuers using only sale rows in the non-affirmative filing group from turn 2, retaining the same CIK aggregation and display-name rule. Report how many issuer keys have any such value. Identify the leader, breaking a value tie by CIK ascending, and report its selected name, value in USD billions and lead over the next issuer. Then report the value the turn-1 leader shows on this narrowed proxy and its rank, using 0 if it has no such value. Explain what the comparison between the two report-row rankings shows without calling the narrowed group discretionary activity.",
+          "validator": "validate_nonaffirmative_reranking",
+          "stores": [
+            "nonaffirmative_filing_issuer_count",
+            "nonaffirmative_filing_leader_issuer",
+            "nonaffirmative_filing_leader_value_usd_billions",
+            "nonaffirmative_filing_leader_margin_usd_billions",
+            "gross_leader_nonaffirmative_filing_value_usd_billions",
+            "gross_leader_nonaffirmative_filing_rank"
+          ],
+          "claims": [
+            {
+              "id": "recomputation_reasoning",
+              "description": "The response makes clear that the narrowed ordering was recomputed over the reduced population rather than adjusted from the earlier one, since removing a category can drop an issuer out entirely.",
+              "mode": "required"
+            },
+            {
+              "id": "concentration_boundary",
+              "description": "The response observes that an issuer can top the all-sale-row ranking while having no sale value in the non-affirmative filing proxy, so the rankings answer different filing-level questions and do not establish scheduled versus discretionary economic activity.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Turn to the other side of the exact-Form-4 population. For the same 2024 transaction-date window take rows whose code is P and whose acquired-or-disposed marker is A, valued and aggregated by CIK under the same rules, and report how many rows there are, how many issuer keys they cover and their total in USD billions, then the leading issuer by value and its total. Report total sale value from turn 1 divided by total purchase value, and how many transaction rows in the exact-Form-4 window are marked as filed late. Finally, for the issuer identified in turn 3, report the shares summed across its non-affirmative-filing sale rows, its shares outstanding and that count's as-of date from the latest cover-page common-share fact filed on or before 2025-03-31 matched on CIK, and the sale-row shares as a percent of shares outstanding. Describe the sale-purchase gap without assigning a cause the tables cannot establish, and explain what the share percentage does and does not measure.",
+          "validator": "validate_purchase_asymmetry",
+          "stores": [
+            "purchase_transaction_count",
+            "purchase_issuer_count",
+            "purchase_value_usd_billions",
+            "purchase_leader_issuer",
+            "purchase_leader_value_usd_billions",
+            "sale_to_purchase_value_ratio",
+            "late_reported_transaction_count",
+            "nonaffirmative_filing_leader_sale_shares",
+            "nonaffirmative_filing_leader_shares_outstanding",
+            "nonaffirmative_filing_leader_shares_outstanding_end_date",
+            "nonaffirmative_filing_leader_sale_shares_to_outstanding_pct"
+          ],
+          "claims": [
+            {
+              "id": "asymmetry_reasoning",
+              "description": "The response treats the P/A versus S/D difference as a code-based report-row asymmetry.",
+              "mode": "required"
+            },
+            {
+              "id": "asymmetry_motive_boundary",
+              "description": "If the response infers compensation, personal cash commitment, informativeness, motive or sentiment, it states that these tables record none of them.",
+              "mode": "conditional"
+            },
+            {
+              "id": "denominator_timing_boundary",
+              "description": "The response notes that the numerator is annual reported sale-row volume in a filing-level proxy while the denominator is a later point-in-time company share count, so the percentage is not ownership sold, turnover by unique shares, or an insider stake change.",
+              "mode": "required"
+            },
+            {
+              "id": "late_filing_boundary",
+              "description": "The response treats the timeliness field as a source-reported row attribute.",
+              "mode": "required"
+            },
+            {
+              "id": "timeliness_conduct_boundary",
+              "description": "If the response reads the field as evidence of misconduct or filing compliance, it states that the field records neither.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen SEC insider transaction data sets for calendar 2024 over the governed issuer universe, with SEC company facts for share counts",
+    "facts": [
+      "The exact-Form-4 population contains 20,945 qualifying S/D report rows across 370 issuer CIKs totalling 107.697155 billion USD. Amazon.com leads at 13.729432 billion, 0.560549 billion ahead of Walmart.",
+      "Affirmative-plan filings contribute 14,444 qualifying sale rows worth 31.422153 billion USD, against 6,501 rows worth 76.275002 billion USD in non-affirmative filings. The affirmative-filing proxy holds 29.1764 percent of value and 68.9616 percent of rows; it is not transaction-level plan status.",
+      "348 issuer CIKs show sale-row value in non-affirmative filings. Walmart leads at 13.152360 billion USD, 2.261679 billion ahead of Bank of America. Amazon.com has zero in this proxy ranking and therefore rank 0; that does not prove every Amazon sale row was under a plan.",
+      "The exact-Form-4 P/A population has 850 rows across 145 issuer CIKs worth 4.970704 billion USD, led by Avangrid at 2.550826 billion; the S/D-to-P/A reported-value ratio is 21.6664 and zero exact-Form-4 transaction rows in the window carry the late marker. Walmart's non-affirmative-filing sale rows sum to 144,337,978 shares against 8,016,849,444 shares outstanding as of 2025-03-12, or 1.8004 percent on this mixed-period volume quotient."
+    ],
+    "known_overclaims": [
+      "Reading gross insider sale dollars as a bearish signal from insiders.",
+      "Treating a filing-level Rule 10b5-1 checkbox as transaction-level status or proof of discretion, timing, or informativeness.",
+      "Carrying the headline leader into the non-affirmative-filing proxy ranking instead of recomputing it.",
+      "Comparing the S/D and P/A totals as if the tables establish why the two report-row populations differ, or reading annual sale-row shares divided by a later share count as ownership sold."
+    ]
+  }
+}

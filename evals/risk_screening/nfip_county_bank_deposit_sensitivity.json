@@ -1,0 +1,106 @@
+{
+  "name": "nfip_county_bank_deposit_sensitivity",
+  "module": "evals.risk_screening.nfip_county_bank_deposit_sensitivity",
+  "task_family": "risk_screening",
+  "data_sources": ["fema_nfip", "fdic_sod", "fdic_bankfind"],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [{
+    "id": "main",
+    "turns": [
+      {
+        "query": "Create a retrospective county screen from physical NFIP claim rows whose date of loss is in 2024. Aggregate signed net building, contents and ICC payments and building plus contents coverage by reported county code that forms five digits after zero-padding. Separately form the BankFind cohort as the 12 largest FDIC-insured institutions by total assets in the 2025-06-30 BankFind snapshot and count their 2025 SOD representation in each county. Retain counties with at least 500 physical claim rows, at least USD 100 million of aggregate coverage and at least three distinct BankFind-cohort banks with SOD rows. Rank aggregate net payment divided by aggregate coverage descending, breaking a tie by county FIPS ascending. Report the BankFind cohort size; eligible count; selected FIPS and state; claim-row and represented-policy counts; net payment, coverage and rate; represented cohort-bank count; and the rate margin over the runner-up. Explain what this county tops once the thresholds are applied, what the denominator is built from, and what that leaves out about the wider county.",
+        "validator": "validate_nfip_county_screen",
+        "stores": ["bankfind_snapshot_bank_count", "eligible_nfip_bank_county_count", "selected_county_fips", "selected_county_state", "selected_county_claim_row_count", "selected_county_represented_policy_count", "selected_county_net_payment_usd_millions", "selected_county_coverage_usd_millions", "selected_county_net_payment_to_coverage_pct", "selected_county_bankfind_cohort_bank_count", "selected_county_loss_share_margin_pp"],
+        "claims": [
+          {
+            "id": "nfip_county_screen_result",
+            "description": "The response recognizes that the selected county leads an aggregate net-payment-to-reported-coverage screen after material row, coverage and bank-presence thresholds, rather than leading aggregate claim dollars.",
+            "mode": "required"
+          },
+          {
+            "id": "nfip_population_boundary",
+            "description": "The response explains that the denominator is reported building-plus-contents coverage attached to the frozen NFIP claim rows, defining a retrospective claim-record screen rather than a county-wide exposure measure.",
+            "mode": "required"
+          },
+          {
+            "id": "row_policy_grain_boundary",
+            "description": "If the response treats physical row count and represented policy_count as interchangeable, it qualifies that statement because a physical record can represent more than one policy.",
+            "mode": "conditional"
+          }
+        ]
+      },
+      {
+        "query": "Within the selected county, retain all 2025 SOD branch rows belonging to banks in the fixed BankFind cohort. Aggregate branch deposits by FDIC certificate and rank descending with certificate ascending as tie-break. Report represented bank count; deposit leader certificate and SOD legal name; its branch-row count and deposits; all cohort-bank deposits in the county; leader share; and leader-minus-runner-up deposits. Explain how much of the cohort's county deposits the top bank holds relative to the rest, and what branch-level reporting does not tell you about exposure.",
+        "validator": "validate_county_bank_concentration",
+        "stores": ["selected_county_deposit_bank_count", "selected_county_deposit_leader_certificate", "selected_county_deposit_leader_name", "selected_county_deposit_leader_branch_count", "selected_county_deposit_leader_usd_billions", "selected_county_cohort_deposits_usd_billions", "selected_county_deposit_leader_share_pct", "selected_county_deposit_leader_margin_usd_millions"],
+        "claims": [
+          {
+            "id": "county_deposit_concentration_result",
+            "description": "The response identifies from the computed share and margin that the selected bank is the largest, but not a majority, contributor to the fixed cohort's selected-county branch deposits.",
+            "mode": "required"
+          },
+          {
+            "id": "sod_geographic_boundary",
+            "description": "The response explains that SOD deposits are allocated to reported branch locations and do not locate every depositor, borrower, insured loss or balance-sheet risk exposure.",
+            "mode": "required"
+          }
+        ]
+      },
+      {
+        "query": "For that bank's 2025-06-30 BankFind row, report total deposits, domestic deposits and their foreign-office residual; the prior turn's selected-county deposits divided separately by total and domestic deposits; total assets; net loans and leases; noncurrent loans; and noncurrent loans divided by net loans and leases. Explain how the institution-level stock measures bound the county branch-deposit result.",
+        "validator": "validate_bank_balance_context",
+        "stores": ["deposit_leader_total_deposits_usd_billions", "deposit_leader_domestic_deposits_usd_billions", "deposit_leader_foreign_office_residual_usd_billions", "selected_county_share_of_total_deposits_pct", "selected_county_share_of_domestic_deposits_pct", "deposit_leader_total_assets_usd_billions", "deposit_leader_net_loans_usd_billions", "deposit_leader_noncurrent_loans_usd_billions", "deposit_leader_noncurrent_loan_ratio_pct"],
+        "claims": [
+          {
+            "id": "deposit_scope_denominator_result",
+            "description": "The response uses the foreign-office residual to explain why total deposits are a broader denominator than domestic deposits for the selected-county share.",
+            "mode": "required"
+          },
+          {
+            "id": "domestic_deposit_sod_reconciliation",
+            "description": "The response explains that the institution's domestic deposits reconcile to its national SOD branch total, while the selected county is only one geographic subset of that stock.",
+            "mode": "required"
+          },
+          {
+            "id": "claims_credit_measure_boundary",
+            "description": "If the response treats county NFIP payment share as the cause of the bank's institution-wide noncurrent-loan ratio or as measured bank loss exposure, it qualifies that inference because the sources do not link claims to borrowers or loans.",
+            "mode": "conditional"
+          }
+        ]
+      },
+      {
+        "query": "Run a branch-concentration sensitivity in the selected county: remove the single cohort branch row with the greatest reported deposits, breaking a tie by branch identifier ascending, and rerank bank deposit totals with the prior certificate tie-break. Report the removed branch identifier, name and deposits; adjusted leader certificate, name and deposits; and the original leader's adjusted deposits and rank. Explain what dropping a single branch record does to the ordering of bank totals, and how far that exercise stands from an actual branch closing.",
+        "validator": "validate_branch_removal_sensitivity",
+        "stores": ["removed_largest_branch_id", "removed_largest_branch_name", "removed_largest_branch_deposits_usd_millions", "adjusted_selected_county_leader_certificate", "adjusted_selected_county_leader_name", "adjusted_selected_county_leader_deposits_usd_billions", "original_leader_adjusted_deposits_usd_billions", "original_leader_adjusted_rank"],
+        "claims": [
+          {
+            "id": "branch_removal_result",
+            "description": "The response concludes from the reranking that removing one large branch is sufficient to move the original county leader to second place and select a different bank.",
+            "mode": "required"
+          },
+          {
+            "id": "branch_scenario_boundary",
+            "description": "If the response describes the mechanical row removal as an observed branch closure, deposit runoff or bank stress forecast, it qualifies that statement because the sensitivity changes only one frozen allocation row.",
+            "mode": "conditional"
+          }
+        ]
+      }
+    ]
+  }],
+  "judge_reference": {
+    "source": "Frozen 2024 NFIP claims, 2025-06-30 FDIC SOD branch rows and BankFind financials",
+    "facts": [
+      "The 12-bank BankFind cohort yields 17 eligible counties. County 37021, NC has 506 claim rows representing 513 policies, $81.551849m net payments, $168.640400m coverage and a 48.3584% rate.",
+      "Five cohort banks have branches in the county. Wells Fargo leads with eight rows and $1.341103bn, 36.3588% of the cohort's county deposits.",
+      "Wells Fargo reports $1,398.809bn total deposits, $1,392.827bn domestic deposits and a 1.3538% noncurrent-loan ratio.",
+      "Removing the $419.037m Asheville North branch reduces Wells Fargo to $0.922066bn and rank 2; Truist becomes leader at $0.987269bn."
+    ],
+    "known_overclaims": [
+      "Treating NFIP claim payments or coverage as all county property loss or exposure.",
+      "Treating SOD branch geography as depositor, borrower or insured-property geography.",
+      "Inferring bank credit loss or causality from the county overlay.",
+      "Treating a mechanical branch-row removal as an observed closure, runoff or forecast."
+    ]
+  }
+}

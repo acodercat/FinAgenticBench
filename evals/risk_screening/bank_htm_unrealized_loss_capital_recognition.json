@@ -1,0 +1,108 @@
+{
+  "name": "bank_htm_unrealized_loss_capital_recognition",
+  "module": "evals.risk_screening.bank_htm_unrealized_loss_capital_recognition",
+  "task_family": "risk_screening",
+  "data_sources": [
+    "ffiec_call_reports_securities",
+    "ffiec_call_reports_capital"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Take the banks filing the securities schedule at 2025-09-30, matched one to one by supervisory identifier to that date's regulatory-capital schedule, reading each bank's figures on the basis it files rather than restating them. Report how many banks that leaves, how many carry a held-to-maturity amortised cost above zero, how many of those hold it at a fair value below that cost, and held-to-maturity fair value less amortised cost summed across every bank in the file. Explain what held-to-maturity and available-for-sale securities are each carried at, where the gap between their two figures therefore sits, and what that means for a reader who sees only the carrying amount.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "bank_count",
+            "htm_holder_count",
+            "htm_loss_holder_count",
+            "htm_unrealized_bn"
+          ],
+          "claims": [
+            {
+              "id": "where_the_mark_sits",
+              "mode": "required",
+              "description": "The response distinguishes the book the bank keeps at its own cost basis from the one it marks to market, and says the difference between the two figures on the first never reaches the balance sheet."
+            }
+          ]
+        },
+        {
+          "query": "Report the available-for-sale fair value less amortised cost summed the same way. Then count the banks electing the community bank leverage ratio, count the banks reporting standardized risk-weighted assets above zero alongside a common equity tier 1 figure, and sum that second group's capital. Explain what the first count does to the second, and how an available-for-sale amount differs from a held-to-maturity one when you try to place it inside reported capital.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "afs_unrealized_bn",
+            "cblr_elector_count",
+            "ratio_bank_count",
+            "cet1_capital_bn"
+          ],
+          "claims": [
+            {
+              "id": "who_the_ratio_group_leaves_out",
+              "mode": "required",
+              "description": "The response states that a bank electing the community bank leverage ratio reports no risk-weighted assets, so the ratio group excludes those banks by construction rather than by choice, and notes that whether an available-for-sale mark already sits inside reported capital turns on an election these schedules do not record."
+            }
+          ]
+        },
+        {
+          "query": "Work with the banks reporting risk-weighted assets. Report their capital over their risk-weighted assets as a percentage, then that same ratio recomputed with the group's own held-to-maturity unrealised amount taken into capital. Then report how many of them sit below 7 percent, the figure a 4.5 percent minimum and a 2.5 percent conservation buffer together imply, on each of the two measures in turn. Explain what the recomputed ratio is and is not, and how an aggregate of this kind relates to the movement of the banks inside it.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "aggregate_cet1_ratio_pct",
+            "aggregate_adjusted_ratio_pct",
+            "below_seven_before_count",
+            "below_seven_after_count"
+          ],
+          "claims": [
+            {
+              "id": "hypothetical_not_restatement",
+              "mode": "required",
+              "description": "The response treats the recomputed ratio as a hypothetical recognition rather than a restatement of reported capital, and says an aggregate ratio is weighted by balance-sheet size so it need not move with the banks that move most."
+            }
+          ]
+        },
+        {
+          "query": "Look at where the gap is largest against a bank's own capital. Among the banks reporting positive capital, rank them by the held-to-maturity loss as a percentage of that capital, breaking a tie by the numerically lower supervisory identifier, and report the leader's identifier and that percentage, then how many banks carry a loss larger than their whole capital. Finally report pledged securities as a percentage of the securities the file carries, taking a held-to-maturity portfolio at amortised cost and an available-for-sale one at fair value. Explain what a loss larger than capital does and does not establish about a bank today, and what the pledged share adds to that.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "worst_bank_rssd",
+            "worst_htm_loss_to_cet1_pct",
+            "htm_loss_exceeds_cet1_count",
+            "pledged_share_pct"
+          ],
+          "claims": [
+            {
+              "id": "exposure_not_shortfall",
+              "mode": "required",
+              "description": "The response says a held-to-maturity loss is realised only if the securities leave the portfolio before maturity, so a loss larger than capital describes an exposure rather than a present capital shortfall, and reads the pledged share as securities encumbered against selling."
+            },
+            {
+              "id": "no_insolvency_from_these_fields",
+              "mode": "conditional",
+              "description": "If the response calls a bank with a loss larger than its capital insolvent or undercapitalised, it states that the bank's reported regulatory ratios are struck on amortised cost and that these schedules record no requirement to sell."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen FFIEC Call Report Schedule RC-B securities totals and regulatory-capital rows at 2025-09-30. The unrealised amounts, the recomputed ratio and the loss-to-capital ranking are analytic constructions rather than reported regulatory figures.",
+    "facts": [
+      "4,435 banks file both schedules at the date and match one to one on the supervisory identifier. 1,639 report a held-to-maturity portfolio and 1,199 of those hold it below amortised cost; summed across the file the held-to-maturity fair value is 221.749484 USD billions below amortised cost. That amount is disclosed beside the carrying value and is not in it, because the classification is carried at cost; an available-for-sale portfolio is carried at fair value instead.",
+      "Available-for-sale fair value is 115.374711 USD billions below amortised cost. 1,725 banks elect the community bank leverage ratio and those are exactly the 1,725 with no risk-weighted-asset figure, so the 2,710 banks that report one are what the ratio work can cover and the excluded group is the smaller banks rather than a random sample. Their common equity tier 1 capital sums to 2192.620735 USD billions. Whether an available-for-sale mark already sits inside reported capital depends on the accumulated-other-comprehensive-income opt-out, which these schedules do not record, so only the held-to-maturity amount can be added with confidence.",
+      "That group's capital over its risk-weighted assets is 14.3683%, and 12.9253% once its own 220.207743 USD billions of held-to-maturity loss is taken into capital. The count below the 7% implied by a 4.5% minimum and a 2.5% conservation buffer rises from 4 banks to 9. The aggregate moves 1.44 percentage points while individual banks move far more, because an aggregate ratio is weighted by balance-sheet size.",
+      "Two banks carry a held-to-maturity loss larger than their entire common equity tier 1. The largest is RSSD 480330 at 235.2045% of its capital, ahead of the next at 214.03%. 40.3287% of the securities the file carries are pledged, taking held to maturity at amortised cost and available for sale at fair value. A held-to-maturity loss is realised only on a sale before maturity, and a pledged security cannot be sold, so the gap between a paper loss and one a bank could act on is wider than the adjustment shows."
+    ],
+    "known_overclaims": [
+      "Reading a held-to-maturity unrealised loss as a deduction already reflected in reported regulatory capital, when the classification is carried at amortised cost.",
+      "Adding the available-for-sale mark to reported capital as well, when whether it is already there depends on an opt-out election these schedules do not record.",
+      "Calling a bank whose held-to-maturity loss exceeds its capital insolvent or undercapitalised, when its reported ratios stand on amortised cost and nothing here requires a sale.",
+      "Treating the banks excluded for reporting no risk-weighted assets as a random sample, when they are exactly the community bank leverage ratio electors.",
+      "Reading the aggregate ratio's move as the typical bank's move, when the aggregate is weighted by balance-sheet size.",
+      "Treating the whole securities portfolio as available to be sold, when 40.3287% of it is pledged."
+    ]
+  }
+}

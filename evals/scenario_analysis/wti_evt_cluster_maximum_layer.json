@@ -1,0 +1,102 @@
+{
+  "name": "wti_evt_cluster_maximum_layer",
+  "module": "evals.scenario_analysis.wti_evt_cluster_maximum_layer",
+  "task_family": "scenario_analysis",
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "data_sources": [
+    "eia_bulk_wti_daily",
+    "ofr_market_stress"
+  ],
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Analyze a one-barrel WTI inventory's positive daily dollar price declines on dates from 2010-01-01 through 2024-12-31 that have both an EIA daily spot observation and a numeric OFR Financial Stress Index. Each decline uses the immediately preceding EIA quote in the complete history, with source quotes treated as exact cents. Define the marked loss as that positive decline when the same-day OFR index is strictly positive, and zero otherwise; retain all common dates in its distribution and chronology. Use the lower inverse empirical 95th percentile as threshold and strict exceedances. Fit a zero-location generalized Pareto distribution to the excesses by the first two unbiased sample L-moments, with positive shape denoting a heavy unbounded tail. Report the common count, exceedance count, threshold, shape and scale. Carry the excess law and chronological marked-loss sample forward and discuss the financial scope of this tail fit.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "observation_count",
+            "threshold_exceedance_count",
+            "initial_threshold_usd",
+            "gpd_shape",
+            "gpd_scale_usd"
+          ],
+          "claims": [
+            {
+              "id": "wti_evt_cluster_maximum_layer_t1_interpretation",
+              "description": "The response gives at least one financially material limitation of fitting a stationary tail model to the retrospective OFR-marked dollar-loss history.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Using the carried peaks-over-threshold model with its empirical threshold-exceedance frequency, estimate the unconditional marked-loss 99-percent VaR and expected shortfall. Report both. Carry the full tail model and unrounded VaR forward and interpret the tail-risk estimates.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "marginal_var99_usd",
+            "marginal_es99_usd"
+          ],
+          "claims": [
+            {
+              "id": "wti_evt_cluster_maximum_layer_t2_interpretation",
+              "description": "The response relates the fitted positive shape to an expected shortfall materially exceeding VaR, rather than treating the quantile as a loss bound.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Raise the threshold to the carried 99-percent VaR. Use generalized Pareto threshold stability without refitting shape, and re-estimate the raised-threshold exceedance frequency from the carried complete marked-loss chronology. Estimate the runs extremal index with clusters separated by at least three consecutive nonexceeding common observations, counting both boundary clusters and without circular wrapping. Under the stationary Poisson-cluster approximation for a 252-observation block maximum, use that empirical frequency and extremal index. Report the raised exceedance count, extremal index and the block maximum's 95th and 99th percentiles. Carry the maximum law and both levels forward and interpret the dependence adjustment.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "raised_exceedance_count",
+            "extremal_index",
+            "annual_max95_usd",
+            "annual_max99_usd"
+          ],
+          "claims": [
+            {
+              "id": "wti_evt_cluster_maximum_layer_t3_interpretation",
+              "description": "The response interprets the subunit extremal index as multiple threshold exceedances per cluster in the observed finite-sample runs construction.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "For a model year of 252 common observations, consider an undiscounted layer covering the largest single-day marked loss during that year. Use the carried block-maximum law, with attachment at its carried 95th percentile, exhaustion at its carried 99th percentile, unit participation and no reinstatement. Report the expected layer payment and the unlimited expected excess above exhaustion. With the same fitted severity, raised-threshold frequency and fixed attachment/exhaustion levels, also report the layer expectation under an extremal index of one. Explain what switching off the clustering assumption does to the layer's expected cost, and what these expectations are missing before they could be quoted as prices.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "maximum_layer_premium_usd",
+            "upper_stoploss_usd",
+            "iid_layer_premium_usd"
+          ],
+          "claims": [
+            {
+              "id": "wti_evt_cluster_maximum_layer_t4_interpretation",
+              "description": "The response explains why the iid-extremal-index counterfactual increases the expected payment of the fixed annual-maximum layer.",
+              "mode": "required"
+            },
+            {
+              "id": "wti_evt_cluster_maximum_layer_actuarial_scope",
+              "description": "The response identifies these layer expectations as actuarial amounts without risk-neutral calibration or discounting.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen governed sources and the preregistered named-model analytical scenario.",
+    "facts": [
+      "{\"annual_max95_usd\": 18.125898703451305, \"annual_max99_usd\": 34.42328367253256, \"extremal_index\": 0.8125, \"gpd_scale_usd\": 1.0665511268549732, \"gpd_shape\": 0.3740150631747905, \"iid_layer_premium_usd\": 0.45999936784970463, \"initial_threshold_usd\": 1.57, \"marginal_es99_usd\": 7.015257416334969, \"marginal_var99_usd\": 3.912097992906476, \"maximum_layer_premium_usd\": 0.3749779199600266, \"observation_count\": 3764, \"raised_exceedance_count\": 32, \"runs_cluster_count\": 26, \"threshold_exceedance_count\": 187, \"upper_stoploss_usd\": 0.21399048146251923}",
+      "The response gives at least one financially material limitation of fitting a stationary tail model to the retrospective OFR-marked dollar-loss history.",
+      "The response relates the fitted positive shape to an expected shortfall materially exceeding VaR, rather than treating the quantile as a loss bound.",
+      "The response interprets the subunit extremal index as multiple threshold exceedances per cluster in the observed finite-sample runs construction.",
+      "The response explains why the iid counterfactual increases the fixed-layer expectation while treating these expectations as actuarial amounts rather than traded risk-neutral prices."
+    ],
+    "known_overclaims": [
+      "Treating retrospective model fit or a stipulated scenario as causal or deployable forecast evidence."
+    ]
+  }
+}

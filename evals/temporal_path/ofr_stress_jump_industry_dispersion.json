@@ -1,0 +1,115 @@
+{
+  "name": "ofr_stress_jump_industry_dispersion",
+  "module": "evals.temporal_path.ofr_stress_jump_industry_dispersion",
+  "task_family": "temporal_path",
+  "data_sources": [
+    "ofr_market_stress",
+    "ken_french_10_industry_portfolios"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Across calendar-2020 dates common to the daily OFR Financial Stress Index and the Ken French value-weighted 10-industry portfolios, find the largest increase in the OFR FSI between two consecutive common dates, resolving an exact tie by the earlier ending date. Report the common-date count, the window dates, and the starting and ending FSI index values. Carry the window forward and explain why the analysis is restricted to dates common to both sources.",
+          "validator": "validate_stress_window",
+          "stores": [
+            "common_2020_observation_date_count",
+            "stress_window_start_date",
+            "stress_window_end_date",
+            "start_ofr_fsi",
+            "end_ofr_fsi"
+          ],
+          "claims": [
+            {
+              "id": "common_date_alignment",
+              "description": "The response treats the restriction to dates present in both sources as what makes the stress move and the industry returns comparable observations.",
+              "mode": "required"
+            },
+            {
+              "id": "stress_vintage_boundary",
+              "description": "If the response presents the OFR values as exactly what was available on the 2020 event dates, it states that the supplied FSI table is a later current-revised history rather than a frozen real-time vintage.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Among the five OFR market-category contributions, credit, equity valuation, safe assets, funding and volatility, identify the largest contribution increase over that window, breaking an exact tie alphabetically, and report its name and increase in FSI index points. Explain how the five category figures combine into the overall index and its move, and how they stand next to the regional breakdown of the same measure.",
+          "validator": "validate_category_decomposition",
+          "stores": [
+            "largest_category_contribution_increase_name",
+            "largest_category_contribution_increase"
+          ],
+          "claims": [
+            {
+              "id": "fsi_decomposition_scope",
+              "description": "The response explains that the five market-category contributions form an additive decomposition of the OFR FSI level and its change over the selected window.",
+              "mode": "required"
+            },
+            {
+              "id": "decomposition_double_count_boundary",
+              "description": "If the response combines OFR's regional contributions with its market-category contributions, it states that they are alternative decompositions of the same FSI and must not be added together.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "On the ending date of that window, identify the worst- and best-return Ken French industry portfolios, breaking an exact return tie alphabetically by the official portfolio label. Report their labels and returns, the number of negative-return portfolios, and the equal-weighted arithmetic mean of all ten portfolio returns. Explain what this same-day dispersion does and does not establish about the stress move.",
+          "validator": "validate_industry_dispersion",
+          "stores": [
+            "worst_event_date_industry_label",
+            "worst_event_date_industry_return_pct",
+            "best_event_date_industry_label",
+            "best_event_date_industry_return_pct",
+            "event_date_negative_industry_count",
+            "event_date_equal_weighted_industry_mean_return_pct"
+          ],
+          "claims": [
+            {
+              "id": "industry_portfolio_measure_scope",
+              "description": "The response explains that equally averaging the ten value-weighted research-portfolio returns assigns equal weight to portfolios rather than reweighting their constituent firms into a market portfolio.",
+              "mode": "required"
+            },
+            {
+              "id": "same_day_causality_boundary",
+              "description": "The response identifies the same-day stress-jump and industry-return alignment as descriptive evidence that is insufficient for causal identification.",
+              "mode": "required"
+            },
+            {
+              "id": "industry_mean_overclaim_boundary",
+              "description": "If the response labels the requested ten-portfolio mean as a broad-market return, sector ETF return or firm-level average, it states that the measure is an equal-weighted cross-portfolio summary instead.",
+              "mode": "conditional"
+            },
+            {
+              "id": "industry_vintage_boundary",
+              "description": "If the response presents the Ken French returns or portfolio assignments as the exact research dataset available on the 2020 event date, it states that the supplied industry file is a later retrospective snapshot based on the 202606 CRSP database rather than a frozen real-time vintage.",
+              "mode": "conditional"
+            },
+            {
+              "id": "single_event_generalization_boundary",
+              "description": "If the response generalizes the selected one-day episode to normal stress-return behavior, predictability or investment performance, it states that one ex-post selected event does not establish those broader relationships.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "OFR daily Financial Stress Index current-revised history and Kenneth French value-weighted 10-industry daily returns",
+    "facts": [
+      "There are 253 common calendar-2020 observation dates. The largest consecutive-common-date FSI increase runs from 2020-03-06 to 2020-03-09, from 1.680 to 5.134, an increase of 3.454.",
+      "Volatility has the largest market-category contribution increase over the window at 2.178 FSI points.",
+      "On 2020-03-09 all ten industry portfolios are negative. Enrgy is worst at -19.68 percent; Shops is best at -5.05 percent; the equal-weighted mean is -8.531 percent and the best-minus-worst spread is 14.63 percentage points.",
+      "The five category contributions and three regional contributions are two alternative additive decompositions of the same OFR FSI, not components to pool together."
+    ],
+    "known_overclaims": [
+      "Selecting the highest FSI level rather than the largest consecutive-common-date increase, or shifting industry returns away from the ending date.",
+      "Ranking OFR category levels rather than their changes, or treating the equal-weighted cross-portfolio mean as a broad-market return.",
+      "Inferring causality, predictability or normal-period performance from one ex-post selected stress date.",
+      "Calling the later current-revised OFR history a strict real-time 2020 vintage."
+    ]
+  }
+}

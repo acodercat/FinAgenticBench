@@ -1,0 +1,126 @@
+{
+  "name": "treasury_rank1_vecm_positioning",
+  "module": "evals.temporal_path.treasury_rank1_vecm_positioning",
+  "task_family": "temporal_path",
+  "data_sources": [
+    "treasury_yield_curve",
+    "nyfed_reference_rates",
+    "cftc_cot"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "For futures-only CFTC 10-year Treasury note contract 043602 report dates from 2021-2025, inner-join exact same-date Treasury 2- and 10-year yields and SOFR. Define leveraged-money net share as long minus short divided by open interest. Report aligned count/boundaries and select the minimum 10-year-minus-2-year spread, ties earlier, with spread, SOFR and net share. Carry the weekly panel and interpret the relationship and material scope of the curve and positioning measures.",
+          "validator": "validate_alignment",
+          "stores": [
+            "aligned_week_count",
+            "aligned_start_date",
+            "aligned_end_date",
+            "minimum_curve_spread_date",
+            "minimum_ten_minus_two_spread_pp",
+            "same_date_sofr_pct",
+            "same_date_leveraged_net_share_pct"
+          ],
+          "claims": [
+            {
+              "id": "positioning_instrument_scope",
+              "description": "The response identifies leveraged-money net share as a CFTC futures-positioning measure rather than cash-Treasury ownership.",
+              "mode": "required"
+            },
+            {
+              "id": "positioning_causality_overclaim",
+              "description": "If the response causally attributes the curve configuration to same-date positioning, it states that the alignment does not identify causality.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Through 2023-12-31, estimate by OLS the normalized long-run relation with 10-year yield dependent on an intercept, 2-year yield and SOFR. On its residual, estimate by OLS an intercept-bearing no-lag ADF regression of residual change on lagged residual; compute the coefficient standard error using residual sum of squares divided by observations minus two. Report count, long-run coefficients, residual n-1 standard deviation, ADF level coefficient and t statistic. Carry the normalized residual forward and interpret what this Engle-Granger-style diagnostic can and cannot license about cointegration.",
+          "validator": "validate_rank1",
+          "stores": [
+            "rank1_training_week_count",
+            "cointegrating_intercept",
+            "cointegrating_two_year_coefficient",
+            "cointegrating_sofr_coefficient",
+            "equilibrium_error_std_pp",
+            "equilibrium_error_adf_coefficient",
+            "equilibrium_error_adf_t_stat"
+          ],
+          "claims": [
+            {
+              "id": "rank1_diagnostic_scope",
+              "description": "The response treats the residual ADF statistic as a diagnostic for the normalized relation rather than automatic proof of a structural equilibrium.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Estimate the conditional rank-one error-correction equation for weekly 10-year-yield change on an intercept, lagged equilibrium error, contemporaneous 2-year-yield change and contemporaneous SOFR change. Report count, coefficients, R-squared and maximum absolute unscaled OLS normal-equation moment. Carry coefficients forward and interpret adjustment sign and contemporaneous-information limits.",
+          "validator": "validate_ecm",
+          "stores": [
+            "ecm_observation_count",
+            "ecm_intercept_pp",
+            "ecm_adjustment_coefficient",
+            "ecm_two_year_change_coefficient",
+            "ecm_sofr_change_coefficient",
+            "ecm_r_squared",
+            "ecm_maximum_normal_moment"
+          ],
+          "claims": [
+            {
+              "id": "adjustment_sign_meaning",
+              "description": "The response uses the estimated adjustment sign to describe conditional movement toward or away from the fitted relation without claiming causality.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Freeze coefficients and evaluate 2024-2025 conditional one-step changes using realized contemporaneous regressors versus a no-change random walk. Report count, both RMSEs and whether ECM is lower. Identify largest absolute actual-minus-predicted error, ties earlier, and report date/error and same-date leveraged-money net share. Explain what using same-day realized inputs does to the standing of this comparison, and how much the matching positioning number can carry.",
+          "validator": "validate_test",
+          "stores": [
+            "ecm_test_week_count",
+            "ecm_test_rmse_pp",
+            "random_walk_test_rmse_pp",
+            "ecm_beats_random_walk",
+            "largest_error_date",
+            "largest_error_pp",
+            "same_date_leveraged_net_share_pct_test"
+          ],
+          "claims": [
+            {
+              "id": "conditional_test_scope",
+              "description": "The response identifies realized contemporaneous rate changes as making this an ex-post conditional comparison rather than a deployable one-step forecast.",
+              "mode": "required"
+            },
+            {
+              "id": "positioning_overlay_limit",
+              "description": "The response treats the same-date CFTC share as context rather than a causal explanation of the error.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "The reference aligns weekly CFTC/Treasury/SOFR observations, estimates a normalized rank-one relation and conditional error-correction equation, and evaluates held-out conditional changes without causal or ex-ante claims.",
+    "facts": [
+      "Over 261 weekly observations from 2021-01-05 to 2025-12-30 the deepest inversion is 2023-07-03 at -1.08 percentage points, with SOFR at 5.06 percent and leveraged-money net share at -30.448258 percent of open interest.",
+      "The fitted cointegrating relation puts 0.5681 on the two-year yield and 0.0202 on SOFR, with an equilibrium error standard deviation of 0.2069 percentage points. The augmented Dickey-Fuller coefficient on that error is -0.1103 with a t statistic of -3.1434.",
+      "The error-correction equation adjusts at -0.0978 per week, roughly a ten-week half-life, and explains 62.3818 percent of weekly changes with a maximum normal moment of zero at the scored precision.",
+      "Out of sample over 105 weeks it beats a random walk, 0.0948 against 0.1118 percentage points of root-mean-square error, an improvement of 0.0170, about fifteen percent of the random walk's error.",
+      "Its own worst week, 2025-04-08 at 0.2609 percentage points, is more than twice its average error, and leveraged-money net share on that date is -38.307589 percent, more negative than at the deepest inversion."
+    ],
+    "known_overclaims": [
+      "Presenting the single cointegrating relation as established; rank is imposed by the question rather than tested by a trace or maximum eigenvalue statistic.",
+      "Reading the Dickey-Fuller statistic as a size-correct test; it is computed on a residual from an estimated relation, which changes its distribution.",
+      "Treating the weekly leveraged-money aggregate as a directional forecast.",
+      "Inferring causality in either direction between positioning and yields.",
+      "Presenting a fifteen-percent error improvement as a reliable edge."
+    ]
+  }
+}

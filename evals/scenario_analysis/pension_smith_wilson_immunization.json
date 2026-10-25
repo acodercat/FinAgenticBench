@@ -1,0 +1,94 @@
+{
+  "name": "pension_smith_wilson_immunization",
+  "module": "evals.scenario_analysis.pension_smith_wilson_immunization",
+  "task_family": "scenario_analysis",
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "data_sources": [
+    "treasury_yield_curve",
+    "dol_form5500_schedule_sb"
+  ],
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Use Treasury's 2023-12-29 par yields at maturities one, two, three, five, seven, ten, twenty and thirty years as annual coupon rates for eight synthetic annual-pay par bonds. Each has unit face, integer-year coupon dates, price one and no accrued interest. Fit the Smith\u2013Wilson discount curve exactly to these cash-flow instruments, with ultimate forward rate 3.5 percent annual effective and fixed convergence parameter alpha 0.1 per year. No automatic alpha calibration or credit adjustment applies. Report the discount factors at years 40 and 60, and the instantaneous forward rate at year 60 as a continuously compounded annual rate in percent. Carry the entire fitted curve, retaining unrounded state throughout. Discuss what the fit and long-horizon extrapolation represent financially for this synthetic instrument set.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "discount_factor_year40",
+            "discount_factor_year60",
+            "instantaneous_forward_year60_pct"
+          ],
+          "claims": [
+            {
+              "id": "pension_smith_wilson_immunization_t1_interpretation",
+              "description": "The response distinguishes the exact fit to the synthetic annual-pay par instruments from the assumed long-horizon behavior controlled by the ultimate forward rate and alpha.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Using the carried curve, build a hypothetical closed-book pension liability. In DOL Form 5500 Schedule SB, select sponsor EIN 060570975, plan 041, year ending 2024-12-31 and valuation date 2024-01-01; use the latest successfully received filing by 2025-12-31, breaking a receipt-date tie by lexicographically greatest filing identifier. There are 50 annual payments at years one through 50. The first payment is USD 5,000 per reported Schedule SB participant; subsequent payments grow at one constant annual geometric rate. Calibrate that rate within minus five to plus five percent so present value equals the reported total funding target. There is no mortality, prepayment or new participation. Report the implied growth rate in percent, Fisher\u2013Weil duration in years for a parallel additive shift of continuously compounded spot rates, and the percent of present value from payments strictly after year 30. Carry the complete liability cash flows forward and interpret the calibrated growth rate's evidentiary scope.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "implied_benefit_growth_pct",
+            "liability_duration_years",
+            "liability_after30_pv_share_pct"
+          ],
+          "claims": [
+            {
+              "id": "pension_smith_wilson_immunization_t2_interpretation",
+              "description": "The response recognizes the growth rate as implied by the stipulated liability shape and funding-target calibration rather than an observed benefit escalation estimate.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Construct an immunizing asset portfolio using only synthetic zero-coupon bonds maturing at years one and 60, priced on the carried curve. Require nonnegative face amounts and match the carried liability's present value and Fisher\u2013Weil duration exactly. Report each bond's face amount in USD billions and the unnormalized surplus dollar convexity: the second derivative of asset-minus-liability present value with respect to a parallel additive shift of continuously compounded annual spot rates expressed as decimals, in USD billion-years squared. Freeze the resulting holdings and liability payments for the next assessment. Interpret the portfolio's local parallel-rate protection, including the role of the computed convexity.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "year1_zero_face_usd_bn",
+            "year60_zero_face_usd_bn",
+            "surplus_convexity_usd_bn_year2"
+          ],
+          "claims": [
+            {
+              "id": "pension_smith_wilson_immunization_t3_interpretation",
+              "description": "The response interprets the reported positive surplus convexity together with matched present value and duration as local protection against parallel continuously compounded spot-rate changes.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Reduce the annual-effective ultimate forward rate by 100 basis points while keeping alpha and all eight original synthetic par-bond prices and coupon rates fixed; refit the Smith\u2013Wilson curve. Hold the carried asset face amounts and all liability payments fixed. Report the stressed asset-minus-liability present-value surplus in USD billions and the percent of stressed liability present value arising strictly after year 30. Use the results to assess the scope of the preceding duration immunization under this change in long-term rate assumptions.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "ufr_stress_surplus_usd_bn",
+            "ufr_stress_after30_pv_share_pct"
+          ],
+          "claims": [
+            {
+              "id": "pension_smith_wilson_immunization_t4_interpretation",
+              "description": "The response relates the computed surplus and long-payment share to the refitted long-end curve and distinguishes an ultimate-forward-rate change from the parallel shift underlying the preceding duration match.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen governed dataset_new and the explicitly stipulated named-model financial contract.",
+    "facts": [
+      "{\"discount_factor_year40\": 0.2258398889598714, \"discount_factor_year60\": 0.11491537154805324, \"implied_benefit_growth_pct\": 1.5225908126451355, \"instantaneous_forward_year60_pct\": 3.4208571016425675, \"liability_after30_pv_share_pct\": 28.283577864683735, \"liability_duration_years\": 21.03676949893461, \"surplus_convexity_usd_bn_year2\": 23868.0814681019, \"ufr_stress_after30_pv_share_pct\": 29.498197008028264, \"ufr_stress_surplus_usd_bn\": 2.869191657773598, \"year1_zero_face_usd_bn\": 28.553095619091636, \"year60_zero_face_usd_bn\": 121.9348864527366}",
+      "The response distinguishes the exact fit to the synthetic annual-pay par instruments from the assumed long-horizon behavior controlled by the ultimate forward rate and alpha.",
+      "The response recognizes the growth rate as implied by the stipulated liability shape and funding-target calibration rather than an observed benefit escalation estimate.",
+      "The response interprets the reported positive surplus convexity together with matched present value and duration as local protection against parallel continuously compounded spot-rate changes.",
+      "The response relates the computed surplus and long-payment share to the refitted long-end curve and distinguishes an ultimate-forward-rate change from the parallel shift underlying the preceding duration match."
+    ],
+    "known_overclaims": [
+      "Treating hypothetical contractual, probability or long-horizon assumptions as observed market prices, causal effects or guaranteed outcomes."
+    ]
+  }
+}

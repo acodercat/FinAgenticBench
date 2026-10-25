@@ -1,0 +1,15 @@
+pre-refix root causes 89 (309 slots); dropped slots [('bank_year_to_date_flow_derivation', ['cumulative_income_usd_billions'], 'K9'), ('bis_currency_credit_cointegration_branch', ['no_change_benchmark_rmse_log_points'], 'K9'), ('nfip_compound_poisson_stoploss_capacity', ['severity_second_moment_million'], 'K9'), ('pension_discount_rate_remeasurement', ['tracking_count'], 'K9')]; added 1 root cause(s) covering 3 slots
+final: 86 root causes, 307 slots classified of 307 shared-wrong slots; unclassified: []
+
+class                                    roots slots attempts  share  antic    kbf | per 1000 attempts on these slots:   strong      mid     weak    think nonthink  pairedN  pairedT     topN     lowT
+K4 statistical method conventions           16    87      811  23.8%   0/16   2/13 |      122      274      282      187      296      296      195      282      231
+K5 data-model & identifier semantics        20    69      754  22.1%   7/20   3/18 |      245      278      276      267      270      270      278      241      265
+K6 economic scope selection                 17    53      544  15.9%   1/17   1/13 |      169      262      312      200      325      325      239      323      282
+K9 contract ambiguity                        3    17      374  11.0%   0/3    0/3  |      625      508      490      579      477      477      564      450      513
+K1 accounting/standards semantics            8    26      313   9.2%   2/8    3/7  |      145      335      355      229      366      366      227      385      306
+K3 instrument & contract mechanics          10    26      242   7.1%   2/10   1/7  |       85      314      282      195      291      291      189      259      286
+K7 unit/scale/sign                           4    15      226   6.6%   1/4    1/2  |      266      448      382      392      345      345      381      296      511
+K2 market microstructure & calendars         5    12      114   3.3%   4/5    0/2  |       93      206      367      161      324      324      184      315      243
+K8 output protocol                           3     3       45   1.3%   0/3    1/3  |      111      333      578      264      481      481      296      296      444
+total root causes 86, attempts 3412
+-> analysis/final_20261012/tables/knowledge_by_tier.csv

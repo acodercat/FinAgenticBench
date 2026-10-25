@@ -1,0 +1,22 @@
+
+DeepSeek V4 Flash: scored turns 34642 | AUC(mean coverage -> PV pass) 0.526 | config rank corr CC vs PV task accuracy 0.22
+   CC pass among PV pass                           95.4%  (n=28732)
+   CC pass among PV wrong value, other             92.1%  (n=2868)
+   CC pass among PV wrong value, shared            90.1%  (n=2392)
+   CC pass among PV unanswered or other failure    81.1%  (n=650)
+
+GPT-6 Luna: scored turns 34586 | AUC(mean coverage -> PV pass) 0.518 | config rank corr CC vs PV task accuracy 0.27
+   CC pass among PV pass                           78.3%  (n=28673)
+   CC pass among PV wrong value, other             77.1%  (n=2870)
+   CC pass among PV wrong value, shared            73.2%  (n=2389)
+   CC pass among PV unanswered or other failure    65.4%  (n=654)
+
+GLM-5.3 Flash: scored turns 34647 | AUC(mean coverage -> PV pass) 0.533 | config rank corr CC vs PV task accuracy 0.24
+   CC pass among PV pass                           86.5%  (n=28741)
+   CC pass among PV wrong value, other             82.0%  (n=2867)
+   CC pass among PV wrong value, shared            80.0%  (n=2385)
+   CC pass among PV unanswered or other failure    74.2%  (n=654)
+
+three judges agree on turn-level CC pass: 79.4% of 34539 turns
+-> analysis/final_20261012/tables/cc_by_config.csv
+-> analysis/final_20261012/tables/cc_vs_pv.csv

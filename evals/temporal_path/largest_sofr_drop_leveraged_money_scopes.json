@@ -1,0 +1,97 @@
+{
+  "name": "largest_sofr_drop_leveraged_money_scopes",
+  "module": "evals.temporal_path.largest_sofr_drop_leveraged_money_scopes",
+  "task_family": "temporal_path",
+  "data_sources": [
+    "nyfed_reference_rates",
+    "cftc_cot"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "For CFTC SOFR-3M contract code 134741, consider consecutive 2025 CFTC report dates for which both the futures-only and futures-and-options-combined reports and a same-date New York Fed overnight SOFR observation are available. Identify the pair with the largest decline in overnight SOFR, breaking any tie by the earlier ending report date. Report the two dates and both SOFR values. Carry the window forward and explain why the availability restriction matters.",
+          "validator": "validate_rate_window",
+          "stores": [
+            "window_start_date",
+            "window_end_date",
+            "start_overnight_sofr_pct",
+            "end_overnight_sofr_pct"
+          ],
+          "claims": [
+            {
+              "id": "aligned_window_basis",
+              "description": "The response states that the window is chosen only among dates where both reporting scopes and a same-date rate observation exist, so the series being compared are aligned.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "For each CFTC scope at those two dates, calculate leveraged-money directional net as long minus short, and report both levels and the ending minus starting change, as signed integer contracts. Carry both scopes forward and explain what each change represents.",
+          "validator": "validate_scope_positions",
+          "stores": [
+            "futures_only_start_directional_net",
+            "futures_only_end_directional_net",
+            "futures_only_directional_net_change",
+            "combined_start_directional_net",
+            "combined_end_directional_net",
+            "combined_directional_net_change"
+          ],
+          "claims": [
+            {
+              "id": "snapshot_change_semantics",
+              "description": "The response interprets each CFTC change as the difference between two reported position snapshots.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Report combined minus futures-only directional net at each date and its ending minus starting change, as signed integer contracts. Explain what this subtraction isolates and what the aligned comparison with the rate move can and cannot establish.",
+          "validator": "validate_scope_difference",
+          "stores": [
+            "start_combined_minus_futures_net",
+            "end_combined_minus_futures_net",
+            "combined_minus_futures_net_change"
+          ],
+          "claims": [
+            {
+              "id": "scope_difference_semantics",
+              "description": "The response characterizes the subtraction as a scope reconciliation rather than a directly observed instrument decomposition.",
+              "mode": "required"
+            },
+            {
+              "id": "aligned_comovement_interpretation",
+              "description": "The response characterizes the rate and position movements as descriptive co-movement across aligned observations.",
+              "mode": "required"
+            },
+            {
+              "id": "options_only_boundary",
+              "description": "If the response calls the scope difference an options-only position, it states that subtracting the published scopes does not isolate a standalone options portfolio.",
+              "mode": "conditional"
+            },
+            {
+              "id": "causal_forecast_boundary",
+              "description": "If the response attributes the position changes to the SOFR decline or makes a market forecast, it qualifies that inference because the aligned observations alone do not establish causality or predictive power.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "New York Fed overnight SOFR observations and CFTC 2025 Traders in Financial Futures reports",
+    "facts": [
+      "The largest same-report-date overnight SOFR decline is from 2025-10-28 to 2025-11-04: 4.31% to 4.00%, or -0.31 percentage points.",
+      "Futures-only leveraged-money directional net moves from -684,788 to -961,361, a -276,573-contract change. Combined net moves from -925,858 to -1,218,695, a -292,837-contract change.",
+      "Combined minus futures-only net is -241,070 at the start and -257,334 at the end, so the implied scope difference changes by -16,264 contracts."
+    ],
+    "known_overclaims": [
+      "Calling combined minus futures-only a directly reported options-only position.",
+      "Treating aligned weekly position changes and daily SOFR observations as proof of a causal response or forecast."
+    ]
+  }
+}

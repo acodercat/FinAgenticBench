@@ -1,0 +1,87 @@
+{
+  "name": "five_o_four_financing_mix",
+  "module": "evals.calculation_reconciliation.five_o_four_financing_mix",
+  "task_family": "calculation_reconciliation",
+  "data_sources": [
+    "sba_504",
+    "census_geo_crosswalk",
+    "bls_qcew"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Across the 50 states and the District of Columbia, analyze reported rows in the frozen 2026-06-30 SBA 504 public snapshot whose approval date falls in calendar 2025, whose first disbursement is recorded on or before 2025-12-31, and whose reported SBA gross approval plus third-party financing is positive. Use the Census Gazetteer's USPS-to-state-FIPS correspondence and retain state-level entities with zero eligible SBA rows in the matched population. Report the matched state-level entity count, the national eligible row count, aggregate SBA gross approvals, third-party dollars and combined financing, the SBA share of aggregate financing, and the unweighted mean reported-row SBA share. Carry the eligible population forward. Explain what the two share measures each describe and what the reported-row grain does and does not identify.",
+          "validator": "validate_national_aggregate",
+          "stores": [
+            "matched_state_entity_count",
+            "eligible_reported_row_count",
+            "aggregate_sba_gross_approval_usd_billions",
+            "aggregate_third_party_dollars_usd_billions",
+            "aggregate_total_financing_usd_billions",
+            "aggregate_sba_financing_share_pct",
+            "unweighted_mean_row_sba_share_pct"
+          ],
+          "claims": [
+            {
+              "id": "size_weighting_effect",
+              "description": "The response explains that the ratio of summed financing components and the unweighted mean of reported-row shares differ because rows carry unequal financing amounts.",
+              "mode": "required"
+            },
+            {
+              "id": "public_row_grain_boundary",
+              "description": "If the response calls the reported-row count a count of unique borrowers or uniquely identified loans, it qualifies that label because the privacy-reduced extract has no guaranteed unique loan identifier and preserves exact-looking rows.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Bring in the preliminary 2025 BLS QCEW private all-industry annual-average establishment counts for the same entities. Using the eligible population carried forward, calculate eligible reported rows per 10,000 private establishments and identify the highest-intensity entity, breaking any tie alphabetically by USPS abbreviation. For that entity report its USPS abbreviation, eligible row count, private establishment count, intensity, combined financing, aggregate SBA share and unweighted mean row share. Explain what the normalized ranking measures and the limits of reading it across states.",
+          "validator": "validate_intensity_leader",
+          "stores": [
+            "highest_intensity_state_usps",
+            "highest_intensity_reported_row_count",
+            "highest_intensity_private_establishment_count",
+            "highest_rows_per_10000_establishments",
+            "highest_intensity_total_financing_usd_millions",
+            "highest_intensity_aggregate_sba_share_pct",
+            "highest_intensity_unweighted_mean_row_share_pct"
+          ],
+          "claims": [
+            {
+              "id": "establishment_normalization_meaning",
+              "description": "The response characterizes the normalized ranking as reported SBA 504 row activity relative to each entity's private-establishment base rather than as an approval probability or share of eligible applicants.",
+              "mode": "required"
+            },
+            {
+              "id": "causal_demand_boundary",
+              "description": "If the response attributes normalized state differences to business demand, credit access or program effectiveness, it qualifies the inference because the cross-sectional denominator does not control for applicant eligibility, industry mix, policy, lender coverage or other drivers.",
+              "mode": "conditional"
+            },
+            {
+              "id": "retrospective_vintage_boundary",
+              "description": "If the response presents the comparison as information available during 2025 or calls the QCEW denominator final, it identifies the SBA file as a 2026-06-30 snapshot and the frozen 2025 QCEW annual observations as a later-released preliminary vintage.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "SBA 504 public snapshot observed 2026-06-30, Census 2024 county Gazetteer, and preliminary BLS QCEW 2025 annual state totals",
+    "facts": [
+      "The 51-entity population contains 2,135 eligible reported SBA rows after excluding Puerto Rico; DC and West Virginia remain in the population with zero eligible rows.",
+      "National SBA gross approvals are 2.013060 billion USD and third-party dollars are 2.657696711 billion, totaling 4.670756711 billion. The aggregate SBA share is 43.0992%, the unweighted mean row share is 44.4259%, and the gap is -1.3267 percentage points.",
+      "South Dakota has the highest intensity: 30 reported rows over 38,496 private establishments, or 7.7930 per 10,000. Its 47.484228 million USD combined financing has a 43.5008% aggregate SBA share, a 43.3444% mean row share and a +0.1563-point gap."
+    ],
+    "known_overclaims": [
+      "Silently deduplicating exact-looking privacy-reduced rows or calling the count uniquely identified borrowers.",
+      "Treating rows per 10,000 private establishments as an approval rate, applicant market share or causal program-effectiveness measure.",
+      "Presenting the SBA or preliminary QCEW snapshots as contemporaneous final 2025 information."
+    ]
+  }
+}

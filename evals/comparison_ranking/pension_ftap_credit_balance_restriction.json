@@ -1,0 +1,144 @@
+{
+  "name": "pension_ftap_credit_balance_restriction",
+  "module": "evals.comparison_ranking.pension_ftap_credit_balance_restriction",
+  "task_family": "comparison_ranking",
+  "data_sources": [
+    "dol_form5500_schedule_sb",
+    "dol_form5500_financials"
+  ],
+  "case_type": "baseline",
+  "difficulty": "hard",
+  "judge_reference": {
+    "source": "Department of Labor Form 5500 Schedule SB actuarial information for single-employer defined benefit plans, paired with the Form 5500 plan financial statements, for plan years ending 2023-12-31.",
+    "facts": [
+      "The population holds 4,773 plans, of which 3,129, or 65.5563 percent, carry a credit balance; the median positive balance is 3.7800 million USD and the total is 260.0433 billion.",
+      "Dividing actuarial assets by the funding target leaves the median plan at 106.9156 percent; subtracting the prefunding and funding standard carryover balances, as the statutory measure requires, leaves it at 99.6186 percent, a median difference of 2.3447 percentage points.",
+      "Against the percentage each plan certifies, the unsubtracted ratio agrees within 0.05 points on 36.1198 percent of plans with a median gap of 2.3862 points, while the statutory formula agrees on 96.4592 percent with a median gap of 0.0050.",
+      "A plan below 80 percent may not be amended to increase benefits and may pay only part of an accelerated distribution; below 60 percent benefit accruals cease.",
+      "The unsubtracted ratio places 165 plans below 80 percent against 225 on the statutory measure, clearing 60 restricted plans, and 18 below 60 percent against 32, clearing 14.",
+      "Built on current value rather than actuarial value the median ratio is 91.9991 percent, 8.2011 points below the statutory figure, and 851 plans fall below 80 percent against 225, so smoothing keeps 627 plans clear of restrictions a market measure would impose.",
+      "The actuarial valuation is dated the first day of the plan year for 4,252 of these plans, and among the 3,705 matched to a plan financial statement the Schedule SB current value equals beginning-of-year net assets within one percent on 90.5533 percent and is a median 0.9541 of end-of-year net assets.",
+      "Of the 169 plans the statutory formula fails to reproduce, 4 certify exactly 999.99, which is a reporting cap, and 1 reports a prefunding balance larger than its actuarial assets, which cannot happen and drives its computed percentage to -84.2652; the other 165 differ by a median of 0.5412 points. That impossible plan sits inside both the 225 below 80 percent and the 32 below 60."
+    ],
+    "known_overclaims": [
+      "Reporting actuarial assets divided by the funding target as a plan's funding target attainment percentage.",
+      "Treating the 80 and 60 percent thresholds as descriptive labels rather than as triggers for statutory benefit restrictions.",
+      "Presenting a ratio built on Schedule SB assets as the plan's position at the end of the plan year, when the valuation is dated its first day for most plans.",
+      "Describing the smoothed actuarial value as the plan's asset value without noting that it differs from market value by construction."
+    ]
+  },
+  "conversations": [
+    {
+      "turns": [
+        {
+          "query": "Using the Form 5500 Schedule SB actuarial file, build the population of plans whose plan year ends 2023-12-31, whose filing status records a successful receipt, whose total funding target is positive, and which report both an actuarial value of assets and a funding target attainment percentage. Identify a plan by sponsor EIN and plan number, and where more than one filing qualifies keep the one with the latest date received, breaking a tie on the greatest filing identifier. Report how many plans result. For each, define its credit balance as the prefunding balance plus the funding standard carryover balance, treating a blank as zero. Report how many plans carry a positive credit balance, that count as a percent of the population, the median positive balance in USD millions, and the total across the population in USD billions. Finally report the median of actuarial value of assets divided by total funding target, in percent. Briefly explain the role of funding balances in the FTAP calculation.",
+          "validator": "validate_credit_balance_scale",
+          "stores": [
+            "plan_count",
+            "credit_balance_plans",
+            "credit_balance_share_pct",
+            "median_credit_balance_usd_millions",
+            "total_credit_balance_usd_billions",
+            "median_unadjusted_ratio_pct"
+          ],
+          "claims": [
+            {
+              "id": "credit_balance_meaning",
+              "description": "The response explains that the prefunding and carryover balances can be used toward future minimum contribution requirements and therefore are subtracted when reconstructing filed FTAP rather than treated as additional available plan assets.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "The funding target attainment percentage is defined as the actuarial value of assets reduced by the prefunding balance and the funding standard carryover balance, divided by the funding target. Compute it for every plan and report its median in percent, and the median of the unadjusted ratio minus this one in percentage points. Then check both against the percentage each plan certifies on its own Schedule SB: for each of the two ratios report the percent of plans agreeing with the certified figure within 0.05 percentage points, and the median absolute difference from it in percentage points.",
+          "validator": "validate_statutory_formula",
+          "stores": [
+            "median_statutory_ratio_pct",
+            "median_overstatement_pp",
+            "unadjusted_agreement_pct",
+            "unadjusted_median_gap_pp",
+            "statutory_agreement_pct",
+            "statutory_median_gap_pp"
+          ],
+          "claims": [
+            {
+              "id": "certification_reconciliation",
+              "description": "The response uses agreement with each plan's filed FTAP to evaluate the two formulas and concludes that subtracting both reported funding balances is the substantially better reconstruction for this population.",
+              "mode": "required"
+            },
+            {
+              "id": "residual_disagreement",
+              "description": "If the response addresses the plans the statutory formula fails to reproduce, it declines to attribute them to a single cause.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Use 80 percent and 60 percent as sensitivity cutoffs for the two FTAP ratios, without treating these counts as determinations of actual IRC section 436 restriction status. Report how many plans fall below 80 percent under the unadjusted ratio, how many under the reconstructed FTAP, and how many the unadjusted ratio places at or above 80 percent while the reconstructed FTAP places them below. Report the same three counts at the 60 percent cutoff. Explain why these FTAP screens do not substitute for a plan's AFTAP certification and restriction history.",
+          "validator": "validate_restriction_thresholds",
+          "stores": [
+            "unadjusted_below_eighty",
+            "statutory_below_eighty",
+            "wrongly_cleared_eighty",
+            "unadjusted_below_sixty",
+            "statutory_below_sixty",
+            "wrongly_cleared_sixty"
+          ],
+          "claims": [
+            {
+              "id": "aftap_boundary",
+              "description": "The response distinguishes filed FTAP from the AFTAP used for section 436.",
+              "mode": "required"
+            },
+            {
+              "id": "benefit_restriction_boundary",
+              "description": "If the response states that benefit restrictions applied, it notes that the AFTAP adjustments, certification timing and prior-year information are absent.",
+              "mode": "conditional"
+            },
+            {
+              "id": "direction_of_error",
+              "description": "The response notes that the unadjusted ratio errs in one direction only, always at or above the statutory figure, because the credit balance it omits is never negative.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Two choices sit underneath the asset figure. First, build a nonstatutory current-value sensitivity ratio by replacing actuarial value with current value while keeping the same funding-balance subtraction. Report its median in percent, the median of reconstructed FTAP minus this ratio in percentage points, how many plans fall below 80 percent on current value, and how many are at or above 80 percent on reconstructed FTAP but below it on current value. Second, report how many plans carry a valuation date of 2023-01-01. Then join the population to the Form 5500 plan financial statements on the filing identifier, keep plans with positive net assets at both the beginning and the end of the year and a positive Schedule SB current value, and report how many plans match, the percent whose current value assets equal beginning-of-year net assets within one percent, and the median ratio of current value assets to end-of-year net assets. Explain what the asset-basis and timing comparisons can and cannot establish.",
+          "validator": "validate_asset_measure_choices",
+          "stores": [
+            "median_market_ratio_pct",
+            "smoothing_gap_pp",
+            "market_below_eighty",
+            "actuarial_above_eighty_market_below",
+            "first_day_valuations",
+            "matched_plans",
+            "beginning_asset_agreement_pct",
+            "median_ending_asset_ratio"
+          ],
+          "claims": [
+            {
+              "id": "asset_basis_sensitivity",
+              "description": "The response treats the current-value calculation as a nonstatutory sensitivity comparison.",
+              "mode": "required"
+            },
+            {
+              "id": "sensitivity_restriction_boundary",
+              "description": "If the response describes the sensitivity's cutoff classifications, it states that they are not restrictions that would otherwise apply.",
+              "mode": "conditional"
+            },
+            {
+              "id": "valuation_timing_boundary",
+              "description": "The response links the beginning-year agreement to the reported valuation dates.",
+              "mode": "required"
+            },
+            {
+              "id": "valuation_difference_attribution_boundary",
+              "description": "If the response explains the difference from ending net assets, it states that investment return alone does not account for it and that unlike dates are not interchangeable.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,106 @@
+{
+  "name": "disaster_county_mortgage_collateral_paydown",
+  "module": "evals.scenario_analysis.disaster_county_mortgage_collateral_paydown",
+  "task_family": "scenario_analysis",
+  "data_sources": [
+    "fema_disasters",
+    "hmda"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Use the county-designated areas in North Carolina's FEMA disaster 4827 declarations as a retrospective geography, excluding the separate tribal-area record. In 2024 HMDA records for those counties, retain originated conventional, first-lien, owner-occupied home-purchase applications on site-built one-to-four-unit homes with finite positive reported loan amount and property value. Treat each application record once. Report the number of declared counties, eligible records and their total reported loan amount. Describe which loans this filtered set actually contains, and how that differs from the book of mortgages standing in those counties when the disaster struck.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "declared_counties",
+            "eligible_origination_records",
+            "origination_amount_m"
+          ],
+          "claims": [
+            {
+              "id": "cohort_scope",
+              "description": "The response characterizes the cohort as reported 2024 originations in declared counties, not a verified stock of loans outstanding when the disaster occurred.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "For that cohort, treat each record's reported loan amount divided by reported property value as an origination leverage proxy. Report the number of records with a proxy strictly above 80% and their total loan amount. Explain what point in a mortgage's life this ratio describes, and what it cannot tell you about the balance still owed today.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "above_eighty_records",
+            "above_eighty_amount_m"
+          ],
+          "claims": [
+            {
+              "id": "leverage_proxy_scope",
+              "description": "The response explains that the ratio of reported origination loan amount to property value describes the loan as written, leaving the current unpaid principal balance unknown.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Run a hypothetical collateral stress on the same cohort: keep each reported loan amount fixed and reduce its reported property value by 12%, with no loan repayments, insurance proceeds or cross-collateralization. A record is underwater only when its loan amount strictly exceeds its stressed property value. Report how many records are underwater after the stress, how many of those were not underwater before it, comparing loan amount with unstressed property value for the earlier test, and the sum of positive loan-amount-over-stressed-property-value shortfalls across records. Explain how the gap this stress opens between what is owed and what the homes are worth differs from money a lender has actually lost.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "stressed_underwater_records",
+            "newly_underwater_records",
+            "stressed_collateral_shortfall_m"
+          ],
+          "claims": [
+            {
+              "id": "collateral_not_credit_loss",
+              "description": "The response explains that the hypothetical collateral shortfall is not an observed mortgage credit loss.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Starting from that stressed state, suppose a sponsor can reduce the hypothetical principal of each record separately, with no transfer of surplus collateral between records. Find the minimum total paydown that leaves every record at or below 80% of its stressed property value. Identify, across all declared counties, the one with the largest dollar paydown and report its amount; separately, among declared counties with at least 100 eligible records, identify the county with the highest paydown as a percentage of that county's total eligible reported loan amount and report the percentage. Break ties in either ranking by five-digit county FIPS ascending. Compare the dollar and intensity rankings, and assess whether a USD1.5 billion sponsor budget would cover the total paydown.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "minimum_paydown_m",
+            "largest_paydown_county",
+            "largest_county_paydown_m",
+            "highest_intensity_county",
+            "highest_intensity_pct"
+          ],
+          "claims": [
+            {
+              "id": "paydown_financing",
+              "description": "The response concludes from the computed minimum that the stated sponsor budget is insufficient for the individual-record 80% cap.",
+              "mode": "required"
+            },
+            {
+              "id": "scale_vs_intensity",
+              "description": "The response distinguishes the county with the largest dollar paydown from the county with the highest paydown share of its own loan amount.",
+              "mode": "required"
+            },
+            {
+              "id": "actual_relief_boundary",
+              "description": "If the response describes the calculated paydown as actual disaster assistance, bank capital need or realized mortgage loss, it qualifies that characterization as hypothetical origination-record analysis.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen FEMA disaster declaration areas for North Carolina disaster 4827 and 2024 HMDA application records. The collateral decline, unchanged balances and sponsor budget are hypothetical.",
+    "facts": [
+      "The declared geography has 39 counties plus one separate tribal-area record; 33,526 eligible site-built originated records total USD13,316.6000 million of reported loan amount.",
+      "19,648 records have reported amount above 80% of reported property value. A 12% property-value stress produces 14,011 underwater records, including 13,838 newly underwater, and USD337.2222 million of summed positive collateral shortfall.",
+      "The individual-record 80% stressed cap needs USD1,943.8744 million of paydown, more than the USD1.5 billion budget. County 37119 leads in dollar paydown, while county 37193 leads the at-least-100-record intensity ranking."
+    ],
+    "known_overclaims": [
+      "Treating 2024 originated application records as verified loans outstanding when the 2024 disaster occurred.",
+      "Equating a hypothetical property-value haircut with observed FEMA damage or a bank credit loss.",
+      "Netting one record's collateral surplus against another when computing the individual-record paydown requirement."
+    ]
+  }
+}

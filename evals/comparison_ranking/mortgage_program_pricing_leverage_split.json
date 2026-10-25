@@ -1,0 +1,163 @@
+{
+  "name": "mortgage_program_pricing_leverage_split",
+  "module": "evals.comparison_ranking.mortgage_program_pricing_leverage_split",
+  "task_family": "comparison_ranking",
+  "data_sources": [
+    "hmda",
+    "fhfa_hpi"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "turns": [
+        {
+          "query": "Report the HMDA register row count. Keep action-taken code 1 originations secured by lien-status code 1 first liens and report that count. Convert rate spread to numeric; retain the inclusive range -5 through 20 percentage points and report the retained count, total excluded count, missing-spread count, and nonmissing outside-band count. Report retained counts for loan types 1 conventional, 2 FHA-insured, 3 VA-guaranteed, and 4 RHS- or FSA-guaranteed. Explain what population the later shares describe and what the lien-priority restriction does and does not control for.",
+          "validator": "validate_population_and_band",
+          "stores": [
+            "record_count",
+            "first_lien_origination_count",
+            "banded_record_count",
+            "excluded_record_count",
+            "missing_rate_spread_count",
+            "outside_band_rate_spread_count",
+            "conventional_count",
+            "fha_count",
+            "va_count",
+            "rhs_fsa_count"
+          ],
+          "claims": [
+            {
+              "id": "population_result",
+              "description": "The response reports the register size, first-lien origination count, retained and excluded counts, separate missing and outside-band counts, and four loan-type counts.",
+              "mode": "required"
+            },
+            {
+              "id": "exclusion_composition_reasoning",
+              "description": "The response separates missing from nonmissing outside-band spreads and states that later shares describe only first-lien originations with an in-band reported spread.",
+              "mode": "required"
+            },
+            {
+              "id": "lien_restriction_boundary",
+              "description": "The response states that restricting to first liens controls claim priority.",
+              "mode": "required"
+            },
+            {
+              "id": "junior_lien_collateral_boundary",
+              "description": "If the response contrasts junior liens, it states that the restriction implies no difference in their physical collateral by definition.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Use 1.5 percentage points as a common analytic cutoff, not a legal HPML classification: Regulation Z uses a 2.5-point threshold for first-lien jumbo loans, and the runtime lacks the row-level rate-lock and conforming-limit test. Within the retained population, report for loan types 1 through 4 the share at or above the cutoff. Report median spread for conventional type 1 and VA type 3, and the code whose programme median is negative. Compare the programme results descriptively; do not attribute the differences solely to government insurance or guarantees or infer borrower quality from these fields.",
+          "validator": "validate_programme_pricing",
+          "stores": [
+            "conventional_above_cutoff_share_pct",
+            "fha_above_cutoff_share_pct",
+            "va_above_cutoff_share_pct",
+            "rhs_fsa_above_cutoff_share_pct",
+            "conventional_median_spread_pp",
+            "va_median_spread_pp",
+            "negative_median_spread_loan_type_code"
+          ],
+          "claims": [
+            {
+              "id": "pricing_result",
+              "description": "The response gives the four above-cutoff shares, the two medians and the loan-type code with a negative programme median.",
+              "mode": "required"
+            },
+            {
+              "id": "analytic_cutoff_boundary",
+              "description": "The response states that 1.5 points is a common analytic cutoff here rather than a row-level legal HPML classification because first-lien jumbo loans use a different threshold.",
+              "mode": "required"
+            },
+            {
+              "id": "selection_versus_price_boundary",
+              "description": "If the response explains the observed programme spread differences, it infers no borrower quality and attributes the differences neither solely to insurance nor solely to guarantees.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "For each retained loan type, report the nonmissing loan-to-value row count and median of those nonmissing LTV values in percent. Report the lowest loan-type code tied for the highest median LTV and the median conventional type-1 loan amount. Compare the leverage ordering with turn 2's spread ordering descriptively. State what programme medians can and cannot establish about lending rules or guarantees, and address the coverage of the leverage field before comparing types.",
+          "validator": "validate_programme_leverage",
+          "stores": [
+            "conventional_valid_ltv_count",
+            "fha_valid_ltv_count",
+            "va_valid_ltv_count",
+            "rhs_fsa_valid_ltv_count",
+            "conventional_median_ltv_pct",
+            "fha_median_ltv_pct",
+            "va_median_ltv_pct",
+            "rhs_fsa_median_ltv_pct",
+            "highest_median_ltv_loan_type_code",
+            "conventional_median_loan_amount"
+          ],
+          "claims": [
+            {
+              "id": "leverage_result",
+              "description": "The response gives four valid-LTV counts and medians, the lowest code tied for the highest median, and the conventional median loan amount.",
+              "mode": "required"
+            },
+            {
+              "id": "ltv_coverage_and_rule_boundary",
+              "description": "The response discusses differing nonmissing LTV coverage and states that programme medians do not prove an eligibility, down-payment or insurance rule.",
+              "mode": "required"
+            },
+            {
+              "id": "leverage_price_combination_reasoning",
+              "description": "The response compares the observed LTV and spread orderings without claiming that the cross-section isolates the effect of a guarantee.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Within the retained population identify the state code with the most rows, breaking a tie by code ascending, and report its count and median loan amount. From the quarterly state-level traditional purchase-only FHFA HPI, report that state's unadjusted 2023Q4 and 2024Q4 index values and growth. Explain how the two measures are constructed and whether growth in one can be read as growth in the other.",
+          "validator": "validate_state_price_context",
+          "stores": [
+            "leading_state_code",
+            "leading_state_origination_count",
+            "leading_state_median_loan_amount",
+            "leading_state_index_prior_year",
+            "leading_state_index_current_year",
+            "leading_state_index_growth_pct"
+          ],
+          "claims": [
+            {
+              "id": "state_context_result",
+              "description": "The response names the leading state with its volume and typical loan size, and gives both index readings with the growth between them.",
+              "mode": "required"
+            },
+            {
+              "id": "transaction_versus_repeat_sales_reasoning",
+              "description": "The response contrasts an unweighted HMDA loan-amount median with FHFA's weighted repeat-sales same-property price-change index.",
+              "mode": "required"
+            },
+            {
+              "id": "index_scope_boundary",
+              "description": "The response states that the purchase-only HPI uses Enterprise mortgage data and is not the same population or measure as the retained HMDA originations.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen 2024 mortgage application register and the FHFA quarterly state-level purchase-only house price index",
+    "facts": [
+      "The register holds 12,043,028 rows, of which 4,766,398 are first-lien originations. Restricting the rate spread to -5 through 20 retains 4,140,735 and drops 625,663, of which 619,870 report no spread and 5,793 report one outside the band. The retained rows split 2,835,869 loan type 1, 791,979 type 2, 481,863 type 3 and 31,024 type 4.",
+      "Shares at or above the common analytic 1.5-point cutoff are 7.2303 percent for conventional type 1, 6.4608 for FHA type 2, 0.8708 for VA type 3 and 1.7760 for RHS/FSA type 4. Median spread is 0.2360 points for type 1 and -0.4010 for type 3, the only negative programme median. The cutoff is not a legal HPML classification for jumbo first liens.",
+      "Nonmissing LTV counts are 2,760,385, 770,255, 377,229 and 30,519 for types 1 through 4. Their medians are 80.0000, 96.5000, 100.0000 and 100.0000 percent; type 3 is the lowest code tied for the highest median. The conventional median loan amount is 295,000 USD.",
+      "Texas leads with 394,307 retained rows and a 295,000 USD median loan amount. Its unadjusted traditional purchase-only FHFA HPI is 432.72 at 2023Q4 and 443.22 at 2024Q4, growth of 2.4265 percent. The HPI is a weighted repeat-sales measure from Enterprise mortgage data, not a HMDA loan-amount statistic."
+    ],
+    "known_overclaims": [
+      "Quoting a higher-priced share without noting that the spread field is absent on more than half a million first-lien originations.",
+      "Calling the common 1.5-point analytic cutoff a legal HPML classification for every first-lien row; jumbo first liens use a 2.5-point threshold.",
+      "Reading a programme's low above-cutoff share as evidence about borrower quality or as an isolated guarantee effect.",
+      "Treating the median loan amount and the price index as two measurements of the same quantity.",
+      "Treating programme LTV medians as proof of eligibility or down-payment rules while ignoring differing missing-LTV coverage."
+    ]
+  }
+}

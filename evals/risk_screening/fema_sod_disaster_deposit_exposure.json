@@ -1,0 +1,99 @@
+{
+  "name": "fema_sod_disaster_deposit_exposure",
+  "module": "evals.risk_screening.fema_sod_disaster_deposit_exposure",
+  "task_family": "risk_screening",
+  "data_sources": [
+    "fema_disasters",
+    "fdic_sod"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Run a retrospective county-exposure screen using OpenFEMA declaration-area records. A county qualifies once if its state and county FIPS form a five-digit code whose county part is not 000, its incident began from 2025-01-01 through 2025-06-30, and FEMA issued a major-disaster declaration no later than 2025-06-30; multiple qualifying declarations for the same county do not create multiple county exposures. Report the number of qualifying disaster numbers and the number of qualifying counties. Carry the county set forward and explain what a declaration record establishes.",
+          "validator": "validate_qualifying_counties",
+          "stores": [
+            "qualifying_major_disaster_count",
+            "distinct_qualifying_county_count"
+          ],
+          "claims": [
+            {
+              "id": "fema_declaration_measure_boundary",
+              "description": "The response characterizes inclusion in a FEMA major-disaster declaration as an administrative county-area indicator distinct from bank loss, insured damage, claim severity and economic impact magnitude.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "In the FDIC 2025 Summary of Deposits snapshot, aggregate all reported 2025-06-30 branch deposits by bank and take the 50 banks with the largest totals, resolving an exact cohort or leadership tie by legal bank name alphabetically. Within that cohort, identify the bank with the largest branch-deposit dollars in the qualifying counties. Report its legal name, FDIC certificate, exposed deposits, total branch deposits and exposed-deposit share. Carry the cohort forward and explain what the branch-level deposit figures represent geographically.",
+          "validator": "validate_amount_leader",
+          "stores": [
+            "largest_exposed_deposit_amount_bank_name",
+            "largest_exposed_deposit_amount_bank_certificate",
+            "amount_leader_exposed_deposits_usd_billions",
+            "amount_leader_total_deposits_usd_billions",
+            "amount_leader_exposed_deposit_share_pct"
+          ],
+          "claims": [
+            {
+              "id": "sod_geographic_measure_boundary",
+              "description": "The response characterizes SOD geography as reported deposits allocated to branch locations and keeps it distinct from depositor, borrower, collateral, physical-asset and comprehensive operational locations.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Within the same cohort, identify the bank with the largest qualifying-county share of its own branch deposits. Report its legal name, FDIC certificate, exposed deposits, total branch deposits, exposed-deposit share and its qualifying-county share of branch rows. Explain what the two exposure rankings show and what they do not represent.",
+          "validator": "validate_share_leader",
+          "stores": [
+            "largest_exposed_deposit_share_bank_name",
+            "largest_exposed_deposit_share_bank_certificate",
+            "share_leader_exposed_deposits_usd_billions",
+            "share_leader_total_deposits_usd_billions",
+            "share_leader_exposed_deposit_share_pct",
+            "share_leader_exposed_branch_row_share_pct"
+          ],
+          "claims": [
+            {
+              "id": "amount_share_leader_divergence",
+              "description": "The response explains that exposed deposit dollars and within-bank exposed share identify different leaders because absolute exposure and portfolio concentration answer different size-versus-rate questions.",
+              "mode": "required"
+            },
+            {
+              "id": "deposit_branch_weight_distinction",
+              "description": "The response uses the share leader's deposit-versus-branch exposure pattern to explain that deposit-weighted geography and branch-footprint geography apply different weights.",
+              "mode": "required"
+            },
+            {
+              "id": "risk_causality_boundary",
+              "description": "If the response infers realized credit losses, funding stress, operational disruption, resilience or causality from the exposure ranking, it states that the two retrospective geographic snapshots alone do not establish that outcome.",
+              "mode": "conditional"
+            },
+            {
+              "id": "retrospective_vintage_boundary",
+              "description": "If the response presents the screen as information known on 2025-06-30, it states that the frozen FEMA and SOD artifacts were obtained later and support a retrospective date-filtered screen rather than a strict historical as-known reconstruction.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "OpenFEMA 2024-2025 declaration-area snapshot and FDIC 2025 Summary of Deposits branch table",
+    "facts": [
+      "Nineteen qualifying major-disaster numbers cover 359 distinct valid county FIPS under the incident and declaration cutoffs; repeated counties across declarations count once for exposure.",
+      "Among the top 50 banks by total SOD branch deposits, Bank of America, National Association (certificate 3510) has the largest exposed amount: 124.117307 billion USD of 1,975.044000 billion, or 6.2843 percent.",
+      "City National Bank (certificate 17281) has the largest exposed share: 50.241248 billion USD of 77.761501 billion, or 64.6094 percent; 46.9697 percent of its branch rows are in qualifying counties.",
+      "SOD branch deposits are assigned to branch locations. FEMA declaration-area rows identify administrative coverage and can repeat a county across disaster numbers; neither source reports bank-specific disaster losses."
+    ],
+    "known_overclaims": [
+      "Joining declaration-area rows directly to branches so that repeated county declarations multiply branch deposits.",
+      "Using emergency declarations, invalid 000 county codes, later declaration dates, branch counts as deposit weights or a population other than the top 50 by total branch deposits.",
+      "Treating declared-county branch deposits as depositor residence, realized losses, comprehensive physical exposure or a causal risk estimate."
+    ]
+  }
+}

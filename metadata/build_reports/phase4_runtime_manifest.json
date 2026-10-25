@@ -1,0 +1,104 @@
+{
+  "schema_version": 1,
+  "benchmark_cutoff": "2025-12-31",
+  "builder": "python -m scripts.ingest.build.build_phase4_runtime",
+  "source_files": [
+    {
+      "dataset": "dol_form5500",
+      "file": "raw/F_5500_2024_all.zip",
+      "sha256": "b26fc77f22322cd21980db718c40cfd815ae5efe766bd1a31016817504610914"
+    },
+    {
+      "dataset": "dol_form5500",
+      "file": "raw/F_SCH_H_2024_all.zip",
+      "sha256": "abcebc617a216462794d6b1f4a3b4357f6c19f8083810a0c0a09d7194dd5db0a"
+    },
+    {
+      "dataset": "dol_form5500",
+      "file": "raw/F_SCH_SB_2024_all.zip",
+      "sha256": "7a544954d59fbcd4ff2d0db74ab84ea0ba337de1327839cfa4aacd19b9be3863"
+    },
+    {
+      "dataset": "ffiec_call_reports",
+      "file": "raw/FFIEC_CDR_Call_Bulk_All_Schedules_03312024.zip",
+      "sha256": "867b9f89d4969a966fd86c083169061192c93609dafbb59f93c1cae259f89947"
+    },
+    {
+      "dataset": "ffiec_call_reports",
+      "file": "raw/FFIEC_CDR_Call_Bulk_All_Schedules_06302024.zip",
+      "sha256": "7babe833d7afb75dbabe7a1fe796d15575a97c9796bf309821541e666c3763a2"
+    },
+    {
+      "dataset": "ffiec_call_reports",
+      "file": "raw/FFIEC_CDR_Call_Bulk_All_Schedules_09302024.zip",
+      "sha256": "33924836ff97333488b3d3d2f78efd1a92db8426d2238b86726ec2aa98346e9a"
+    },
+    {
+      "dataset": "ffiec_call_reports",
+      "file": "raw/FFIEC_CDR_Call_Bulk_All_Schedules_12312024.zip",
+      "sha256": "b1b4dff906564b1211d8644667760aa5ce2b81be6c6e7f0abbf11e9a0b7d7fdc"
+    },
+    {
+      "dataset": "ffiec_call_reports",
+      "file": "raw/FFIEC_CDR_Call_Bulk_All_Schedules_03312025.zip",
+      "sha256": "f32debe49f576ad0536ff47ba391a40db251b1eb1b06e2542bace0675ff2f7c6"
+    },
+    {
+      "dataset": "ffiec_call_reports",
+      "file": "raw/FFIEC_CDR_Call_Bulk_All_Schedules_06302025.zip",
+      "sha256": "2a9e5ad19b1510cf3617b02b77e2f7ac10e6462564b5aa0b4b22e6c8205e5796"
+    },
+    {
+      "dataset": "ffiec_call_reports",
+      "file": "raw/FFIEC_CDR_Call_Bulk_All_Schedules_09302025.zip",
+      "sha256": "d76120dc3e2025d129f6278ce3834a9dd20903e37a653ff5d5a3a74465a99fa6"
+    },
+    {
+      "dataset": "treasury_debt",
+      "file": "raw/debt_to_penny_2024_through_2025.csv",
+      "sha256": "98b2fdefaa6890561b3fbb0f81d7c0404e2e7028809ed668409ce991234da0fe"
+    },
+    {
+      "dataset": "treasury_debt",
+      "file": "raw/mspd_table_3_market_2024_through_2025.csv",
+      "sha256": "81c56a7e3e6ec701750c3d20f3a14e2f9736569c30bc4f0874b9cb947387c828"
+    },
+    {
+      "dataset": "treasury_usfr",
+      "file": "raw/reconciliations_2020_through_2025.csv",
+      "sha256": "9c1a933694e721b479379cbbe030c111c3bf06202d41428acc5320c4cc189842"
+    }
+  ],
+  "files": {
+    "dol_form5500/plan_financials_2024.csv.gz": {
+      "rows": 86161,
+      "bytes": 6259990,
+      "sha256": "0e6ac6ce3d48774f9fdca6a35b28ff15cbef0cc900c72cd1a8cda9feefe16cc1"
+    },
+    "dol_form5500/schedule_sb_2024.csv.gz": {
+      "rows": 4761,
+      "bytes": 380623,
+      "sha256": "51648719e6ca488152280e42ef0c5bad33ee41dfa6c108bb5c0aae17219ee759"
+    },
+    "ffiec_call_reports/bank_capital.csv.gz": {
+      "rows": 31756,
+      "bytes": 614121,
+      "sha256": "549b47921e1aaa885fa021220c2f1930a97ce4aabbd7efb0cf339b0d6b0745a7"
+    },
+    "treasury_debt/debt_to_penny.csv.gz": {
+      "rows": 501,
+      "bytes": 14730,
+      "sha256": "d807237d3191a2ea3291fa57ccd52c35e1ca9fb398b433d96e80bcaa10d63237"
+    },
+    "treasury_debt/marketable_securities.csv.gz": {
+      "rows": 20499,
+      "bytes": 517737,
+      "sha256": "65f41d45b1ef13748071f49ce3b7f6d63ae7d76b298d30b129e458ca46bd4af1"
+    },
+    "treasury_usfr/reconciliations.csv.gz": {
+      "rows": 370,
+      "bytes": 4081,
+      "sha256": "50235cec0efd242ecac97c468a807094b4f9bf042e583e4db90c6e903d66afce"
+    }
+  }
+}

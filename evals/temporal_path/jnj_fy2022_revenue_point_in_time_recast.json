@@ -1,0 +1,78 @@
+{
+  "name": "jnj_fy2022_revenue_point_in_time_recast",
+  "module": "evals.temporal_path.jnj_fy2022_revenue_point_in_time_recast",
+  "task_family": "temporal_path",
+  "data_sources": [
+    "sec_companyfacts",
+    "sec_filings"
+  ],
+  "difficulty": "medium",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "From Company Facts, build the candidate set of JNJ annual Form 10-K facts reported in USD for revenue from contracts with customers excluding assessed tax over the exact period 2022-01-03 through 2023-01-01. Report the number of fact rows, distinct accessions and distinct reported values. Explain why the exact duration identifies the historical observation even when a later comparative presentation carries a different filing fiscal-year label.",
+          "validator": "validate_candidate_set",
+          "stores": [
+            "candidate_fact_rows",
+            "candidate_accession_count",
+            "candidate_distinct_value_count"
+          ],
+          "claims": [
+            {
+              "id": "historical_period_identity",
+              "description": "The response uses the fact's start and end dates to hold the historical duration fixed.",
+              "mode": "required"
+            },
+            {
+              "id": "fiscal_label_discard_boundary",
+              "description": "If the response filters comparative presentations by the presenting filing's fiscal-year label, it states that the label does not change the historical period the fact covers.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Join that candidate set to SEC filing metadata. For each knowledge cutoff, 2023-06-30 23:59:59 and 2024-06-30 23:59:59, keep non-amended filings accepted by EDGAR no later than the cutoff and select the one with the latest acceptance timestamp; if timestamps tie, choose the lexicographically smallest accession. For each cutoff report the supporting accession, its acceptance timestamp and the revenue in USD billions. Explain what the structured tables establish about the two presentations and what they do not establish about the cause of the change.",
+          "validator": "validate_cutoff_presentations",
+          "stores": [
+            "earlier_source_accession",
+            "earlier_acceptance_datetime",
+            "fy2022_revenue_as_of_2023_06_30_usd_billions",
+            "later_source_accession",
+            "later_acceptance_datetime",
+            "fy2022_revenue_as_of_2024_06_30_usd_billions"
+          ],
+          "claims": [
+            {
+              "id": "cutoff_specific_source_selection",
+              "description": "The response selects a supporting filing independently for each knowledge cutoff rather than backfilling the latest presentation.",
+              "mode": "required"
+            },
+            {
+              "id": "same_period_recast",
+              "description": "The response recognizes that the selected values share the same revenue concept and historical duration but come from different accepted annual filings.",
+              "mode": "required"
+            },
+            {
+              "id": "cause_boundary",
+              "description": "If the response attributes the change to a corporate event or accounting cause, it distinguishes external inference from what the structured facts and filing metadata alone establish.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "SEC CompanyFacts and filing metadata frozen at 2025-12-31",
+    "facts": [
+      "At 2023-06-30 the latest eligible value is 94.943 billion USD from accession 0000200406-23-000016; at 2024-06-30 it is 79.990 billion USD from accession 0000200406-24-000013; later minus earlier is -14.953 billion USD."
+    ],
+    "known_overclaims": [
+      "Using 79.990 billion USD at both cutoffs.",
+      "Claiming a specific recast cause solely from the structured rows."
+    ]
+  }
+}

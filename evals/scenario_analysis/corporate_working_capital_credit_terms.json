@@ -1,0 +1,100 @@
+{
+  "name": "corporate_working_capital_credit_terms",
+  "module": "evals.scenario_analysis.corporate_working_capital_credit_terms",
+  "task_family": "scenario_analysis",
+  "data_sources": [
+    "sec_companyfacts",
+    "nyfed_reference_rates"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "For Applied Materials' original fiscal-2024 10-K (accession 0000006951-24-000044, year ended October 27, 2024), use its as-filed annual revenue from customer contracts, cost of goods and services, and period-end net trade receivables, inventory, accounts payable and cash. Calculate period-end-based receivable, inventory and payable days on a 365-day planning year, using annual revenue for receivables and annual cost for inventory and payables. Report the three day measures and ending cash. Carry the unrounded filing state forward and interpret what these planning measures establish.",
+          "validator": "validate_operating_cycle",
+          "stores": [
+            "receivable_days",
+            "inventory_days",
+            "payable_days",
+            "reported_cash_bn"
+          ],
+          "claims": [
+            {
+              "id": "turnover_scope",
+              "description": "The response recognizes these period-end stock-to-annual-flow planning measures as proxies, rather than observed customer or supplier contract terms.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "From that carried fiscal-2024 state, plan a 20% increase in annual revenue and cost, preserving the historical gross-margin percentage. Relative to the carried planning days, extend customer collection by 30 days, extend inventory holding by 20 days and shorten supplier payment by 10 days. Set the new period-end operating balances from those days and projected annual flows. Their changes settle in cash on January 1, 2025, while other working-capital balances and cash movements stay fixed. Starting cash is the carried reported cash; USD7 billion must remain untouched, and any remaining cash need is funded with a revolving loan drawn that day. Report the three new operating balances and the initial draw. Explain how the shift in these three balances compares with the cash the company may spend above its untouchable reserve, and what that comparison forces.",
+          "validator": "validate_growth_plan",
+          "stores": [
+            "plan_receivables_bn",
+            "plan_inventory_bn",
+            "plan_payables_bn",
+            "initial_revolver_draw_bn"
+          ],
+          "claims": [
+            {
+              "id": "working_capital_direction",
+              "description": "The response explains from the calculated balances that the combined operating-cycle change exceeds the cash available above the reserve and therefore requires an external draw.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Keep the carried loan outstanding from January 1 through December 31, 2025. Its simple daily financing rate is the SOFR fixing effective on each calendar day, with no publication lag, plus 150 basis points, ACT/360; interest does not compound and is settled after the final 2025 fixing is published. Report the year's interest cost. Explain what standing this interest figure has, given that the fixings are settled history while the loan behind them came from this exercise.",
+          "validator": "validate_funding",
+          "stores": [
+            "base_funding_interest_bn"
+          ],
+          "claims": [
+            {
+              "id": "financing_scope",
+              "description": "The response identifies the calculated expense as a retrospective scenario cost, not interest Applied Materials actually reported.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Evaluate two alternatives from the same carried growth plan, each effective January 1, 2025 and exclusive of the other. COLLECTIONS shortens the stressed customer collection period by 10 days and has a USD20 million cash fee. SUPPLIER lengthens the stressed supplier payment period by 15 days and has a USD15 million cash fee. Each alternative resets the January 1 draw for its own changed collection or payment period, and its fee is funded by the revolver on the same day; fee and principal stay outstanding through December 31, and its financing uses the preceding SOFR convention. Keep the USD7 billion cash reserve and all other plan assumptions. Select the alternative with lower total fee plus interest, breaking an exact tie in favor of COLLECTIONS. Report the selected canonical token and its total fee-plus-interest cost. Explain how the up-front charges and the borrowing costs trade off between the two options, and how much this settles for the company's real future.",
+          "validator": "validate_action",
+          "stores": [
+            "chosen_action",
+            "chosen_total_financing_cost_bn"
+          ],
+          "claims": [
+            {
+              "id": "action_economics",
+              "description": "The response explains from the computed costs why COLLECTIONS is cheaper despite its larger up-front fee.",
+              "mode": "required"
+            },
+            {
+              "id": "counterfactual_boundary",
+              "description": "If the response presents the choice as proof of actual future cash savings for Applied Materials, it qualifies that claim because the growth, terms and fees are hypothetical.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Applied Materials fiscal-2024 original 10-K CompanyFacts and the frozen 2025 New York Fed SOFR path; growth and operating actions are explicitly hypothetical.",
+    "facts": [
+      "The filing reports FY2024 customer-contract revenue, cost of goods and services, closing receivables, inventory, payables and cash; the requested days use closing stocks and annual flows.",
+      "The scenario links a larger sales and cost scale with longer receivable and inventory periods and shorter supplier credit, then draws only after preserving the cash floor.",
+      "SOFR fixes the cost of the carried borrowing through the 2025 calendar-day accrual convention.",
+      "The terminal choice compares two exclusive operating measures, including both the fee and financing cost, under identical base growth assumptions."
+    ],
+    "known_overclaims": [
+      "Calling the ratios observed contractual terms or the revenue figure verified credit sales.",
+      "Treating the modeled cash requirement as reported operating cash flow or a forecast from management.",
+      "Ignoring the fee, financing on the fee, or the difference in financing needs when comparing the actions."
+    ]
+  }
+}

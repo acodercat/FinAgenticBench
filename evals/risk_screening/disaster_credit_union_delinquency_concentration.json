@@ -1,0 +1,101 @@
+{
+  "name": "disaster_credit_union_delinquency_concentration",
+  "module": "evals.risk_screening.disaster_credit_union_delinquency_concentration",
+  "task_family": "risk_screening",
+  "data_sources": ["ncua_call_reports", "fema_disasters", "census_geo_crosswalk", "bls_qcew"],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [{
+    "id": "main",
+    "turns": [
+      {
+        "query": "Build a state-level credit-union delinquency screen at 2025-09-30 across the 50 states and District of Columbia. Use all NCUA institutions with positive total loans and leases. For each jurisdiction, aggregate loans and loans delinquent two or more months before calculating the dollar-weighted delinquency rate. Separately, identify distinct Census county equivalents covered by FEMA major-disaster declarations whose incident began from 2024-10-01 through 2025-09-30 and whose declaration date is no later than 2025-09-30; exclude statewide or non-county code 000 and require the county FIPS to exist in the Census county table. Retain jurisdictions with at least 25 credit unions and disaster-county coverage of at least 25% of Census county equivalents, then rank by delinquency rate descending with USPS abbreviation ascending as the tie-break. Report the eligible count; selected state; its credit-union count, aggregate loans, delinquent loans and rate; its Census county count, disaster-county count and coverage; and its rate margin over the runner-up. Explain which hurdles the winning state had to pass before its rate could lead, and what a federal county designation does and does not measure.",
+        "validator": "validate_state_screen",
+        "stores": ["eligible_disaster_screened_state_count", "delinquency_leader_state", "leader_state_credit_union_count", "leader_state_total_loans_usd_billions", "leader_state_delinquent_loans_usd_billions", "leader_state_delinquency_rate_pct", "leader_state_census_county_count", "leader_state_disaster_county_count", "leader_state_disaster_county_coverage_pct", "state_delinquency_leader_margin_pp"],
+        "claims": [
+          {
+            "id": "joint_screen_result",
+            "description": "The response explains from the computed cohort that the selected state leads delinquency only after satisfying both the institution-count and disaster-county-coverage screens, rather than because it has the greatest disaster coverage.",
+            "mode": "required"
+          },
+          {
+            "id": "administrative_disaster_boundary",
+            "description": "If the response interprets FEMA county designation as a measure of dollar loss or disaster severity, it qualifies that claim because the source records administrative declaration coverage rather than loss magnitude.",
+            "mode": "conditional"
+          }
+        ]
+      },
+      {
+        "query": "Within that selected state, identify the credit union contributing the largest dollar amount of loans delinquent two or more months, breaking a tie by NCUA number ascending. Report its NCUA number, name, loans, delinquent loans, institution-level delinquency rate, and share of the state's delinquent dollars. Explain how much of the state total rests on this single credit union, and whether its charter state locates the borrowers behind those loans.",
+        "validator": "validate_credit_union_concentration",
+        "stores": ["dominant_credit_union_number", "dominant_credit_union_name", "dominant_credit_union_loans_usd_billions", "dominant_credit_union_delinquent_usd_billions", "dominant_credit_union_delinquency_rate_pct", "dominant_credit_union_state_delinquent_share_pct"],
+        "claims": [
+          {
+            "id": "institution_concentration_result",
+            "description": "The response recognizes from the computed contribution share that one institution accounts for most of the selected state's delinquent-loan dollars.",
+            "mode": "required"
+          },
+          {
+            "id": "institution_state_geography_boundary",
+            "description": "If the response treats the credit union's reported state as the geography of every underlying borrower or loan, it qualifies that interpretation because the institution-level call report does not provide loan-location detail.",
+            "mode": "conditional"
+          }
+        ]
+      },
+      {
+        "query": "For the selected state, use preliminary retrospective QCEW private annual averages to report 2024 and 2025 employment and their calculated growth, plus 2024 and 2025 average annual pay and its calculated growth. Within the fixed eligible state cohort from the first turn, rank each growth measure from lowest to highest with USPS abbreviation ascending as the tie-break, and report the selected state's two ranks. Explain how the two macro ranks alter the interpretation of the credit screen.",
+        "validator": "validate_state_macro_overlay",
+        "stores": ["leader_state_private_employment_2024", "leader_state_private_employment_2025", "leader_state_private_employment_growth_pct", "leader_state_employment_growth_rank_lowest_first", "leader_state_average_annual_pay_2024_usd", "leader_state_average_annual_pay_2025_usd", "leader_state_average_annual_pay_growth_pct", "leader_state_pay_growth_rank_lowest_first"],
+        "claims": [
+          {
+            "id": "macro_rank_divergence_result",
+            "description": "The response uses the computed ranks to distinguish relatively strong employment growth from relatively weak pay growth within the disaster-screened cohort.",
+            "mode": "required"
+          },
+          {
+            "id": "macro_credit_causality_boundary",
+            "description": "If the response attributes the selected credit-union delinquency result to employment or pay growth, it qualifies that claim because the retrospective state-level overlay does not identify borrower-level or institution-level causality.",
+            "mode": "conditional"
+          },
+          {
+            "id": "qcew_vintage_boundary",
+            "description": "If the response presents the 2025 annual QCEW values as final information available at 2025-09-30, it identifies them as a later preliminary retrospective vintage.",
+            "mode": "conditional"
+          }
+        ]
+      },
+      {
+        "query": "Run an influence sensitivity on the fixed eligible cohort: remove the dominant credit union identified in the second turn from the selected state's NCUA aggregates, leave every other state unchanged, and rerank delinquency rates using the original tie rule. Report the selected state's adjusted loans, delinquent loans, rate and rank, plus the adjusted leader state and rate. Explain what the original-versus-adjusted ranking comparison establishes about concentration and what this exclusion does and does not estimate.",
+        "validator": "validate_exclusion_sensitivity",
+        "stores": ["adjusted_leader_state_total_loans_usd_billions", "adjusted_leader_state_delinquent_loans_usd_billions", "adjusted_leader_state_delinquency_rate_pct", "adjusted_leader_state_rank", "adjusted_screen_leader_state", "adjusted_screen_leader_delinquency_rate_pct"],
+        "claims": [
+          {
+            "id": "influence_sensitivity_result",
+            "description": "The response concludes from the recomputed ranking that removing the dominant institution dislodges the originally selected state from first place.",
+            "mode": "required"
+          },
+          {
+            "id": "counterfactual_portfolio_boundary",
+            "description": "If the response presents the exclusion as a forecast or as an attainable portfolio outcome, it qualifies that claim because it is a mechanical influence diagnostic that holds the rest of the frozen state cohort fixed.",
+            "mode": "conditional"
+          }
+        ]
+      }
+    ]
+  }],
+  "judge_reference": {
+    "source": "Frozen NCUA 2025-Q3 institutions, FEMA declarations, Census counties and preliminary retrospective QCEW annual totals",
+    "facts": [
+      "Eleven states meet the credit-union and disaster-coverage thresholds. Virginia leads at 1.4711% delinquency with 96 credit unions, 198.997217 billion USD loans, 2.927542 billion USD delinquent, and 36 of 133 counties covered.",
+      "Navy Federal Credit Union contributes 2.276036 billion USD, or 77.7456% of Virginia delinquent dollars, and has a 1.6236% institution rate.",
+      "Virginia private employment grows 1.0528%, ranking 11th from lowest, while average annual pay grows 3.2204%, ranking second-lowest in the eligible cohort.",
+      "After excluding Navy Federal, Virginia's rate is 1.1078% and rank is third; North Dakota becomes the leader at 1.3409%."
+    ],
+    "known_overclaims": [
+      "Treating FEMA county designation as measured damage severity.",
+      "Treating institution state as borrower or loan geography.",
+      "Attributing delinquency to the retrospective QCEW overlay.",
+      "Calling the institution-exclusion sensitivity a forecast."
+    ]
+  }
+}

@@ -1,0 +1,147 @@
+{
+  "name": "industry_beta_crisis_prediction_failure",
+  "module": "evals.scenario_analysis.industry_beta_crisis_prediction_failure",
+  "task_family": "scenario_analysis",
+  "data_sources": [
+    "ken_french_10_industry_portfolios",
+    "ken_french_daily_factors",
+    "eia_bulk_wti_daily"
+  ],
+  "case_type": "baseline",
+  "difficulty": "hard",
+  "judge_reference": {
+    "source": "Fama-French daily research factors, the ten value-weighted industry portfolios, and the EIA daily Cushing WTI spot price.",
+    "facts": [
+      "Estimated on the 1,253 days from 2015 through 2019 on which all three series report, industry betas range from 1.1750 for technology to 0.4311 for utilities.",
+      "Over the 24 trading days from 2020-02-19 to 2020-03-23 the market excess return sums to -38.3400 percent.",
+      "Because the model is linear in daily returns, the prediction is the intercept times the day count plus beta times the summed market excess, and the comparison should be an arithmetic sum of daily excess returns rather than a compounded return.",
+      "Predictions miss by a mean absolute 12.9895 percentage points and 7 of the 10 industries fell further than their beta implied.",
+      "Scaling each industry's estimation residual standard deviation to the 24-day window, 9 of 10 industries land more than three scaled residual standard deviations from their prediction; telecommunications is at -1.0506, but these ratios are not calibrated probabilities.",
+      "Utilities predicted -16.1914 percent and delivered -44.4900, a miss of -28.2986 at -7.7540 standard errors, while technology predicted -44.5995 and delivered -32.6600, a positive miss of 11.9395 at 6.0525.",
+      "Energy carries the largest absolute miss at -29.4706, but utilities is the most extreme in standard errors because energy's residuals were always wider, so the two rankings disagree.",
+      "Oil fell from 53.31 to 23.33 dollars a barrel over the window, 56.2371 percent, with a summed daily return of -63.9247 percent.",
+      "Adding the daily oil return as a second factor gives energy an oil loading of 0.2731 and narrows its miss from -29.4706 to -20.0608, a roughly one-third numerical reduction, while utilities carries a loading of 0.0161 and its miss barely moves to -27.7425; this is not a causal decomposition.",
+      "The standard error used omits uncertainty in the fitted coefficients; adding it inflates the standard errors by a median factor of 1.0433, leaving utilities at -7.4319 and energy at -5.7586 but moving health care from 3.0306 to 2.9047 and the count beyond three from 9 to 8."
+    ],
+    "known_overclaims": [
+      "Presenting a beta-based prediction as what a portfolio will lose, without the residual standard error that says how far the outcome can sit from it.",
+      "Reading a low beta as protection in a crisis, when the lowest-beta industry here missed by the most standard errors.",
+      "Compounding the realized returns while predicting with a model that is linear in daily returns.",
+      "Concluding that the oil collapse causally explains the failure from a contemporaneous two-factor fit, or generalizing the utilities comparison to every non-energy industry."
+    ]
+  },
+  "conversations": [
+    {
+      "turns": [
+        {
+          "query": "Align the ten value-weighted industry portfolios with the daily research factors and the daily Cushing WTI spot price by date, computing a daily oil return as the percentage change in the spot price and keeping only dates where all three report. Report how many such dates fall in 2015-01-01 through 2019-12-31 and how many fall in 2020-02-19 through 2020-03-23, and report the summed market excess return over the second window in percent. Then, on the first window, regress each industry's daily return minus the risk-free rate on a constant and the market excess return. Report the label of the industry with the highest slope, that slope, and the lowest slope in the cross-section, slopes. Explain what the fitted coefficient captures about day-to-day co-movement over the sample used, and how far it carries to a later stress window.",
+          "validator": "validate_beta_estimation",
+          "stores": [
+            "estimation_days",
+            "crisis_days",
+            "market_excess_sum_pct",
+            "highest_beta_industry",
+            "highest_beta",
+            "lowest_beta"
+          ],
+          "claims": [
+            {
+              "id": "beta_scope",
+              "description": "The response identifies the slope as the fitted sensitivity of daily industry excess returns to daily market excess returns over the estimation sample.",
+              "mode": "required"
+            },
+            {
+              "id": "beta_forecast_boundary",
+              "description": "If the response uses the slope to forecast crisis losses, it states that a fitted estimation-period sensitivity is not a complete crisis-loss forecast.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Use each fitted line to predict the crisis window. Because the model is linear in daily returns, form the prediction as the intercept times the number of crisis days plus the slope times the summed market excess return, and compare it against the arithmetic sum of the industry's daily returns minus the risk-free rate over the same days rather than against a compounded return. Report the predicted and realized figures for utilities and for technology, each in percent. Then report the mean absolute difference between predicted and realized across all ten industries in percentage points, and how many industries realized a lower figure than predicted. Explain what the utilities comparison says about using a low estimated beta as crisis protection.",
+          "validator": "validate_scenario_prediction",
+          "stores": [
+            "utilities_predicted_pct",
+            "utilities_actual_pct",
+            "technology_predicted_pct",
+            "technology_actual_pct",
+            "mean_absolute_error_pp",
+            "industries_worse_than_predicted"
+          ],
+          "claims": [
+            {
+              "id": "defensive_failure",
+              "description": "The response notes that the lowest-beta industry lost substantially more than this fitted single-factor prediction, so a low historical beta did not provide protection in this selected episode.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Scale the misses relative to the fitted model's estimation-period residual volatility. For each industry take the standard deviation of its estimation-period residuals and scale it to the crisis window by multiplying by the square root of the number of crisis days, then divide each industry's prediction error by that figure. Report the resulting number of scaled residual standard deviations for utilities, for technology and for telecommunications, and how many of the ten industries lie more than three such units from their prediction. Then report the label of the industry with the largest absolute error and that industry's signed prediction error, actual minus predicted, in percentage points. Explain why the raw-error and standardized-error rankings can differ and state the statistical limitations of this scaling.",
+          "validator": "validate_error_significance",
+          "stores": [
+            "utilities_standard_errors",
+            "technology_standard_errors",
+            "telecom_standard_errors",
+            "industries_beyond_three_errors",
+            "largest_miss_industry",
+            "largest_miss_pp"
+          ],
+          "claims": [
+            {
+              "id": "model_distance",
+              "description": "The response interprets the ratios as large distances relative to estimation-period residual volatility, not as calibrated hypothesis-test probabilities or proof that sampling variation is impossible.",
+              "mode": "required"
+            },
+            {
+              "id": "ranking_disagreement",
+              "description": "The response explains that raw and standardized rankings differ because industries have different estimation-period residual volatility.",
+              "mode": "required",
+              "overlap_waiver": "The query asks why the two rankings can differ. The reason, that estimation-period residual volatility differs by industry, is nowhere in the query and is recoverable only from the fitted standard errors."
+            },
+            {
+              "id": "independence_caveat",
+              "description": "The response notes that square-root-of-time scaling treats residuals as independent with stable variance and omits fitted-coefficient uncertainty, assumptions that are especially fragile in a selected crisis episode.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Test how adding contemporaneous oil returns changes the fitted prediction. Report the oil spot price on the first and last day of the crisis window in USD, the percentage change between them, and the summed daily oil return over the window in percent. Then re-estimate each industry over the same estimation window on a constant, the market excess return and the daily oil return together, and form the two-factor prediction the same way, adding the oil loading times the summed oil return. Report the energy portfolio's oil loading, and the energy and utilities prediction errors under the two-factor model in percentage points. Explain what the change in those two errors can and cannot establish about oil as an omitted factor.",
+          "validator": "validate_omitted_factor",
+          "stores": [
+            "oil_start_usd",
+            "oil_end_usd",
+            "oil_change_pct",
+            "oil_daily_sum_pct",
+            "energy_oil_loading",
+            "energy_miss_with_oil_pp",
+            "utilities_miss_with_oil_pp"
+          ],
+          "claims": [
+            {
+              "id": "partial_explanation",
+              "description": "The response states that adding oil returns numerically narrows the energy error but leaves a substantial miss.",
+              "mode": "required"
+            },
+            {
+              "id": "oil_decomposition_boundary",
+              "description": "If the response presents that narrowing as an explanation of the miss, it states that the change is not a causal decomposition.",
+              "mode": "conditional"
+            },
+            {
+              "id": "no_transfer",
+              "description": "The response notes that the utilities error changes little.",
+              "mode": "required"
+            },
+            {
+              "id": "cross_industry_transfer_boundary",
+              "description": "If the response generalizes the energy improvement to other industries, it states that this comparison shows no similar improvement for utilities and cannot support a claim about every industry outside energy.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

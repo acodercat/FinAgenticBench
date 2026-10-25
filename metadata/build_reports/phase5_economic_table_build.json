@@ -1,0 +1,29 @@
+{
+  "bls_qcew_state_annual_totals": {
+    "rows": 212,
+    "years": [
+      2024,
+      2025
+    ],
+    "ownership_scopes": [
+      "private",
+      "total_covered"
+    ],
+    "output": "bls_qcew/state_annual_totals.csv.gz"
+  },
+  "ofr_financial_stress_index": {
+    "rows": 6575,
+    "start_date": "2000-01-03",
+    "end_date": "2025-12-31",
+    "output": "ofr_market_stress/financial_stress_index.csv.gz",
+    "vintage": "current revised history observed 2026-08-13"
+  },
+  "rules": [
+    "Only five-digit state aggregate areas ending 000 are retained.",
+    "Only annual all-industry rows for total covered and private ownership are retained.",
+    "Suppressed fields remain blank; no values are imputed.",
+    "State labels are not attached here; use an explicit Census geography crosswalk.",
+    "The frozen 2025 annual QCEW input is a preliminary retrospective vintage; BLS finalizes annual averages with the subsequent year's preliminary first-quarter release.",
+    "OFR FSI observations after 2025-12-31 are excluded; retained history is the current revised snapshot observed on 2026-08-13, not point-in-time vintages."
+  ]
+}

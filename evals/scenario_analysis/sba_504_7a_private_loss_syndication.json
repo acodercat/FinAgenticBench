@@ -1,0 +1,39 @@
+{
+  "name": "sba_504_7a_private_loss_syndication",
+  "module": "evals.scenario_analysis.sba_504_7a_private_loss_syndication",
+  "task_family": "scenario_analysis",
+  "data_sources": ["sba_504", "sba_7a"],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [{"id": "main", "turns": [
+    {
+      "query": "Use reported rows in the frozen 2026-06-30 SBA 504 and 7(a) snapshots for approval fiscal year 2025 and the 50 states plus DC. Use the first two digits of a valid reported NAICS code as its sector. In 504 require positive finite SBA gross approval and third-party dollars; in 7(a) require positive finite gross approval and a finite guaranteed amount between zero and gross. Keep reported rows as reported, without deduplicating similar-looking rows. At each state-sector pair represented in both programs, define a private approval-exposure proxy as 504 third-party dollars plus 7(a) gross approvals less their guaranteed amounts. Identify the pair with the largest proxy, breaking ties by state abbreviation and sector code ascending. Report the number of matched pairs, leader state, sector and combined private amount. Explain what this proxy captures about privately funded dollars, and what it leaves out.",
+      "validator": "validate_turn_1",
+      "stores": ["matched_state_sectors", "leader_state", "leader_naics2", "leader_private_approval_m"],
+      "claims": [{"id": "approval_exposure_scope", "description": "The response describes the combined amount as a retrospective private approval-exposure proxy, not an observed outstanding balance for one lender.", "mode": "required"}]
+    },
+    {
+      "query": "For that selected state-sector pair, report the eligible reported-row counts in each program, the 504 third-party dollars as a percentage of the pair's combined private proxy, and 7(a) guaranteed approvals as a percentage of its own gross approvals. Compare what the SBA-related amount means in the two financing programs.",
+      "validator": "validate_turn_2",
+      "stores": ["leader_504_rows", "leader_7a_rows", "leader_504_private_share_pct", "leader_7a_guarantee_share_pct"],
+      "claims": [{"id": "program_risk_structure", "description": "The response distinguishes the 504 CDC/debenture financing from the separate third-party lender loan, whereas the 7(a) guarantee covers a portion of the 7(a) lender loan itself.", "mode": "required"}]
+    },
+    {
+      "query": "For the same selected reported approvals, run a hypothetical principal-loss stress: 8% of 504 third-party dollars default with 50% loss severity, while 12% of 7(a) lender-retained approval dollars default with 50% loss severity. Apply the program assumptions separately before adding losses. Report the total modeled private loss and the 7(a) share of it. Say what kind of quantity these stress figures are, and what they cannot be used to predict.",
+      "validator": "validate_turn_3",
+      "stores": ["modeled_private_loss_m", "seven_a_loss_share_pct"],
+      "claims": [{"id": "loss_stress_scope", "description": "The response identifies the loss as a hypothetical stress on approved private principal, rather than a realized loss or forecast of defaults in the selected state-sector pair.", "mode": "required"}]
+    },
+    {
+      "query": "Suppose a sponsor carries that modeled private risk but has a USD20 million reserve for it. Starting from the selected state-sector portfolio, syndicate whole 504 third-party loans at par, transferring their entire modeled 504 loss exposure while leaving 7(a) unchanged. Sell reported 504 rows in descending third-party-dollar order until the remaining modeled loss first falls to or below the reserve. Report the minimum number of whole rows sold under this policy and their total third-party dollars. Assess whether the reserve is met and explain why a fractional principal sale would be a different execution decision.",
+      "validator": "validate_turn_4",
+      "stores": ["minimum_whole_504_sales", "sold_504_thirdparty_m"],
+      "claims": [{"id": "discrete_syndication", "description": "The response concludes from the selected whole-row transfer that the reserve is met, while the prior smaller transfer still exceeds it.", "mode": "required"}, {"id": "actual_sale_boundary", "description": "If the response describes the calculated transfer as an actual SBA loan sale or actual lender capital requirement, it qualifies the result as a stipulated portfolio scenario.", "mode": "conditional"}]
+    }
+  ]}],
+  "judge_reference": {
+    "source": "Frozen 2026-06-30 SBA 504 and 7(a) approval-row snapshots. Private-exposure combination, default/severity stress, reserve and whole-row syndication are analyst-defined hypothetical constructs.",
+    "facts": ["The matched state-sector population has 723 pairs. CA/72 leads with USD528.9892 million combined private approval exposure across 136 eligible 504 rows and 1,126 eligible 7(a) rows.", "Its 504 third-party dollars are USD374.68097322 million; its 7(a) retained principal is USD154.308211 million. The 504 SBA gross approval is a CDC/debenture portion, not a guarantee on the third-party loan; 7(a) guaranteed dollars are a share of the same lender's 7(a) approval.", "The stated stress gives about USD24.246 million private loss before syndication. Selling the eight largest whole 504 third-party rows transfers USD107.809901 million and reduces modeled loss to about USD19.9333 million, below the USD20 million reserve; seven leave about USD20.3133 million."],
+    "known_overclaims": ["Treating FY2025 approvals as current outstanding loans or one lender's portfolio.", "Treating 504 SBA gross approval as an SBA guaranty of the separate third-party lender loan.", "Calling modelled default/loss rates observed historical outcomes.", "Treating privacy-reduced reported rows as guaranteed unique loans or borrowers."]
+  }
+}

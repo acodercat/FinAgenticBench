@@ -1,0 +1,124 @@
+{
+  "name": "gdp_revision_curve_positioning",
+  "module": "evals.temporal_path.gdp_revision_curve_positioning",
+  "task_family": "temporal_path",
+  "data_sources": [
+    "philadelphia_fed_rtdsm",
+    "treasury_yield_curve",
+    "cftc_cot"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Create a retrospective revision screen for annualized real GDP growth from 2024-Q1 through 2025-Q2. Retain only quarters with first, second, third and current estimates, rank them by the absolute current-minus-first revision, and break a tie by the earlier quarter. Report the retained-quarter count, selected quarter, its first and current rates, and the selected absolute revision minus the runner-up absolute revision. Briefly explain how the selected retrospective revision magnitude should be interpreted.",
+          "validator": "validate_revision_screen",
+          "stores": [
+            "complete_gdp_vintage_quarter_count",
+            "largest_revision_quarter",
+            "leader_first_release_real_gdp_pct",
+            "leader_current_real_gdp_pct",
+            "absolute_revision_leader_margin_pp"
+          ],
+          "claims": [
+            {
+              "id": "revision_screen_information_boundary",
+              "description": "The response treats the selected difference as a retrospective data-revision result between a historical first estimate and the supplied current vintage, rather than as a real-time forecast error or a change in the quarter's underlying activity.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "For that selected quarter, report the second and third estimates. Among the three adjacent changes (second minus first, third minus second, current minus third), identify the stage with the largest absolute change, using the earliest transition in the stated sequence to break a tie. Explain whether the final revision was accumulated uniformly across release stages.",
+          "validator": "validate_release_path",
+          "stores": [
+            "leader_second_release_real_gdp_pct",
+            "leader_third_release_real_gdp_pct",
+            "largest_adjacent_revision_stage"
+          ],
+          "claims": [
+            {
+              "id": "release_path_result",
+              "description": "The response uses the computed release path to identify that the revision accumulated unevenly across adjacent stages rather than describing the current estimate as though it were simply the third release under another label.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Carry the selected quarter into a rates-market window. Use the most recent reported Treasury par-yield-curve observation on or before the preceding calendar-quarter end and the most recent one on or before the selected quarter end. Report both observation dates; the 2-year and 10-year yields at each boundary; and the 10-year-minus-2-year spread at each boundary. Interpret the curve-shape change with appropriate temporal calibration to the release-vintage evidence.",
+          "validator": "validate_curve_path",
+          "stores": [
+            "curve_start_observation_date",
+            "curve_end_observation_date",
+            "curve_start_two_year_yield_pct",
+            "curve_start_ten_year_yield_pct",
+            "curve_end_two_year_yield_pct",
+            "curve_end_ten_year_yield_pct",
+            "curve_start_two_ten_spread_bp",
+            "curve_end_two_ten_spread_bp"
+          ],
+          "claims": [
+            {
+              "id": "revision_market_timing_boundary",
+              "description": "The response recognizes that the quarter-boundary yield path predates later revisions embedded in the current GDP vintage, so temporal association cannot be described as a reaction to information not yet published.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Finally, for the CFTC futures-only U.S. Treasury 2-year and 10-year note contracts, use the latest report on or before each of the two quarter boundaries from the prior turn. Report the two CFTC dates. For each contract report leveraged-money long minus short at both boundaries, ending minus starting net contracts, and net as a percentage of that contract's same-report open interest at both boundaries. Compare the two positioning paths, but explain the contract-scale and causal limits of relating them to the curve and GDP-revision evidence.",
+          "validator": "validate_positioning_path",
+          "stores": [
+            "cftc_start_report_date",
+            "cftc_end_report_date",
+            "two_year_start_lev_money_net_contracts",
+            "two_year_end_lev_money_net_contracts",
+            "two_year_net_contract_change",
+            "two_year_start_net_open_interest_pct",
+            "two_year_end_net_open_interest_pct",
+            "ten_year_start_lev_money_net_contracts",
+            "ten_year_end_lev_money_net_contracts",
+            "ten_year_net_contract_change",
+            "ten_year_start_net_open_interest_pct",
+            "ten_year_end_net_open_interest_pct"
+          ],
+          "claims": [
+            {
+              "id": "cross_contract_positioning_result",
+              "description": "The response identifies from the computed normalized paths that the 10-year leveraged-money net declines by more percentage points of same-contract open interest than the 2-year net.",
+              "mode": "required"
+            },
+            {
+              "id": "cross_contract_scale_boundary",
+              "description": "If the response adds or directly compares raw 2-year and 10-year contract counts as equal-duration exposures, it qualifies that comparison because the contracts have different maturity and risk scales.",
+              "mode": "conditional"
+            },
+            {
+              "id": "macro_market_causality_boundary",
+              "description": "If the response attributes the yield-curve or positioning path to the GDP revision, it qualifies that claim because the retrospective alignment does not identify causality and later GDP vintages were unavailable at the market dates.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen Philadelphia Fed real-time revision table, U.S. Treasury par yield curve and 2025 CFTC financial-futures reports",
+    "facts": [
+      "Six quarters have all four GDP release stages. 2025-Q2 has the largest absolute first-to-current revision: 2.9688% to 3.8386%, or +0.8698 percentage point, 0.1204 point above the runner-up.",
+      "The adjacent changes are +0.3221, +0.5477 and 0.0000 percentage point, so second-to-third is largest.",
+      "The quarter-boundary Treasury observations are 2025-03-31 and 2025-06-30. The 2s10s spread moves from 34.0 to 52.0 basis points.",
+      "The CFTC boundaries are 2025-03-25 and 2025-06-24. The 2-year net changes by -221,718 contracts and -2.3856 points of open interest; the 10-year net changes by -358,539 and -7.3179 points."
+    ],
+    "known_overclaims": [
+      "Calling the current GDP estimate a real-time forecast or the third release.",
+      "Claiming that markets reacted to revisions published only after the quarter-boundary observations.",
+      "Adding raw Treasury-futures contract counts across maturities as equal exposures.",
+      "Inferring a causal macro narrative from the aligned retrospective paths."
+    ]
+  }
+}

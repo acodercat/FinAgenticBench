@@ -1,0 +1,104 @@
+{
+  "name": "stress_loss_equity_absorption_leaders",
+  "module": "evals.comparison_ranking.stress_loss_equity_absorption_leaders",
+  "task_family": "comparison_ranking",
+  "data_sources": [
+    "fed_stress_tests",
+    "ffiec_y9c"
+  ],
+  "difficulty": "medium",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Across the legal-entity rows in the Federal Reserve's 2025 Supervisory Severely Adverse stress-test results, excluding the published participating-bank aggregate, match RSSD identifiers to 2024-12-31 Y-9C respondents with reported consolidated total equity. Scale each entity's projected total loan losses by that same-date equity. Report the matched count, summed equity, summed projected loan losses, the ratio of those sums, and the simple mean of the entity-level ratios. Carry the matched cohort forward and explain what the two cohort measures each describe.",
+          "validator": "validate_cohort_scaling",
+          "stores": [
+            "matched_stress_y9c_entity_count",
+            "cohort_y9c_total_equity_usd_billions",
+            "cohort_projected_total_loan_losses_usd_billions",
+            "cohort_loan_loss_to_equity_ratio_pct",
+            "simple_mean_entity_loan_loss_to_equity_pct"
+          ],
+          "claims": [
+            {
+              "id": "cohort_equity_weighting_meaning",
+              "description": "The response explains that the cohort ratio-of-sums weights entities by Y-9C consolidated total equity and therefore need not equal the simple mean of entity ratios.",
+              "mode": "required"
+            },
+            {
+              "id": "y9c_vintage_boundary",
+              "description": "If the response presents the supplied 2024-12-31 Y-9C values as an immutable real-time vintage, it states that the frozen historical bulk artifact can contain later revisions.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Within that cohort identify the entity with the highest loan-loss-to-equity ratio, resolving an exact tie by Fed disclosure legal name alphabetically. Report its Fed legal name, RSSD identifier, Y-9C equity, projected total loan losses and scaled ratio, together with its actual and projected-minimum CET1 ratios. Explain how this scaled ratio relates to the reported CET1 outcomes.",
+          "validator": "validate_loss_leader",
+          "stores": [
+            "loan_loss_to_equity_leader_name",
+            "loan_loss_to_equity_leader_rssd_id",
+            "loan_loss_leader_y9c_equity_usd_billions",
+            "loan_loss_leader_projected_total_loan_losses_usd_billions",
+            "loan_loss_leader_loss_to_equity_ratio_pct",
+            "loan_loss_leader_actual_cet1_ratio_pct",
+            "loan_loss_leader_projected_minimum_cet1_ratio_pct"
+          ],
+          "claims": [
+            {
+              "id": "cet1_nonrollforward_meaning",
+              "description": "The response identifies starting Y-9C consolidated GAAP equity rather than CET1 capital as the denominator of the scaled ratios and treats the reported CET1 outcomes as a separate stress-test measure.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Now identify the entity with the highest provision-to-equity ratio under the same tie rule, and report its Fed legal name, RSSD identifier, Y-9C equity, projected provision and scaled ratio, plus its actual and projected-minimum CET1 ratios. Explain what the two leader results together show and what they do not establish.",
+          "validator": "validate_provision_leader",
+          "stores": [
+            "provision_to_equity_leader_name",
+            "provision_to_equity_leader_rssd_id",
+            "provision_leader_y9c_equity_usd_billions",
+            "provision_leader_projected_provision_usd_billions",
+            "provision_leader_provision_to_equity_ratio_pct",
+            "provision_leader_actual_cet1_ratio_pct",
+            "provision_leader_projected_minimum_cet1_ratio_pct"
+          ],
+          "claims": [
+            {
+              "id": "loss_provision_leader_divergence",
+              "description": "The response uses the observed leader divergence to explain that projected total loan losses and projected provisions are distinct stress-test measures rather than interchangeable numerators.",
+              "mode": "required"
+            },
+            {
+              "id": "loss_capacity_overclaim_boundary",
+              "description": "If the response calls either scaled ratio a default probability, loss severity, capital exhaustion percentage or solvency test, it states that the selected numerators and starting GAAP-equity denominator alone do not establish that interpretation.",
+              "mode": "conditional"
+            },
+            {
+              "id": "scenario_forecast_boundary",
+              "description": "If the response presents the severely adverse projections as forecasts or realized outcomes, it states that they are conditional supervisory scenario results rather than predictions.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Federal Reserve 2025 DFAST public results and FFIEC 2024-12-31 Y-9C consolidated balance sheets",
+    "facts": [
+      "All 22 legal-entity stress rows match one Y-9C respondent by RSSD. Their Y-9C consolidated total equity sums to 1,854.898991 billion USD and projected total loan losses sum to 471.9 billion USD.",
+      "The cohort loan-loss-to-equity ratio-of-sums is 25.4407384 percent; the simple mean of entity ratios is 26.3631612 percent, a -0.9224228 percentage-point difference.",
+      "Capital One Financial Corporation (RSSD 2277860) leads loan losses scaled by equity: 53.7 billion divided by 60.7834 billion, or 88.3465 percent; its actual and projected-minimum CET1 ratios are 13.5 and 9.2 percent.",
+      "American Express Company (RSSD 1275216) leads provisions scaled by equity: 27.2 billion divided by 30.264 billion, or 89.8758 percent; its actual and projected-minimum CET1 ratios are 10.5 and 9.4 percent."
+    ],
+    "known_overclaims": [
+      "Including the participating-bank aggregate as a twenty-third entity or using Y-9C assets instead of consolidated total equity.",
+      "Treating projected loan losses and provisions as identical measures, or treating either equity-scaled ratio as a CET1 depletion identity, default probability or realized forecast."
+    ]
+  }
+}

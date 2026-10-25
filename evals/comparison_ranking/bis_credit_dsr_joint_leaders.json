@@ -1,0 +1,99 @@
+{
+  "name": "bis_credit_dsr_joint_leaders",
+  "module": "evals.comparison_ranking.bis_credit_dsr_joint_leaders",
+  "task_family": "comparison_ranking",
+  "data_sources": [
+    "bis_credit_gap",
+    "bis_debt_service"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "For 2025 Q3, form one common country population having BIS private-nonfinancial-sector actual credit-to-GDP ratios and actual-minus-trend credit gaps under all-lender coverage, together with BIS private-nonfinancial-sector debt-service ratios. Report how many countries that common population holds, then rank it by actual credit-to-GDP ratio from highest to lowest, resolving an exact value tie by country name alphabetically, and report the leading country and its ratio. Carry the population and its rankings forward. Explain why the three measures are ranked inside one common population.",
+          "validator": "validate_common_population",
+          "stores": [
+            "joint_country_count",
+            "highest_actual_credit_ratio_country",
+            "highest_actual_credit_ratio_pct_of_gdp"
+          ],
+          "claims": [
+            {
+              "id": "common_population_basis",
+              "description": "The response states that ranking all three measures inside one country population is what makes the ranks comparable across measures.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Within that same population, rank the credit gap from highest to lowest under the same tie rule and report the leading country and its gap. Explain what quality puts this country at the top of this second ordering, and whether that is the same thing as owing or repaying the most.",
+          "validator": "validate_credit_gap_leader",
+          "stores": [
+            "highest_credit_gap_country",
+            "highest_credit_gap_percentage_points"
+          ],
+          "claims": [
+            {
+              "id": "japan_gap_leader_semantics",
+              "description": "The response explains that the credit-gap leader is distinguished by its position relative to an estimated long-run credit trend, not by having the largest credit stock or debt-service burden in the common population.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Rank the same population by debt-service ratio under the same tie rule and report the leading country and its ratio. Explain what this measure captures that the two credit measures do not.",
+          "validator": "validate_debt_service_leader",
+          "stores": [
+            "highest_dsr_country",
+            "highest_dsr_pct"
+          ],
+          "claims": [
+            {
+              "id": "dsr_measure_semantics",
+              "description": "The response distinguishes the debt-service ratio's income share devoted to interest and principal payments from both a credit stock relative to GDP and that stock ratio's deviation from trend.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Using the three rankings you carried forward, with rank 1 denoting the highest value, report the actual-ratio leader's ordinal credit-gap rank and the credit-gap leader's ordinal actual-ratio and debt-service-ratio ranks. Explain what the pattern across the three rankings does and does not imply about credit burden.",
+          "validator": "validate_cross_ranks",
+          "stores": [
+            "actual_ratio_leader_credit_gap_rank",
+            "credit_gap_leader_actual_ratio_rank",
+            "credit_gap_leader_dsr_rank"
+          ],
+          "claims": [
+            {
+              "id": "hong_kong_stock_burden_gap_divergence",
+              "description": "The response explains that the same country can lead both the actual credit stock ratio and debt-service burden while ranking near the bottom on the trend gap, demonstrating that the gap supplies a distinct trend-relative dimension.",
+              "mode": "required"
+            },
+            {
+              "id": "systemic_risk_boundary",
+              "description": "If the response infers crisis probability, default risk, financial stability or policy causality from the rankings, it states that the three descriptive indicators alone do not establish that conclusion.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "BIS credit-to-GDP gaps and debt-service ratios for 2025-Q3",
+    "facts": [
+      "Thirty-two countries have all three requested private-sector measures in 2025 Q3.",
+      "Hong Kong SAR leads the actual credit-to-GDP ratio at 332.4073 percent and the DSR at 34.1 percent, but its -54.2594-point credit gap ranks 31st.",
+      "Japan leads the credit gap at +5.1514 points; its 172.8772 percent actual ratio ranks 14th and its 15.3 percent DSR ranks 18th.",
+      "The actual ratio measures credit stock relative to GDP, the gap measures actual ratio minus estimated long-run trend, and DSR measures income used for interest and principal payments."
+    ],
+    "known_overclaims": [
+      "Treating a negative credit gap as evidence of low leverage or low debt-service burden.",
+      "Treating the gap as the actual credit ratio or the DSR as another credit-to-GDP measure.",
+      "Using the three rankings alone as a crisis forecast, default assessment or causal policy result."
+    ]
+  }
+}

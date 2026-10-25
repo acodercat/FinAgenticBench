@@ -1,0 +1,355 @@
+{
+  "tic": {
+    "built_at": "2026-08-27T08:08:44.791772+00:00",
+    "freeze_date": "2025-12-31",
+    "tables": {
+      "major_foreign_holders": {
+        "file": "treasury_tic/major_foreign_holders.csv.gz",
+        "rows": 10888,
+        "columns": [
+          "country_name",
+          "row_type",
+          "observation_month",
+          "treasury_holdings_usd_billions",
+          "source_table"
+        ]
+      }
+    }
+  },
+  "form5500": {
+    "built_at": "2026-08-27T08:08:45.205223+00:00",
+    "freeze_date": "2025-12-31",
+    "tables": {
+      "plan_financials": {
+        "file": "dol_form5500/plan_financials.csv.gz",
+        "rows": 190218,
+        "columns": [
+          "filing_id",
+          "plan_year_end",
+          "plan_entity_code",
+          "initial_filing_indicator",
+          "amended_indicator",
+          "plan_name",
+          "plan_number",
+          "sponsor_name",
+          "sponsor_ein",
+          "participants_beginning_count",
+          "active_participants_end_count",
+          "participants_with_account_balance_count",
+          "filing_status",
+          "date_received",
+          "form_year",
+          "net_assets_beginning_usd",
+          "net_assets_ending_usd",
+          "total_income_usd",
+          "total_expenses_usd",
+          "net_income_usd",
+          "transfers_to_plan_usd",
+          "transfers_from_plan_usd"
+        ]
+      },
+      "schedule_sb": {
+        "file": "dol_form5500/schedule_sb.csv.gz",
+        "rows": 13191,
+        "columns": [
+          "filing_id",
+          "plan_year_end",
+          "plan_entity_code",
+          "initial_filing_indicator",
+          "amended_indicator",
+          "plan_name",
+          "plan_number",
+          "sponsor_name",
+          "sponsor_ein",
+          "participants_beginning_count",
+          "active_participants_end_count",
+          "participants_with_account_balance_count",
+          "filing_status",
+          "date_received",
+          "form_year",
+          "sb_plan_type_code",
+          "valuation_date",
+          "current_value_assets_usd",
+          "actuarial_value_assets_usd",
+          "schedule_sb_participant_count",
+          "total_funding_target_usd",
+          "at_risk_indicator",
+          "funding_target_without_at_risk_assumptions_usd",
+          "funding_standard_carryover_balance_usd",
+          "prefunding_balance_usd",
+          "reported_ftap_pct",
+          "reported_adjusted_ftap_pct",
+          "prior_year_ftap_pct"
+        ]
+      }
+    }
+  },
+  "bdc": {
+    "built_at": "2026-08-28T07:22:19.571239+00:00",
+    "freeze_date": "2025-12-31",
+    "tables": {
+      "investment_schedule": {
+        "file": "sec_bdc/investment_schedule.csv.gz",
+        "rows": 696791,
+        "columns": [
+          "accession",
+          "cik",
+          "filer_name",
+          "report_date",
+          "form",
+          "filed_date",
+          "industry_sector",
+          "investment_id",
+          "issuer_affiliation",
+          "investment_type",
+          "total_interest_rate",
+          "basis_spread",
+          "maturity_date",
+          "principal_amount_usd",
+          "net_assets_pct",
+          "cost_usd",
+          "fair_value_usd",
+          "pik_interest_rate",
+          "source_archive"
+        ]
+      },
+      "filings": {
+        "file": "sec_bdc/filings.csv.gz",
+        "rows": 630,
+        "columns": [
+          "accession",
+          "cik",
+          "filer_name",
+          "fiscal_year_end",
+          "form",
+          "period",
+          "fiscal_year",
+          "fiscal_period",
+          "filed_date",
+          "source_archive"
+        ]
+      }
+    }
+  },
+  "form_d": {
+    "built_at": "2026-08-27T08:09:11.415572+00:00",
+    "freeze_date": "2025-12-31",
+    "tables": {
+      "filings": {
+        "file": "sec_form_d/filings.csv.gz",
+        "rows": 311273,
+        "columns": [
+          "ACCESSIONNUMBER",
+          "FILING_DATE",
+          "SUBMISSIONTYPE",
+          "CIK",
+          "ENTITYNAME",
+          "INDUSTRYGROUPTYPE",
+          "ISAMENDMENT",
+          "PREVIOUSACCESSIONNUMBER",
+          "SALE_DATE",
+          "TOTALOFFERINGAMOUNT",
+          "TOTALAMOUNTSOLD",
+          "TOTALREMAINING",
+          "HASNONACCREDITEDINVESTORS",
+          "NUMBERNONACCREDITEDINVESTORS",
+          "TOTALNUMBERALREADYINVESTED",
+          "SALESCOMM_DOLLARAMOUNT",
+          "FINDERSFEE_DOLLARAMOUNT",
+          "source_archive"
+        ]
+      }
+    }
+  },
+  "form_c": {
+    "built_at": "2026-08-27T08:09:21.580172+00:00",
+    "freeze_date": "2025-12-31",
+    "tables": {
+      "filings": {
+        "file": "sec_form_c/filings.csv.gz",
+        "rows": 30074,
+        "columns": [
+          "ACCESSION_NUMBER",
+          "SUBMISSION_TYPE",
+          "FILING_DATE",
+          "CIK",
+          "FILE_NUMBER",
+          "PERIOD",
+          "ISAMENDMENT",
+          "PROGRESSUPDATE",
+          "NATUREOFAMENDMENT",
+          "NAMEOFISSUER",
+          "OFFERINGAMOUNT",
+          "MAXIMUMOFFERINGAMOUNT",
+          "DEADLINEDATE",
+          "CURRENTEMPLOYEES",
+          "TOTALASSETMOSTRECENTFISCALYEAR",
+          "CASHEQUIMOSTRECENTFISCALYEAR",
+          "SHORTTERMDEBTMRECENTFISCALYEAR",
+          "LONGTERMDEBTRECENTFISCALYEAR",
+          "REVENUEMOSTRECENTFISCALYEAR",
+          "NETINCOMEMOSTRECENTFISCALYEAR",
+          "source_archive"
+        ]
+      }
+    }
+  },
+  "nport": {
+    "built_at": "2026-08-27T08:09:22.936704+00:00",
+    "freeze_date": "2025-12-31",
+    "tables": {
+      "fund_reports": {
+        "file": "sec_nport/fund_reports.csv.gz",
+        "rows": 313485,
+        "columns": [
+          "accession",
+          "filing_date",
+          "report_date",
+          "form",
+          "cik",
+          "registrant_name",
+          "series_name",
+          "series_id",
+          "total_assets_usd",
+          "total_liabilities_usd",
+          "net_assets_usd",
+          "cash_not_elsewhere_reported_usd",
+          "realized_gain_month_1_usd",
+          "unrealized_change_month_1_usd",
+          "realized_gain_month_2_usd",
+          "unrealized_change_month_2_usd",
+          "realized_gain_month_3_usd",
+          "unrealized_change_month_3_usd",
+          "sales_month_1_usd",
+          "reinvestment_month_1_usd",
+          "redemptions_month_1_usd",
+          "sales_month_2_usd",
+          "reinvestment_month_2_usd",
+          "redemptions_month_2_usd",
+          "sales_month_3_usd",
+          "reinvestment_month_3_usd",
+          "redemptions_month_3_usd",
+          "source_archive"
+        ]
+      },
+      "interest_rate_risk": {
+        "file": "sec_nport/interest_rate_risk.csv.gz",
+        "rows": 268241,
+        "columns": [
+          "accession",
+          "filing_date",
+          "report_date",
+          "series_name",
+          "series_id",
+          "net_assets_usd",
+          "currency_code",
+          "dv01_3month",
+          "dv01_1year",
+          "dv01_5year",
+          "dv01_10year",
+          "dv01_30year"
+        ]
+      }
+    }
+  },
+  "nmfp": {
+    "built_at": "2026-08-27T08:12:12.830038+00:00",
+    "freeze_date": "2025-12-31",
+    "tables": {
+      "series_filings": {
+        "file": "sec_nmfp/series_filings.csv.gz",
+        "rows": 20385,
+        "columns": [
+          "accession",
+          "filing_date",
+          "report_date",
+          "form",
+          "cik",
+          "registrant_name",
+          "series_name",
+          "series_id",
+          "fund_category",
+          "weighted_average_maturity_days",
+          "weighted_average_life_days",
+          "cash_usd",
+          "portfolio_securities_usd",
+          "other_assets_usd",
+          "liabilities_usd",
+          "net_assets_usd",
+          "shares_outstanding",
+          "source_archive"
+        ]
+      },
+      "daily_shareholder_flows": {
+        "file": "sec_nmfp/daily_shareholder_flows.csv.gz",
+        "rows": 247400,
+        "columns": [
+          "source_archive",
+          "source_row_number",
+          "accession",
+          "class_id",
+          "gross_subscriptions_usd",
+          "gross_redemptions_usd",
+          "flow_date"
+        ]
+      },
+      "daily_liquidity": {
+        "file": "sec_nmfp/daily_liquidity.csv.gz",
+        "rows": 75468,
+        "columns": [
+          "accession",
+          "daily_liquid_assets_usd",
+          "weekly_liquid_assets_usd",
+          "daily_liquid_assets_fraction",
+          "weekly_liquid_assets_fraction",
+          "liquidity_date"
+        ]
+      },
+      "share_class_yields": {
+        "file": "sec_nmfp/share_class_yields.csv.gz",
+        "rows": 258006,
+        "columns": [
+          "accession",
+          "class_id",
+          "class_name",
+          "class_net_assets_usd",
+          "yield_date",
+          "seven_day_net_yield",
+          "seven_day_gross_yield",
+          "source_archive"
+        ]
+      }
+    }
+  },
+  "nfip": {
+    "built_at": "2026-08-27T11:55:37.283248+00:00",
+    "freeze_date": "2025-12-31",
+    "tables": {
+      "claims": {
+        "file": "fema_nfip/claims.csv.gz",
+        "rows": 312322,
+        "columns": [
+          "claim_record_id",
+          "snapshot_as_of_date",
+          "date_of_loss",
+          "open_date",
+          "state_usps",
+          "county_code",
+          "census_geoid",
+          "policy_count",
+          "flood_event",
+          "cause_of_damage",
+          "gross_building_payment_usd",
+          "gross_contents_payment_usd",
+          "gross_icc_payment_usd",
+          "net_building_payment_usd",
+          "net_contents_payment_usd",
+          "net_icc_payment_usd",
+          "building_coverage_usd",
+          "contents_coverage_usd",
+          "source_file"
+        ]
+      }
+    }
+  }
+}

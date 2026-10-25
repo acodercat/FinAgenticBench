@@ -1,0 +1,134 @@
+{
+  "name": "sba_guarantee_retention_versus_commercial_book",
+  "module": "evals.risk_screening.sba_guarantee_retention_versus_commercial_book",
+  "task_family": "risk_screening",
+  "data_sources": [
+    "sba_7a",
+    "fdic_bankfind"
+  ],
+  "difficulty": "hard",
+  "case_type": "trap",
+  "judge_reference": {
+    "source": "SBA 7(a) approvals and FDIC BankFind bank financials, as frozen in the runtime layer. The Small Business Administration guarantees a statutory share of each 7(a) approval and reimburses that share on default, so the lender carries only the remainder as credit risk. Call-report amounts are thousands of dollars.",
+    "facts": [
+      "The loan file runs from 2019-10-01 to 2025-09-30, so fiscal years are complete in it and the last calendar year is not. Fiscal 2025, 2024-10-01 through 2025-09-30, holds 78,078 approvals: USD37.287816 billion gross, USD27.503144 billion guaranteed, and therefore USD9.784672 billion the lenders are at risk on.",
+      "9,562 of those loans (12.25 percent) record no lender certificate; their lenders are not FDIC-insured banks. The amount at risk on them is USD1.065450 billion, 10.8890 percent of the fiscal year's total.",
+      "1,130 distinct certificates appear, and every one of them matches a bank reporting on 2025-09-30 with a positive commercial and industrial loan book.",
+      "Every one of the 1,130 fiscal-year certificates matches a bank reporting on 2025-09-30, and every one of those banks reports a positive commercial and industrial loan book, so no lender is dropped by the match. 217 banks in the file report no commercial and industrial loans at that date, but none of them approved a 7(a) loan in the fiscal year.",
+      "Six lenders are at risk on more than their whole commercial book: Shoreham Bank at 3.546408, Global One Bank at 2.501637, GBank at 2.024593, Northeast Bank at 1.932816, Loyal Trust Bank at 1.327082 and Newtek Bank at 1.102126. The seventh, American Continental Bank, is at 0.866684, so the bar is not a close call.",
+      "Measuring exposure by the gross approved amount instead reports 45 lenders rather than 6.",
+      "Live Oak Banking Company, certificate 58665, carries the largest amount at risk at USD0.757135 billion against a USD4.589723 billion commercial book, an intensity of 0.164963. Huntington National Bank is second at USD0.669011 billion and Newtek third at USD0.504906 billion.",
+      "Shoreham Bank, certificate 27417, is the most intense at 3.546408 against a commercial book of USD0.009675 billion. Size and intensity therefore pick out different lenders.",
+      "The ten largest matched lenders hold 38.812902 percent of all matched amount at risk.",
+      "The guarantee share is exact in the file: four times the guaranteed amount equals three times the gross on 34,472 loans, and twice the guaranteed amount equals the gross on 24,375. Across the fiscal year 99 distinct guarantee shares appear, stable under rounding from four to ten decimals.",
+      "The gross reading moves six of the sixteen reported figures: the screened count to 45, the largest single exposure to USD2.852669 billion, the intensity leader's ratio to 14.562687, the largest lender's own intensity to 0.621534, the concentration to 38.068233 percent and the exposure outside the banks to USD4.304624 billion. Both certificates are unchanged.",
+      "The first five lenders rank the same under either reading, but the top ten share only seven members: TD Bank, Bank of America and Wells Fargo enter on retained risk in place of Celtic Bank, Byline Bank and GBank. TD Bank is thirteenth by gross approvals and seventh by what it keeps, because the one-half guarantee leaves twice as much per approved dollar as the three-quarter guarantee."
+    ],
+    "known_overclaims": [
+      "Treating the gross approved amount as the lender's exposure; the guaranteed share is the government's, and using gross turns 6 screened lenders into 45.",
+      "Reading a high intensity as a solvency finding. The comparison is a fiscal year of new approvals against a stock of loans outstanding, and the guaranteed share may also still sit on the lender's balance sheet until it is sold.",
+      "Treating the loans without a certificate as an error; they are approvals by lenders outside the FDIC-insured universe.",
+      "Using a calendar year. The file ends on 2025-09-30, so the last calendar year in it is truncated and its totals are not comparable with a full year.",
+      "Reading the certificate match as evidence that the approving lender and the reporting bank are the same legal entity throughout the year; the certificate is the identifier the loan file records."
+    ]
+  },
+  "conversations": [
+    {
+      "turns": [
+        {
+          "query": "The loan file records every approval under the federal small business lending programme, each with the amount approved and the amount the agency guaranteed. Take the approvals dated in the federal fiscal year that ended on 2025-09-30, counting both endpoints. Report how many approvals fall in it, their total approved amount and their total guaranteed amount, both in billions of dollars, and how many of them record no lender certificate. Explain why the fiscal year rather than the calendar year is the period this file supports.",
+          "validator": "validate_programme_year",
+          "stores": [
+            "fiscal_year_loan_count",
+            "gross_approval_usd_billions",
+            "guaranteed_approval_usd_billions",
+            "unidentified_lender_loan_count"
+          ],
+          "claims": [
+            {
+              "id": "period_completeness",
+              "mode": "required",
+              "description": "The record stops at the end of September, so the final twelve months numbered by the calendar are cut short while the ones numbered by the government's own year are whole."
+            },
+            {
+              "id": "missing_certificate_meaning",
+              "mode": "required",
+              "description": "Approvals with no certificate come from lenders outside the deposit-insurance system, so they are a real part of the programme rather than a gap in the file."
+            }
+          ]
+        },
+        {
+          "query": "Match each lender certificate to the bank reporting it at the 2025-09-30 call-report date, whose balance-sheet figures that file gives in thousands of dollars, and report how many certificates match a bank. Then compare the amount each of those lenders is itself at risk on from the fiscal year's approvals against that bank's commercial and industrial loan book at the same date. Report how many lenders are at risk on more than their whole commercial book, and identify, by certificate, the lender carrying the largest amount at risk, breaking a tie by the lower certificate, with that amount in billions of dollars. Explain what the comparison does and does not establish.",
+          "validator": "validate_exposure_screen",
+          "stores": [
+            "matched_bank_lender_count",
+            "own_exposure_exceeds_commercial_book_lender_count",
+            "largest_own_exposure_certificate",
+            "largest_own_exposure_usd_billions"
+          ],
+          "claims": [
+            {
+              "id": "guarantee_shifts_the_risk",
+              "mode": "required",
+              "description": "The agency reimburses its share when a borrower fails, so that share is the government's loss and not the lender's, and only the remainder belongs in a measure of what the lender carries."
+            },
+            {
+              "id": "flow_against_stock_boundary",
+              "mode": "conditional",
+              "description": "If the response reads the comparison as a solvency or capital test, it should note that a year of new approvals is being set against a stock of loans outstanding and the two are not the same kind of quantity."
+            }
+          ]
+        },
+        {
+          "query": "Staying with the matched lenders, identify the one whose amount at risk is largest relative to its own commercial and industrial loan book, breaking a tie by the lower certificate. Report its certificate, that ratio, and its commercial book in billions of dollars. Then report the same ratio for the lender carrying the largest absolute amount at risk, found in the previous turn. Explain what the two lenders together show about reading a concentration measure.",
+          "validator": "validate_size_versus_intensity",
+          "stores": [
+            "highest_exposure_intensity_certificate",
+            "highest_exposure_intensity_ratio",
+            "highest_exposure_intensity_commercial_book_usd_billions",
+            "largest_own_exposure_intensity_ratio"
+          ],
+          "claims": [
+            {
+              "id": "size_is_not_intensity",
+              "mode": "required",
+              "description": "The biggest lender by amount and the biggest relative to its own book are different institutions, because a small book makes a modest sum look enormous and a large one buries a large sum."
+            },
+            {
+              "id": "small_denominator_boundary",
+              "mode": "conditional",
+              "description": "If the response treats the highest ratio as the greatest danger, it should note how small the denominator behind it is."
+            }
+          ]
+        },
+        {
+          "query": "Finally examine how the guarantee itself is set. Across the same fiscal year, report how many approvals were guaranteed for exactly three quarters of the approved amount and how many for exactly one half. Then rank the matched lenders by amount at risk and report the ten largest ones' combined share of all matched amount at risk in percent, and the amount at risk on the approvals that record no certificate, in billions of dollars. Explain what the two guarantee fractions and the concentration figure say about the programme.",
+          "validator": "validate_guarantee_structure",
+          "stores": [
+            "three_quarter_guarantee_loan_count",
+            "one_half_guarantee_loan_count",
+            "top_ten_lender_own_exposure_share_pct",
+            "unidentified_lender_own_exposure_usd_billions"
+          ],
+          "claims": [
+            {
+              "id": "statutory_fractions",
+              "mode": "required",
+              "description": "Congress fixes the proportion by product line, so it is not bargained deal by deal, and that is why tens of thousands of files land on identical arithmetic."
+            },
+            {
+              "id": "lender_concentration",
+              "mode": "required",
+              "description": "A small number of lenders carry a large part of the risk the programme leaves in private hands, so the programme's private-side exposure is concentrated rather than spread across the thousand-odd participating banks."
+            },
+            {
+              "id": "non_bank_share_boundary",
+              "mode": "conditional",
+              "description": "If the response treats the matched banks as the whole programme, it should note the portion carried by lenders the call reports never cover."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,95 @@
+{
+  "name": "pimco_usd_dv01_treasury_curve_scenario",
+  "module": "evals.scenario_analysis.pimco_usd_dv01_treasury_curve_scenario",
+  "task_family": "scenario_analysis",
+  "data_sources": [
+    "sec_nport",
+    "treasury_yield_curve"
+  ],
+  "difficulty": "medium",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Using N-PORT accession 0001099263-25-004485, take the PIMCO Income Fund's reported USD DV01 maturity buckets as of 2025-09-30 and align them to the same-maturity U.S. Treasury par yields at 3 months, 1 year, 5 years, 10 years and 30 years on 2025-09-30 and 2025-12-31. Report the ending minus starting yield change for each of the five maturities. Carry the aligned exposures and yield changes forward, and explain what the Treasury par curve stands in for here.",
+          "validator": "validate_curve_moves",
+          "stores": [
+            "three_month_yield_change_basis_points",
+            "one_year_yield_change_basis_points",
+            "five_year_yield_change_basis_points",
+            "ten_year_yield_change_basis_points",
+            "thirty_year_yield_change_basis_points"
+          ],
+          "claims": [
+            {
+              "id": "curve_proxy_limit",
+              "description": "The response identifies the Treasury par curve as a benchmark proxy that may differ from the instruments and valuation risk factors underlying the fund's reported DV01.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "For a retrospective first-order scenario, treat a positive reported DV01 as a gain for a one-basis-point decline in its matched yield and hold the reported exposures static. Report the signed tenor-summed value change and the gross absolute tenor contribution. Explain what the gap between the two totals shows and what holding the exposures static assumes.",
+          "validator": "validate_scenario_totals",
+          "stores": [
+            "linear_value_change_usd_millions",
+            "gross_absolute_tenor_contribution_usd_millions"
+          ],
+          "claims": [
+            {
+              "id": "first_order_static_exposure",
+              "description": "The response characterizes the result as a first-order sensitivity estimate based on exposures held static at the N-PORT report date.",
+              "mode": "required"
+            },
+            {
+              "id": "tenor_offset_interpretation",
+              "description": "The response attributes the gap between signed and gross contribution totals to offset across maturity buckets under the observed nonparallel curve move.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Identify the maturity with the largest absolute contribution and report its signed contribution, then report the signed total as a percentage of the fund's reported net assets. Explain what that normalized figure conveys and what it should not be read as.",
+          "validator": "validate_tenor_attribution",
+          "stores": [
+            "largest_absolute_contribution_tenor",
+            "largest_tenor_signed_contribution_usd_millions",
+            "linear_value_change_pct_net_assets"
+          ],
+          "claims": [
+            {
+              "id": "scale_normalized_magnitude",
+              "description": "The response relates the scenario total to the fund's reported net assets as a scale-normalized magnitude rather than an amount whose size can be judged on its own.",
+              "mode": "required"
+            },
+            {
+              "id": "performance_boundary",
+              "description": "If the response calls the estimate an actual return or realized profit and loss, it qualifies that assertion because holdings changes, convexity, carry, spread moves, currencies, fees and other portfolio effects are outside the calculation.",
+              "mode": "conditional"
+            },
+            {
+              "id": "forecast_boundary",
+              "description": "If the response uses the retrospective result as a forecast or investment recommendation, it qualifies that inference because the scenario is descriptive and uses an ex post curve path.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "SEC N-PORT accession 0001099263-25-004485 and U.S. Treasury daily par yield curve",
+    "facts": [
+      "From 2025-09-30 to 2025-12-31, the 3-month, 1-year, 5-year, 10-year and 30-year par yields change by -35.0, -20.0, -1.0, +2.0 and +11.0 basis points.",
+      "Under the pinned DV01 direction convention, the signed linear estimate is +443.016 million USD and gross absolute tenor contribution is 496.750 million USD.",
+      "The 1-year bucket has the largest absolute contribution at +405.324 million USD; the signed total is 0.2187% of reported net assets."
+    ],
+    "known_overclaims": [
+      "Treating Treasury par-yield moves as the fund's exact valuation shocks.",
+      "Calling the static first-order estimate an observed return or realized profit and loss.",
+      "Ignoring the sign of the reported 30-year DV01 or applying one parallel yield change to all maturity buckets."
+    ]
+  }
+}

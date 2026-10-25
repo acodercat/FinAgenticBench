@@ -1,0 +1,143 @@
+{
+  "name": "otc_derivatives_notional_versus_market_value",
+  "module": "evals.comparison_ranking.otc_derivatives_notional_versus_market_value",
+  "task_family": "comparison_ranking",
+  "data_sources": [
+    "bis_otc_derivatives",
+    "treasury_yield_curve"
+  ],
+  "difficulty": "medium",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "turns": [
+        {
+          "query": "The semiannual survey of over-the-counter derivatives publishes two measures for each risk category: outstanding notional amounts and outstanding gross market values, both in millions of USD. Take the latest period present in the table and report its label. For the row covering all risk categories, report outstanding notional and gross market value in USD trillions, the gross market value as a percent of the notional, and the notional divided by the gross market value. Explain what each of the two measures represents and which of them, if either, can be described as the amount at risk in these markets.",
+          "validator": "validate_notional_versus_value",
+          "stores": [
+            "period_label",
+            "total_notional_usd_trillions",
+            "total_market_value_usd_trillions",
+            "market_value_share_of_notional_pct",
+            "notional_to_market_value_multiple"
+          ],
+          "claims": [
+            {
+              "id": "notional_is_not_exposure_reasoning",
+              "description": "The response distinguishes notional as a contractual payment reference and market-size measure from gross market value as the sum of absolute current replacement values and a measure of financial risk transfer.",
+              "mode": "required"
+            },
+            {
+              "id": "pre_netting_boundary",
+              "description": "The response explains that gross market value is measured before bilateral netting and collateral and therefore is not the same as net counterparty credit exposure.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Stay in the same period and work with notional amounts. Report the notional for the foreign exchange category, for gold, for foreign exchange including gold, and for commodities. Then sum the notional of these six categories exactly as published: interest rate, foreign exchange including gold, equity, commodities, credit derivatives and other derivatives, and report that sum. Explain what the leftover amount is and what it shows about how these categories are defined.",
+          "validator": "validate_class_overlap",
+          "stores": [
+            "foreign_exchange_notional_usd_trillions",
+            "gold_notional_usd_trillions",
+            "foreign_exchange_including_gold_usd_trillions",
+            "commodities_notional_usd_trillions",
+            "headline_class_sum_usd_trillions"
+          ],
+          "claims": [
+            {
+              "id": "double_counting_reasoning",
+              "description": "The response identifies the excess as gold appearing in two of the categories being added, and shows that the categories nest rather than partition, so adding them is not a way to rebuild the total.",
+              "mode": "required"
+            },
+            {
+              "id": "compiler_convention_boundary",
+              "description": "The response treats gold's inclusion in both the foreign-exchange-including-gold and commodities aggregates as a published taxonomy convention rather than assuming the headline categories form a partition.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "For the same period compute, for each risk category, gross market value divided by that category's own notional, in percent. Report the value for interest rate, for foreign exchange excluding gold, for equity and for credit derivatives. Then rank only the five headline risk categories that partition the total without overlapping each other: interest rate, foreign exchange excluding gold, equity, credit derivatives and other derivatives. Exclude the containing aggregates and also the commodity sub-breakdown, which sits one level below these categories rather than beside them. Report the single-letter code and the ratio of the highest and of the lowest, breaking a tie by code ascending. Discuss what factors can affect differences in the ratio, what the aggregate table cannot isolate, and why the ranking excludes containing categories.",
+          "validator": "validate_ratio_by_class",
+          "stores": [
+            "interest_rate_ratio_pct",
+            "foreign_exchange_ratio_pct",
+            "equity_ratio_pct",
+            "credit_ratio_pct",
+            "highest_ratio_class_code",
+            "highest_ratio_pct",
+            "lowest_ratio_class_code",
+            "lowest_ratio_pct"
+          ],
+          "claims": [
+            {
+              "id": "ratio_driver_boundary",
+              "description": "The response notes that category ratios can reflect contract mix, maturity, moneyness and market moves.",
+              "mode": "required"
+            },
+            {
+              "id": "ratio_single_cause_boundary",
+              "description": "If the response assigns a cause to a category ratio, it states that the aggregate snapshots isolate none.",
+              "mode": "conditional"
+            },
+            {
+              "id": "nested_ranking_boundary",
+              "description": "The response explains that including a category that contains others would rank a parent against its own members and so would not be a comparison between markets.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Finally trace the aggregate ratio over time. Report gross market value as a percent of notional for the all-categories row at 2022-S2 and at 2024-S1. Report total notional at 2022-S2 in USD trillions. Then, from the par yield curve, report the ten-year yield on the last business day of each of those three periods, being 2022-12-30, 2024-06-28 and the last business day of the latest period. Compare the co-movement of the ratio, notional and yield snapshots, and explain what these aggregate endpoints can and cannot establish about the ratio's drivers.",
+          "validator": "validate_ratio_path",
+          "stores": [
+            "stress_period_ratio_pct",
+            "trough_period_ratio_pct",
+            "stress_period_notional_usd_trillions",
+            "stress_period_ten_year_yield_pct",
+            "trough_period_ten_year_yield_pct",
+            "latest_period_ten_year_yield_pct"
+          ],
+          "claims": [
+            {
+              "id": "valuation_versus_volume_reasoning",
+              "description": "The response explains that the observed gross-market-value ratio and notional amount need not move proportionally because they measure replacement value and contractual reference amounts, respectively.",
+              "mode": "required"
+            },
+            {
+              "id": "rate_context_boundary",
+              "description": "The response treats the three ten-year yields as concurrent context.",
+              "mode": "required"
+            },
+            {
+              "id": "yield_cause_boundary",
+              "description": "If the response reads the yield levels as the cause of the aggregate ratio, it states that the ratio spans multiple risk categories, maturities and contract vintages.",
+              "mode": "conditional"
+            },
+            {
+              "id": "semiannual_snapshot_boundary",
+              "description": "If the response reads the path as a continuous series, it notes that these are half-yearly snapshots and that movements between them are not observed.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen BIS semiannual OTC derivatives statistics, net-net basis, all counterparties",
+    "facts": [
+      "At 2025-S2 outstanding notional is 844.577771 trillion USD and gross market value 22.802351 trillion, so the valuation measure is 2.6999 percent of the reference amount and the notional is 37.0391 times it.",
+      "Foreign exchange notional is 148.653873 trillion, gold 1.136813 and foreign exchange including gold 149.790685, so the first two reproduce the third; commodities is 2.786788 trillion. Summing interest rate, foreign exchange including gold, equity, commodities, credit and other gives 845.714576 trillion, 1.136804 trillion above the published total, which is gold counted twice.",
+      "Ratios of market value to notional are 2.4384 percent for interest rate, 3.3224 for foreign exchange, 7.1146 for equity and 2.9202 for credit derivatives. Ranked over categories that contain no other category, other derivatives is highest at 7.2946 percent and interest rate lowest at 2.4384.",
+      "The aggregate ratio was 3.3582 percent at 2022-S2 and 2.3091 percent at 2024-S1, so the 2022-S2 reading is 0.6584 percentage points above the latest. Notional at 2022-S2 was 617.991290 trillion, 226.586481 trillion below the latest figure. The ten-year par yield was 3.8800 percent at 2022-12-30, 4.3600 at 2024-06-28 and 4.1800 at 2025-12-31."
+    ],
+    "known_overclaims": [
+      "Describing notional amounts as the amount at risk in derivatives markets.",
+      "Rebuilding the total by adding the published risk categories.",
+      "Treating gross market value as counterparty exposure after netting and collateral.",
+      "Reading a falling ratio as a market that has become smaller."
+    ]
+  }
+}

@@ -1,0 +1,24 @@
+study                                     single oracle b-o-2 oracle b-o-3 oracle +1 other | agree-rule own2 cov/acc | own1+other1 cov/acc
+DeepSeek V4 Pro thinking                   84.0%        94.5%        97.7%           96.3%  (other=Gemini 3.8 Flash) | 73.1% / 96.1% | 70.0% / 98.1%
+Gemini 3.8 Flash thinking                  83.3%        87.2%        88.7%           96.3%  (other=DeepSeek V4 Pro) | 85.9% / 91.1% | 70.0% / 98.1%
+GPT-6 Luna thinking                        82.2%        92.2%        93.4%           95.4%  (other=DeepSeek V4 Pro) | 71.7% / 94.8% | 67.4% / 98.4%
+Claude Sonnet 5.5 thinking                 79.8%        88.1%        91.1%           94.8%  (other=DeepSeek V4 Pro) | 74.2% / 92.4% | 66.4% / 98.0%
+Claude Sonnet 5.5 non-thinking             72.1%        82.6%        87.3%           93.5%  (other=DeepSeek V4 Pro) | 67.3% / 90.5% | 60.3% / 98.6%
+Qwen3.8 Flash thinking                     70.9%        85.4%        90.6%           93.2%  (other=DeepSeek V4 Pro) | 57.1% / 95.3% | 60.9% / 97.2%
+GLM-5.3 thinking                           70.1%        84.8%        91.5%           91.5%  (other=DeepSeek V4 Pro) | 55.2% / 92.9% | 60.1% / 97.3%
+DeepSeek V4 Flash thinking                 62.8%        77.0%        83.6%           92.7%  (other=Gemini 3.8 Flash) | 52.3% / 85.6% | 51.6% / 97.6%
+Qwen3.8-27B thinking                       62.3%        75.0%        80.8%           91.9%  (other=DeepSeek V4 Pro) | 51.5% / 90.6% | 52.3% / 97.2%
+DeepSeek V4 Pro non-thinking               59.2%        70.4%        75.6%           90.4%  (other=Gemini 3.8 Flash) | 52.3% / 87.7% | 51.4% / 98.0%
+DeepSeek V4 Flash non-thinking             58.8%        70.9%        75.6%           90.2%  (other=Gemini 3.8 Flash) | 53.1% / 84.4% | 50.0% / 98.0%
+GPT-6 Luna non-thinking                    58.8%        72.3%        78.4%           91.5%  (other=DeepSeek V4 Pro) | 46.2% / 94.2% | 49.2% / 98.9%
+Qwen3.8-27B non-thinking                   47.9%        58.8%        63.8%           88.8%  (other=DeepSeek V4 Pro) | 38.7% / 89.1% | 41.5% / 97.2%
+Qwen3.8 Flash non-thinking                 47.6%        61.7%        67.1%           88.4%  (other=DeepSeek V4 Pro) | 36.6% / 88.5% | 42.4% / 96.6%
+
+slots where >=3 vendors share one wrong value: 411; vendor entirely correct there:
+  google           342/396 = 86.4%
+  zhipu            123/411 = 29.9%
+  openai           114/411 = 27.7%
+  anthropic        109/411 = 26.5%
+  deepseek         30/411 = 7.3%
+  alibaba          18/411 = 4.4%
+-> analysis/final_20261012/tables/retry.csv

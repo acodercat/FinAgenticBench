@@ -1,0 +1,17 @@
+slots analysed 3838 | with any error 1908
+wrong attempts 12888 | share equal to the slot's modal wrong value 55.1% (any number of configs)
+  modal value given by >=2 configs: 47.8% | by >=2 vendors: 44.0%
+  modal value given by >=3 configs: 39.1% | by >=3 vendors: 29.2%
+  modal value given by >=5 configs: 26.5% | by >=5 vendors: 10.8%
+  >=3-config shared values by type: numeric 4672 (92.6%), string 344 (6.8%), boolean 28 (0.6%)
+slots with one wrong value from >=3 configs: 666 | from >=3 vendors: 411
+slots never wrong (all 14 present, n=3669): observed 1902 vs 382.2 expected under independence
+R^2 of correctness grouped by model 2.4% | by slot 27.8% | by slot x model cell 67.3% (nested fits, not additive)
+plurality vote on first runs (3669 slots): 98.72% | best single Gemini 3.8 Flash T 98.50% | oracle 100.00%
+-> analysis/final_20261012/tables/shared_errors.csv
+-> analysis/final_20261012/tables/wrong_config_distribution.csv
+R^2 grouped, within all      (14 configs): by model 2.4% | by slot 27.8% | by cell 67.3%
+R^2 grouped, within strong   (4 configs): by model 0.8% | by slot 31.2% | by cell 67.7%
+R^2 grouped, within thinking (8 configs): by model 1.7% | by slot 26.7% | by cell 64.3%
+strong-tier wrong values equal to another strong config's wrong value: 504/1397 = 36.1%
+-> analysis/final_20261012/tables/variance_by_subset.csv

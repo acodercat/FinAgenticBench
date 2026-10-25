@@ -1,0 +1,111 @@
+{
+  "name": "tips_indexed_settlement_equal_face_budget",
+  "task_family": "scenario_analysis",
+  "data_sources": [
+    "treasury_marketable_securities",
+    "treasury_auctions"
+  ],
+  "case_type": "baseline",
+  "module": "evals.scenario_analysis.tips_indexed_settlement_equal_face_budget",
+  "difficulty": "medium",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Conduct a retrospective allocation reconstruction. Among TIPS with an auction settling in 2025 and a positive CUSIP-level outstanding balance in the December 31, 2025 MSPD, select the largest outstanding balance, breaking ties by CUSIP ascending. Report the eligible security count, selected CUSIP and its reported outstanding balance.",
+          "stores": [
+            "eligible_security_count",
+            "selected_tips_cusip",
+            "reported_outstanding_mn"
+          ],
+          "claims": [
+            {
+              "id": "year_end_stock_selection",
+              "description": "The response states that the security is chosen on a year-end outstanding balance, which reflects the whole year's issuance for that CUSIP including any reopenings that follow its original auction.",
+              "mode": "required"
+            },
+            {
+              "id": "historical_implementability",
+              "description": "If the response claims this allocation was implementable at the historical auctions, it acknowledges that the year-end outstanding balance used to select the security was not yet observable then.",
+              "mode": "conditional"
+            }
+          ],
+          "validator": "validate_turn_1"
+        },
+        {
+          "query": "Trace all auctions of that security settling during 2025, including its original issuance and reopenings. Report the reopening count, original issue date and final settlement date. Carry the complete set of auction terms forward. Explain what establishes continuity of the security across these events.",
+          "stores": [
+            "reopening_count",
+            "original_settlement_date",
+            "last_settlement_date"
+          ],
+          "claims": [
+            {
+              "id": "security_continuity",
+              "description": "The response uses common security identity and original-issue references to establish the lineage despite separate settlements.",
+              "mode": "required"
+            }
+          ],
+          "validator": "validate_turn_2"
+        },
+        {
+          "query": "Reconstruct a purchase of USD 1,000,000 original face at each carried auction. Use published adjusted prices and adjusted accrued-interest amounts, no fees, and round each combined invoice once to cents, half-up. Report total settlement cash, the settlement date requiring the most cash (earlier date breaks ties), and summed inflation uplift over original face at the respective settlement dates. Explain how the cash paid at settlement relates to the uplift figure, and what someone should not read that uplift as.",
+          "stores": [
+            "total_settlement_cash_usd",
+            "largest_invoice_date",
+            "settlement_inflation_uplift_usd"
+          ],
+          "claims": [
+            {
+              "id": "invoice_components",
+              "description": "The response distinguishes the accumulated principal indexation from the invoice, which also reflects price and accrued interest.",
+              "mode": "required"
+            },
+            {
+              "id": "not_return",
+              "description": "If the response labels the summed principal uplift as earned investment return, it distinguishes the principal adjustments at purchase from return earned after purchase.",
+              "mode": "conditional"
+            }
+          ],
+          "validator": "validate_turn_3"
+        },
+        {
+          "query": "Replace those planned sizes with one identical original-face amount at every carried auction. A USD 3,000,000 reserve funds all invoices, earns no interest and receives no other cash; coupons are held separately. With all awards assumed filled, no fees and the same invoice convention, report the largest common face amount permitted by every auction's minimum and increment, and the final unspent reserve. Explain what stops the common lot from being any larger, given the reserve on hand and the step sizes each auction permits.",
+          "stores": [
+            "common_face_usd",
+            "unused_reserve_usd"
+          ],
+          "claims": [
+            {
+              "id": "discrete_feasibility",
+              "description": "The response explains that the selected lot satisfies the aggregate reserve while the next permitted common increment exceeds it.",
+              "mode": "required"
+            }
+          ],
+          "validator": "validate_turn_4"
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen governed runtime source tables; numerical outputs recomputed from these tables.",
+    "facts": [
+      "eligible_security_count: 5",
+      "selected_tips_cusip: 91282CNS6",
+      "reported_outstanding_mn: 62332.69052218",
+      "reopening_count: 2",
+      "original_settlement_date: 2025-07-31",
+      "last_settlement_date: 2025-11-28",
+      "total_settlement_cash_usd: 3035759.1",
+      "largest_invoice_date: 2025-09-30",
+      "settlement_inflation_uplift_usd: 18370.0",
+      "common_face_usd: 988200",
+      "unused_reserve_usd: 62.86"
+    ],
+    "known_overclaims": [
+      "Principal indexation at purchase is earned investment return.",
+      "The year-end selection was known at earlier auction dates."
+    ]
+  }
+}

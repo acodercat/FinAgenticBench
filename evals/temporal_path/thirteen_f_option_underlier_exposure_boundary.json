@@ -1,0 +1,58 @@
+{
+  "name": "thirteen_f_option_underlier_exposure_boundary",
+  "module": "evals.temporal_path.thirteen_f_option_underlier_exposure_boundary",
+  "task_family": "temporal_path",
+  "difficulty": "medium",
+  "case_type": "baseline",
+  "data_sources": ["sec_13f_holdings", "sec_insider"],
+  "conversations": [{
+    "id": "main",
+    "turns": [
+      {
+        "query": "In the 2024 Q4 governed 13F-HR aggregate, select the highest non-option common-share-value CUSIP among rows named ORACLE CORP with class COM (ties: CUSIP ascending). Report its CUSIP, filing-accession count, shares and value. What does the count represent? Carry the literal CUSIP forward.",
+        "validator": "validate_turn_1",
+        "stores": ["option_underlier_cusip", "option_underlier_q4_accessions", "option_underlier_q4_common_shares", "option_underlier_q4_common_value_bn"],
+        "claims": [{"id": "thirteen_f_aggregate_scope", "mode": "required", "description": "The response treats the count as distinct 13F-HR filing accessions contributing to the selected CUSIP aggregate and explains that this count cannot establish the number of unique beneficial owners or accounts."}]
+      },
+      {
+        "query": "For that CUSIP in 2024 Q4, report put and call values. Which side is larger, what do these values measure, and what can they establish about net option risk?",
+        "validator": "validate_turn_2",
+        "stores": ["option_underlier_q4_put_bn", "option_underlier_q4_call_bn"],
+        "claims": [
+          {"id": "thirteen_f_q4_put_larger", "mode": "required", "description": "The response identifies put-underlying reported value as larger than call-underlying reported value for this CUSIP and quarter."},
+          {"id": "thirteen_f_underlier_not_premium", "mode": "required", "description": "The response explains that Form 13F information-table put/call values refer to the underlying securities, not option premiums or delta-adjusted risk."},
+          {"id": "thirteen_f_net_exposure_boundary", "mode": "required", "description": "The response treats net directional option risk as undetermined from put/call reported-underlying values alone, because option terms and other portfolio positions are absent."}
+        ]
+      },
+      {
+        "query": "Follow the same CUSIP to 2025 Q2. Report put and call values. Did the larger option side change?",
+        "validator": "validate_turn_3",
+        "stores": ["option_underlier_q2_put_bn", "option_underlier_q2_call_bn"],
+        "claims": [{"id": "thirteen_f_option_side_reversal", "mode": "required", "description": "The response recognizes that call-underlying reported value exceeds put-underlying reported value in 2025 Q2, reversing the 2024 Q4 ordering for the carried CUSIP."}]
+      },
+      {
+        "query": "For Oracle's exact Form 4 filings by 2025-12-31, use derivative transaction dates in those quarters. Report each quarter's code-M row count and how many 2025 Q2 M rows are titled Stock Option. Does this evidence explain the 13F option-side change?",
+        "validator": "validate_turn_4",
+        "stores": ["option_underlier_q4_form4_m_rows", "option_underlier_q2_form4_m_rows", "option_underlier_q2_form4_stock_option_m_rows"],
+        "claims": [
+          {"id": "thirteen_f_form4_instrument_boundary", "mode": "required", "description": "The response distinguishes Oracle insiders' Form 4 code-M exercise/conversion transactions, including non-option restricted stock units, from institutional Form 13F put/call underlying disclosures."},
+          {"id": "thirteen_f_cross_report_inference_boundary", "mode": "required", "description": "The response identifies the two disclosures' different reporting populations and instruments and concludes that the cause of the 13F ordering change remains undetermined."},
+          {"id": "thirteen_f_option_premium_overclaim", "mode": "conditional", "description": "If the response labels a reported put or call underlying value an option premium or an option market value, it corrects that label and distinguishes the underlier reporting basis."}
+        ]
+      }
+    ]
+  }],
+  "judge_reference": {
+    "source": "SEC Form 13F 13F-HR information-table aggregation by CUSIP and Oracle Form 4 derivative-transaction filings, frozen at 2025-12-31. The governed 13F aggregate is by submission type and does not reconstruct amendment chains.",
+    "facts": [
+      "Oracle common-stock CUSIP 68389X105 has 3,283 distinct 13F-HR information-table accessions, 1,223,523,012 reported non-option shares and USD 204.060217bn reported common-share value in 2024 Q4.",
+      "2024 Q4 put and call underlying values are USD 4.327612bn and USD 3.053559bn. At 2025 Q2 the put and call underlying values are USD 6.404894bn and USD 8.159271bn, reversing the ordering.",
+      "Oracle Form 4 derivative transaction code M has one row in 2024 Q4 and twenty rows in 2025 Q2; only ten of the latter rows are explicitly titled Stock Option. The Form 4 change cannot establish a cause of the 13F put/call ordering change or its net option risk."
+    ],
+    "known_overclaims": [
+      "Interpreting Form 13F put/call information-table values as premiums, option market values, or delta-adjusted exposure.",
+      "Calling the put-minus-call reported-underlier value a net short or long exposure.",
+      "Treating every code-M Form 4 derivative transaction as a stock-option exercise, or claiming Form 4 insider activity caused the 13F aggregation's ordering change."
+    ]
+  }
+}

@@ -1,0 +1,99 @@
+{
+  "name": "fedfund_peak_redemption_liquidity",
+  "module": "evals.risk_screening.fedfund_peak_redemption_liquidity",
+  "task_family": "risk_screening",
+  "data_sources": [
+    "sec_nmfp",
+    "ofr_market_stress"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "For FEDFUND accession 0001752724-25-098429, identify the April 2025 date with the largest series-level net redemption, defined as gross redemptions minus gross subscriptions, breaking any tie by the earlier date. Report that date, the contributing share-class count, both aggregated gross flows, the same-calendar-date daily liquid assets, and the net redemption as a percentage of those assets. Carry the event date forward and explain what that percentage measures.",
+          "validator": "validate_fund_event",
+          "stores": [
+            "peak_net_redemption_date",
+            "share_class_count",
+            "gross_redemptions_usd_billions",
+            "gross_subscriptions_usd_billions",
+            "same_day_daily_liquid_assets_usd_billions",
+            "net_redemption_to_daily_liquid_assets_pct"
+          ],
+          "claims": [
+            {
+              "id": "net_flow_coverage_reading",
+              "description": "The response reads the net redemption as the difference between two separately reported gross flows on one date and relates it to same-date liquid assets as a coverage ratio.",
+              "mode": "required"
+            },
+            {
+              "id": "fund_liquidity_capacity_boundary",
+              "description": "If the response concludes that the fund could not meet redemptions or experienced a liquidity failure, it qualifies that inference because a single-day gross-flow-to-liquid-assets comparison does not establish realized settlement capacity or subsequent portfolio actions.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Using the frozen daily OFR Financial Stress Index, report the composite FSI on that event date, its Volatility category contribution, and the sum of its Credit, Equity valuation, Safe assets and Funding contributions. Explain how the category contributions relate to the composite level.",
+          "validator": "validate_event_day_stress",
+          "stores": [
+            "event_day_ofr_fsi",
+            "event_day_volatility_contribution",
+            "event_day_other_market_categories_sum"
+          ],
+          "claims": [
+            {
+              "id": "fsi_category_offset",
+              "description": "The response explains that the positive event-day composite FSI is sustained by the positive Volatility contribution outweighing the combined negative contributions from the other four market categories.",
+              "mode": "required"
+            },
+            {
+              "id": "ofr_revision_vintage_boundary",
+              "description": "If the response presents the OFR values as the history known on the event date, it identifies the supplied FSI table as a current revised history observed in 2026 rather than a point-in-time April 2025 vintage.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Across all April 2025 OFR observations, report the observation count, the maximum-FSI date and value, and the event day's descending FSI rank with earlier dates breaking any tie. Explain the timing relationship between the fund event and the month's broad-stress peak, and the limits of that comparison.",
+          "validator": "validate_month_ranking",
+          "stores": [
+            "april_ofr_observation_count",
+            "april_peak_ofr_fsi_date",
+            "april_peak_ofr_fsi",
+            "event_day_fsi_descending_rank"
+          ],
+          "claims": [
+            {
+              "id": "noncoincident_peak_timing",
+              "description": "The response distinguishes temporal proximity between the fund-flow event and the monthly broad-stress episode from exact coincidence of their peak dates.",
+              "mode": "required"
+            },
+            {
+              "id": "market_stress_causality_boundary",
+              "description": "If the response attributes the fund redemption to broad market stress, it qualifies the causal claim because the same-month timing and composite index do not identify the cause of shareholder flows.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "SEC Form N-MFP accession 0001752724-25-098429 and cutoff-safe OFR FSI current revised history observed 2026-08-13",
+    "facts": [
+      "On 2025-04-09, 15 share classes aggregate to 5.619207154 billion USD gross redemptions and 2.867097246 billion subscriptions, for 2.752109908 billion net redemption. Same-date daily liquid assets are 136.000000 billion USD, so the ratio is 2.0236%.",
+      "The same-calendar-date OFR FSI is 1.934. Volatility contributes +2.579, while Credit, Equity valuation, Safe assets and Funding sum to -0.645 and reconcile to the composite.",
+      "There are 22 April OFR observations. The maximum is 2.743 on 2025-04-07; the fund event date ranks third and its FSI is 0.809 below the monthly maximum."
+    ],
+    "known_overclaims": [
+      "Using only the largest share-class row or weekly rather than daily liquid assets.",
+      "Substituting the April OFR maximum for the event-day FSI or calling the nearby peaks coincident.",
+      "Treating the alignment as proof of a fund liquidity failure or that broad market stress caused shareholder redemptions.",
+      "Presenting the revised OFR history as the FSI vintage available on 2025-04-09."
+    ]
+  }
+}

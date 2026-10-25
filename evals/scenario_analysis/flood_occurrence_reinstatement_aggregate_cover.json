@@ -1,0 +1,113 @@
+{
+  "name": "flood_occurrence_reinstatement_aggregate_cover",
+  "module": "evals.scenario_analysis.flood_occurrence_reinstatement_aggregate_cover",
+  "task_family": "scenario_analysis",
+  "data_sources": [
+    "fema_nfip",
+    "fema_disasters"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "For a retrospective Florida flood-risk treaty replay, define three occurrences in order: Hurricane Debby with FEMA disaster 4806, Hurricane Helene with 4828, and Hurricane Milton with 4834. For each, retain 2024 NFIP claim records with that exact hurricane event label, a Florida county code among the disaster's declared counties, and a loss date between that disaster's earliest incident start and latest incident end, inclusive. Use signed net building plus net contents paid amounts, excluding ICC; each claim record contributes once. Report each occurrence's subject paid loss and carry the unrounded ledger. These declaration boundaries are hypothetical treaty terms, not FEMA claim-to-disaster attribution. Describe what these per-event totals count as of the snapshot date, and how they relate to what each event will finally cost insurers.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "debby_loss_m",
+            "helene_loss_m",
+            "milton_loss_m"
+          ],
+          "claims": [
+            {
+              "id": "claim_measure",
+              "description": "The response characterizes the event amounts as signed net paid-claim measures in the frozen snapshot rather than ultimate insured loss.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Apply a hypothetical occurrence excess treaty to the carried events through Helene: USD100 million per-occurrence retention, USD1,500 million per-occurrence limit, and USD1,500 million shared annual capacity initially available. Process Debby before Helene. Report the Helene recovery and cumulative subject claims retained after this occurrence layer through Helene, before any later cover applies. Carry the remaining capacity and discuss the layer's effect on the two-event loss state.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "helene_occurrence_recovery_m",
+            "pre_milton_occurrence_retained_m"
+          ],
+          "claims": [
+            {
+              "id": "occurrence_state",
+              "description": "The response relates Helene's occurrence recovery to exhaustion of the shared annual occurrence capacity while Debby's smaller claim loss remains retained under this layer.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "The treaty has one automatic full reinstatement of the original USD1,500 million occurrence capacity after it is exhausted, effective before the next occurrence. Its original premium is USD90 million; the reinstatement charge is 100% of that premium for a full reinstatement, with no time proration. Apply it to the carried state and then settle Milton under the same occurrence terms. Report the reinstatement charge, Milton occurrence recovery and unused occurrence capacity after Milton. Explain what the reinstatement bought the buyer for the later storm and what it required in return under these terms.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "reinstatement_premium_m",
+            "milton_occurrence_recovery_m",
+            "ending_occurrence_capacity_m"
+          ],
+          "claims": [
+            {
+              "id": "restoration_economics",
+              "description": "The response recognizes that restored occurrence protection enables a later claim recovery and creates an additional premium obligation.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Now apply a USD750 million annual aggregate cover attaching above USD4,800 million of cumulative claim loss retained after the occurrence layer. Allocate its payments in Debby, Helene, Milton order. Neither the USD90 million original occurrence premium, USD40 million aggregate premium nor reinstatement charge belongs in the aggregate-cover claim base. Report total aggregate recovery and the full treaty's retained claim loss plus all three premiums. Interpret the layering and economic cost within this retrospective replay.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "annual_aggregate_recovery_m",
+            "full_treaty_economic_cost_m"
+          ],
+          "claims": [
+            {
+              "id": "aggregate_layer",
+              "description": "The response identifies that the full-reinstatement path uses only part of the annual aggregate limit and that its Milton aggregate payment absorbs Milton's remaining post-occurrence claims.",
+              "mode": "required"
+            },
+            {
+              "id": "actual_treaty_boundary",
+              "description": "If the response presents these outcomes as an actual NFIP treaty settlement or an estimate of ultimate storm losses, it qualifies that statement as a hypothetical retrospective paid-claim replay.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Revisit the contract before any of the three events, replacing the full reinstatement with a pre-agreed amount between zero and USD1,500 million that becomes available at the same point. Charge the original USD90 million premium pro rata to the restored share, without time proration; keep all other terms, event data, and order unchanged. What is the minimum restored amount that limits Milton's claim loss retained after both covers to USD100 million? Report that amount and explain which contract constraint binds. This is a capacity requirement, not a total-cost optimization.",
+          "validator": "validate_turn_5",
+          "stores": [
+            "minimum_reinstatement_m"
+          ],
+          "claims": [
+            {
+              "id": "minimum_restoration_binding",
+              "description": "The response explains that the selected restoration amount makes Milton's post-cover retained loss reach the stated ceiling while the annual aggregate cover is fully used.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen FEMA NFIP paid claims and FEMA Florida disaster declaration areas define a hypothetical treaty's event ledger; all cover and premium terms are scenario assumptions.",
+    "facts": [
+      "Signed net building and contents paid claims are used once per eligible record; disaster declarations restrict the contract geography and incident window rather than attributing an NFIP claim officially.",
+      "Helene exhausts the initial occurrence capacity, and the paid reinstatement makes a later occurrence recovery possible on Milton.",
+      "The aggregate cover acts on retained claim loss after the occurrence layer. Premiums enter full economic cost but not the aggregate attachment base.",
+      "At the minimum partial restoration, Milton's final retained claims meet the USD100 million ceiling and the annual aggregate limit is exhausted."
+    ],
+    "known_overclaims": [
+      "Calling this the actual NFIP catastrophe treaty or an estimate of ultimate disaster loss.",
+      "Resetting the occurrence limit without the reinstatement charge.",
+      "Applying the annual aggregate cover to original paid losses before occurrence recoveries."
+    ]
+  }
+}

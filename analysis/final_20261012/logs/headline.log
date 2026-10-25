@@ -1,0 +1,15 @@
+DeepSeek V4 Pro    T strong 84.0% [80.6%, 87.3%] all3=141 any=208 turn=93.3% tok=444,041 steps=22.1
+Gemini 3.8 Flash   T strong 83.3% [78.6%, 87.6%] all3=164 any=189 turn=94.1% tok=999,413 steps=41.8
+GPT-6 Luna         T strong 82.2% [78.2%, 85.8%] all3=135 any=199 turn=91.0% tok=128,902 steps=15.2
+Claude Sonnet 5.5  T strong 79.8% [75.3%, 83.9%] all3=141 any=194 turn=89.4% tok=304,050 steps=26.5
+Claude Sonnet 5.5  N mid    72.1% [67.3%, 77.0%] all3=119 any=186 turn=85.4% tok=375,454 steps=29.9
+Qwen3.8 Flash      T mid    70.9% [66.2%, 75.3%] all3=100 any=193 turn=86.2% tok=880,146 steps=32.5
+GLM-5.3            T mid    70.1% [65.4%, 74.8%] all3=101 any=195 turn=85.0% tok=160,885 steps=17.5
+DeepSeek V4 Flash  T mid    62.8% [57.7%, 67.6%] all3=87 any=178 turn=80.4% tok=192,082 steps=23.3
+Qwen3.8-27B        T mid    62.3% [57.0%, 67.4%] all3=91 any=172 turn=79.9% tok=400,449 steps=22.5
+DeepSeek V4 Pro    N weak   59.2% [53.7%, 64.8%] all3=89 any=161 turn=77.7% tok=247,031 steps=24.4
+DeepSeek V4 Flash  N weak   58.8% [53.5%, 64.0%] all3=84 any=161 turn=76.4% tok=520,492 steps=30.8
+GPT-6 Luna         N weak   58.8% [53.7%, 63.7%] all3=81 any=167 turn=76.3% tok=103,722 steps=16.5
+Qwen3.8-27B        N weak   47.9% [42.3%, 53.5%] all3=66 any=136 turn=65.9% tok=509,507 steps=31.3
+Qwen3.8 Flash      N weak   47.6% [42.3%, 53.1%] all3=53 any=143 turn=67.2% tok=1,022,326 steps=44.7
+-> analysis/final_20261012/tables/headline.csv

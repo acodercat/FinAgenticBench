@@ -1,0 +1,128 @@
+{
+  "name": "industry_cvar_ofr_optimization",
+  "module": "evals.scenario_analysis.industry_cvar_ofr_optimization",
+  "task_family": "scenario_analysis",
+  "data_sources": [
+    "ken_french_10_industry_portfolios",
+    "ofr_market_stress"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Align Kenneth French 10-industry daily returns with OFR FSI. Use 2018-2022 as training and 2023-2025 as test. Select the five industries with greatest training sample volatility, ties alphabetically, and order them by that rule. Report counts, ordered canonical Ken French industry tokens, and the maximum test OFR date/index. Carry the cohort and panels forward and interpret the risk-screen scope.",
+          "validator": "validate_screen",
+          "stores": [
+            "training_day_count",
+            "test_day_count",
+            "selected_industry_1",
+            "selected_industry_2",
+            "selected_industry_3",
+            "selected_industry_4",
+            "selected_industry_5",
+            "maximum_test_ofr_date",
+            "maximum_test_ofr_index"
+          ],
+          "claims": [
+            {
+              "id": "cohort_scope",
+              "description": "The response states that volatility-based cohort selection fixes the opportunity set and is not itself a portfolio recommendation.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "On the carried training returns in decimals, let k be the ceiling of 5% times the observation count and solve the long-only finite-sample Rockafellar-Uryasev linear program using coefficient 1/k on every nonnegative tail slack. Require weights to sum to one, cap each at 0.35, and require portfolio sample mean at least the equal-weight cohort mean. Require an optimal finite HiGHS solution and fail otherwise. Define empirical VaR as the kth-largest positive loss and CVaR as the mean of the k largest losses. Report ordered weights, optimized mean, VaR/CVaR, equal-weight CVaR, k and the infinity norm of violations across weight sum, lower/cap bounds, mean floor and all tail-slack inequalities. Carry weights forward and interpret binding-risk and estimation limits.",
+          "validator": "validate_cvar",
+          "stores": [
+            "cvar_weight_1_pct",
+            "cvar_weight_2_pct",
+            "cvar_weight_3_pct",
+            "cvar_weight_4_pct",
+            "cvar_weight_5_pct",
+            "optimized_training_mean_return_pct",
+            "optimized_training_var_loss_pct",
+            "optimized_training_cvar_loss_pct",
+            "equal_weight_training_cvar_loss_pct",
+            "cvar_tail_observation_count",
+            "cvar_maximum_primal_residual"
+          ],
+          "claims": [
+            {
+              "id": "cvar_optimization_meaning",
+              "description": "The response distinguishes tail-loss minimization under the stated mean/cap constraints from variance minimization.",
+              "mode": "required"
+            },
+            {
+              "id": "historical_tail_limit",
+              "description": "The response identifies historical CVaR as sample-dependent rather than a distribution-free guarantee.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Hold weights fixed on 2023-2025. Report compounded return, sample volatility annualized with 252 trading days, maximum drawdown and 5% historical CVaR loss, plus equal-weight CVaR and whether optimized is lower. Explain what the 2023 to 2025 results show about weights chosen on earlier data, and how far that evidence extends to future tails.",
+          "validator": "validate_test",
+          "stores": [
+            "test_compounded_return_pct",
+            "test_annualized_volatility_pct",
+            "test_maximum_drawdown_pct",
+            "test_cvar_loss_pct",
+            "equal_weight_test_cvar_loss_pct",
+            "optimized_test_beats_equal_weight"
+          ],
+          "claims": [
+            {
+              "id": "out_of_sample_scope",
+              "description": "The response treats the held-out comparison as realized evidence rather than proof of persistent dominance.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "On the ten highest-OFR test dates, ties earlier, report count/mean FSI, optimized and equal-weight mean realized losses (negative return), and the optimized portfolio's largest-loss date/value. Interpret the relationship between OFR selection and portfolio losses and the ten-date sample limit.",
+          "validator": "validate_ofr",
+          "stores": [
+            "ofr_tail_day_count",
+            "ofr_tail_mean_index",
+            "optimized_ofr_tail_mean_loss_pct",
+            "equal_weight_ofr_tail_mean_loss_pct",
+            "largest_optimized_ofr_loss_date",
+            "largest_optimized_ofr_loss_pct"
+          ],
+          "claims": [
+            {
+              "id": "ofr_conditional_scope",
+              "description": "The response distinguishes OFR-conditioned realized losses from the return-selected CVaR tail.",
+              "mode": "required"
+            },
+            {
+              "id": "tail_date_overlap_boundary",
+              "description": "If the response compares the two sets, it states that they need not contain identical dates.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "The reference independently solves the constrained historical minimum-CVaR LP, freezes weights for held-out risk metrics, and separates the return tail from the OFR-selected stress dates.",
+    "facts": [
+      "The 2018-2022 training window holds 1,258 days and the five most volatile Ken French industries are Durbl, Enrgy, HiTec, Other and Manuf.",
+      "The constrained minimum-CVaR linear program reaches a corner solution: HiTec sits on the 0.35 cap, Other is held at 0.0, and the remaining weight is 8.9166, 22.4702 and 33.6132 percent. Training CVaR is 3.8715 percent against 4.0099 for equal weights, and the maximum primal residual is zero at the scored precision.",
+      "Held out over 751 days in 2023-2025 the fixed weights compound to 80.4527 percent with 17.6290 percent annualized volatility and a 22.9520 percent maximum drawdown. Held-out CVaR is 2.4601 percent against 2.6277 equal-weighted, an improvement of 0.1676 percentage points.",
+      "On the ten highest-OFR test dates, mean index 2.0472, both portfolios gained: mean realized loss is -0.7511 percent optimized and -0.6414 equal-weighted. The optimized portfolio's worst day, 2024-08-05 at 2.7065 percent, is not among those ten dates.",
+      "Every held-out figure is computed from the unrounded optimal weights, so a model carrying its own full-precision solution forward matches the pinned values."
+    ],
+    "known_overclaims": [
+      "Presenting the fixed-weight backtest as an implementable strategy, when it carries no rebalancing cost, turnover limit or transaction friction.",
+      "Treating the historical CVaR as a distributional forecast rather than an in-sample empirical quantile.",
+      "Characterizing a tail from ten stress dates.",
+      "Reading the market-wide OFR index as information about which industries were exposed."
+    ]
+  }
+}

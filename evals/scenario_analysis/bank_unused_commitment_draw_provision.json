@@ -1,0 +1,60 @@
+{
+  "name": "bank_unused_commitment_draw_provision",
+  "module": "evals.scenario_analysis.bank_unused_commitment_draw_provision",
+  "task_family": "scenario_analysis",
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "data_sources": ["ffiec_call_reports_commitments", "fdic_bankfind"],
+  "conversations": [{
+    "id": "main",
+    "turns": [
+      {
+        "query": "Use retrospective September 30, 2025 FFIEC 031 filers' consolidated RC-L (RCFD) and same-date FDIC financials. Link RSSD to the FDIC certificate in the FFIEC filing. Keep banks above USD 10 billion in FDIC assets with positive unused card and C&I commitments, FDIC cash, book equity and net loans and leases. Rank combined unused commitments over FDIC book equity descending, RSSD ascending for ties. Report the count, leading RSSD and top two ratios. Explain what the ranking numerator represents today and how it differs from money already lent out.",
+        "validator": "validate_turn_1",
+        "stores": ["eligible_bank_count", "selected_rssd_id", "selected_commitment_to_equity_pct", "runner_up_commitment_to_equity_pct"],
+        "claims": [
+          {"id": "rcl_t1_face_boundary", "mode": "required", "description": "The response identifies the numerator as unused contingent commitment face rather than an existing funded loan balance."}
+        ]
+      },
+      {
+        "query": "For that bank, report unused card lines, unused C&I loan commitments and opening FDIC net loans and leases. Discuss how the commitment amounts relate to this asset balance and what they establish about future draws.",
+        "validator": "validate_turn_2",
+        "stores": ["unused_card_m", "unused_ci_m", "opening_net_loans_leases_m"],
+        "claims": [
+          {"id": "rcl_t2_unfunded", "mode": "required", "description": "The response distinguishes the unused commitment amounts from the opening net loan-and-lease asset."},
+          {"id": "rcl_t2_draw_uncertainty", "mode": "required", "description": "The response explains that unused commitment face is a contractual maximum, leaving the expected draw and its probability unobserved."}
+        ]
+      },
+      {
+        "query": "Now assume 15% of those card lines and 30% of those C&I commitments draw immediately at par. Use opening FDIC cash first and cover any remaining need with a par bridge. Ignore financing costs, taxes, credit losses and other reactions. Report bridge principal. Describe what the bank gains and what it gives up the instant these lines are drawn at face, and whether shareholders are worse off yet.",
+        "validator": "validate_turn_3",
+        "stores": ["bridge_principal_m"],
+        "claims": [
+          {"id": "rcl_t3_par_draw", "mode": "required", "description": "The response distinguishes the new loan asset and cash/bridge funding movements from a book-equity loss at the moment of a par draw."}
+        ]
+      },
+      {
+        "query": "Carry those new loans and the bridge forward. Recognize a hypothetical provision of 4% on the card draw and 2% on the C&I draw, with a matching loan allowance; assume no charge-off, tax or interest. Report total provision and ending FDIC book equity. Explain its equity and cash effects.",
+        "validator": "validate_turn_4",
+        "stores": ["hypothetical_provision_m", "ending_book_equity_m"],
+        "claims": [
+          {"id": "rcl_t4_equity", "mode": "required", "description": "The response explains that provision expense with a matching allowance reduces book equity, whereas the preceding par draw did not."},
+          {"id": "rcl_t4_cash", "mode": "required", "description": "The response explains that recording this provision and allowance is an accounting entry that leaves cash unchanged beyond the draw already funded."},
+          {"id": "rcl_t4_observation", "mode": "conditional", "description": "If the response discusses whether RC-L reports this provision, it identifies the provision as a scenario assumption rather than an observed RC-L loss."}
+        ]
+      }
+    ]
+  }],
+  "judge_reference": {
+    "source": "Frozen FFIEC 2025Q3 consolidated Schedule RC-L with its same-archive POR identity bridge, joined to same-date FDIC BankFind financials; draw, bridge and provision are explicit hypotheticals.",
+    "facts": [
+      "RC-L unused commitment face is distinct from funded loan balances and gives no actual draw probability or legal cancelability conclusion.",
+      "A par draw creates a loan asset funded by cash and, if needed, a matching bridge liability; it does not itself reduce book equity.",
+      "A stipulated provision with matching allowance reduces book equity without a second immediate cash payment."
+    ],
+    "known_overclaims": [
+      "Calling all unused commitments existing loans, certain future cash outflows or regulatory credit equivalents.",
+      "Treating the bridge principal as income or equity, or the hypothetical provision as an observed credit loss."
+    ]
+  }
+}

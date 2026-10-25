@@ -1,0 +1,94 @@
+{
+  "name": "treasury_debt_marketability_auction_path",
+  "module": "evals.calculation_reconciliation.treasury_debt_marketability_auction_path",
+  "task_family": "calculation_reconciliation",
+  "data_sources": ["treasury_debt_to_penny", "treasury_marketable_securities", "treasury_auctions", "treasury_yield_curve"],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [{
+    "id": "main",
+    "turns": [
+      {
+        "query": "Across the 2024-01-31 through 2025-12-31 monthly MSPD snapshots, align each snapshot to the latest Treasury Debt-to-the-Penny observation on or before that snapshot date. Rank consecutive aligned intervals by ending minus starting total public debt outstanding descending, breaking a tie by earlier ending MSPD date. Report aligned snapshot count; selected starting and ending MSPD dates and their aligned daily observation dates; changes in total debt, debt held by the public and intragovernmental holdings; and the selected total-debt change minus the runner-up interval change. Explain how the two holder components split the move you selected, and which of them carries most of it.",
+        "validator": "validate_debt_interval",
+        "stores": ["aligned_mspd_snapshot_count", "selected_interval_start_mspd_date", "selected_interval_end_mspd_date", "selected_interval_start_debt_observation_date", "selected_interval_end_debt_observation_date", "selected_total_debt_change_usd_billions", "selected_public_debt_change_usd_billions", "selected_intragovernmental_change_usd_billions", "selected_total_debt_change_margin_usd_billions"],
+        "claims": [{
+          "id": "debt_component_result",
+          "description": "The response explains from the component bridge that debt held by the public accounts for the majority of the selected total-debt increase.",
+          "mode": "required"
+        }]
+      },
+      {
+        "query": "For the selected MSPD interval, use the published Total Marketable row and the Treasury Bills, Notes, Bonds, TIPS and Floating Rate Notes class-total rows. Report starting and ending total marketable outstanding; each class-total change; the class with the greatest increase, breaking a tie by class display name; total marketable change minus the sum of the five class changes; and total marketable change divided by the prior turn's debt-held-by-public change. Say whether the five class moves add back to the marketable total, and what the leftover against the public-held move tells you about scope.",
+        "validator": "validate_marketable_stock",
+        "stores": ["start_total_marketable_outstanding_usd_billions", "end_total_marketable_outstanding_usd_billions", "bills_outstanding_change_usd_billions", "notes_outstanding_change_usd_billions", "bonds_outstanding_change_usd_billions", "tips_outstanding_change_usd_billions", "frn_outstanding_change_usd_billions", "largest_marketable_change_class", "class_change_reconciliation_residual_usd_millions", "marketable_change_share_of_public_debt_change_pct"],
+        "claims": [
+          {
+            "id": "class_stock_reconciliation_result",
+            "description": "The response recognizes from the near-zero residual that the five published class-total changes reconcile the total marketable-stock change.",
+            "mode": "required"
+          },
+          {
+            "id": "public_marketable_scope_result",
+            "description": "The response explains from the nonzero remainder that the change in debt held by the public is broader than the change in marketable Treasury securities captured by the five MSPD classes.",
+            "mode": "required"
+          }
+        ]
+      },
+      {
+        "query": "Carry the leading marketable class from the prior turn into Treasury auction records. Retain records for that class whose issue date is after the starting MSPD date and on or before the ending MSPD date. Report event count, distinct CUSIP count, aggregate offering and total accepted amounts. Aggregate offering by reported security term, report the leading term, its event count and offering, its margin over the runner-up term, and total offering divided by that class's prior-turn outstanding-stock increase. Break an offering tie by security-term text ascending. Explain the relationship between the gross issued flows and the net month-end stock change.",
+        "validator": "validate_selected_class_auction_flow",
+        "stores": ["selected_class_issue_event_count", "selected_class_issue_distinct_cusip_count", "selected_class_issue_offering_usd_billions", "selected_class_issue_total_accepted_usd_billions", "largest_selected_class_term_by_offering", "largest_selected_class_term_issue_count", "largest_selected_class_term_offering_usd_billions", "largest_selected_class_term_offering_margin_usd_billions", "selected_class_offering_to_stock_change_ratio"],
+        "claims": [
+          {
+            "id": "auction_stock_flow_boundary",
+            "description": "The response explains that the selected class's gross auction offering and accepted flows coexist with maturities, rollovers and other stock mechanics, so they are not an accounting reconciliation to its net outstanding change.",
+            "mode": "required"
+          },
+          {
+            "id": "offering_accepted_boundary",
+            "description": "If the response treats announced offering and total accepted as identical constructs, it qualifies that statement because they are separately reported auction measures and differ in the selected interval.",
+            "mode": "conditional"
+          }
+        ]
+      },
+      {
+        "query": "Add short-curve context for the same interval using the latest Treasury par-yield observation on or before each MSPD endpoint. Report both curve dates and the starting and ending 3-month and 1-year yields. Also calculate the total-accepted-weighted high investment rate across the prior turn's selected-class issues. Describe how the two short tenors moved relative to each other between the endpoints, and how the weighted auction rate stands against a single curve point.",
+        "validator": "validate_short_curve_context",
+        "stores": ["curve_start_observation_date", "curve_end_observation_date", "curve_start_three_month_yield_pct", "curve_end_three_month_yield_pct", "curve_start_one_year_yield_pct", "curve_end_one_year_yield_pct", "selected_class_accepted_weighted_high_investment_rate_pct"],
+        "claims": [
+          {
+            "id": "short_curve_slope_construction",
+            "description": "The response compares the two tenors' moves between the curve dates and states that the 3-month yield stayed above the 1-year yield at both endpoints while the gap between them narrowed.",
+            "mode": "required"
+          },
+          {
+            "id": "auction_curve_measure_boundary",
+            "description": "The response explains that a weighted set of Bill auction high investment rates across terms and issue dates is descriptively comparable with, but not identical to, one endpoint's 3-month par yield.",
+            "mode": "required"
+          },
+          {
+            "id": "issuance_rate_causality_boundary",
+            "description": "If the response attributes the debt-stock increase or issuance volume to the observed curve move, it qualifies that claim because the aligned records do not identify a causal issuance response.",
+            "mode": "conditional"
+          }
+        ]
+      }
+    ]
+  }],
+  "judge_reference": {
+    "source": "Frozen Debt-to-the-Penny, MSPD marketable-security, Treasury auction and par-yield-curve tables",
+    "facts": [
+      "The selected 2025-06-30 to 2025-07-31 interval increases total debt by $705.517960bn, public debt by $577.844211bn and intragovernmental holdings by $127.673750bn.",
+      "Total marketable outstanding rises $312.676558bn; Bills contribute $211.849227bn and the five class changes reconcile the total.",
+      "Thirty-three Bill records issued in the interval have $2.303tn of offering and $2.366985tn accepted; 13-Week Bills lead term offering at $407bn.",
+      "The 3-month par yield remains 4.41%, the 1-year rises from 3.96% to 4.10%, and the accepted-weighted Bill high investment rate is about 4.3222%."
+    ],
+    "known_overclaims": [
+      "Treating marketable debt change as all debt-held-by-public change.",
+      "Reconciling gross Bill auction flows directly to net Bill stock change.",
+      "Treating offering and accepted amounts as the same measure.",
+      "Treating the weighted multi-term auction rate as the endpoint 3-month par yield or inferring issuance causality."
+    ]
+  }
+}

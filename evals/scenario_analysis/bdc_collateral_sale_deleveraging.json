@@ -1,0 +1,121 @@
+{
+  "name": "bdc_collateral_sale_deleveraging",
+  "module": "evals.scenario_analysis.bdc_collateral_sale_deleveraging",
+  "task_family": "scenario_analysis",
+  "data_sources": [
+    "sec_bdc",
+    "nyfed_reference_rates"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Use Ares Capital's investment schedule for September 30, 2025, accession 0001287750-25-000046 (CIK 1287750). For this hypothetical collateral facility, include investment rows whose reported principal, cost and fair value are all present, finite and strictly positive; keep each investment once. The contract counts the lesser of each row's principal and fair value as eligible value, advances 70% against that value to set the borrowing base, and starts with debt equal to 60% of the total eligible value rather than of the base. Report the eligible position count, opening borrowing base and opening debt. Carry each selected row's unrounded amounts and explain the borrowing-base measure.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "eligible_investment_count",
+            "opening_borrowing_base_m",
+            "opening_facility_debt_m"
+          ],
+          "claims": [
+            {
+              "id": "collateral_measure",
+              "description": "The response identifies reported principal and fair value as distinct measures feeding the hypothetical per-position eligible collateral value.",
+              "mode": "required"
+            },
+            {
+              "id": "actual_collateral_boundary",
+              "description": "If the response identifies the computed collateral base as Ares Capital's actual pledged borrowing base, it qualifies that assertion because the facility terms are hypothetical.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Apply an immediate 20% fair-value markdown to every carried eligible position, leaving principal, reported adjusted cost basis and facility debt unchanged. Reassess the same facility covenant at the row level. Report the resulting excess of facility debt over the stressed borrowing base and assess the covenant position.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "stressed_borrowing_deficiency_m"
+          ],
+          "claims": [
+            {
+              "id": "covenant_deficit",
+              "description": "The response concludes from the stressed row-level collateral values that the hypothetical facility is overdrawn against its borrowing base.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "On November 3, 2025, at that stressed instant, sell the same percentage of every selected investment at 90% of its stressed fair value. Apply all cash proceeds immediately to repay facility debt; remove the same percentage of each position's principal, reported adjusted cost basis and stressed fair value from the collateral pool. There are no fees, taxes or position-size limits. Find the smallest sale percentage that restores debt to no more than the recomputed borrowing base. Report that percentage, signed realized sale proceeds less allocated reported adjusted cost basis, and the signed change in NAV caused by selling below the already stressed carrying fair value. Explain how selling assets changes both sides of the test you just solved, and compare the two loss figures you reported against what had already been marked.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "immediate_minimum_sale_pct",
+            "immediate_realized_pnl_m",
+            "immediate_incremental_nav_change_m"
+          ],
+          "claims": [
+            {
+              "id": "sale_base_feedback",
+              "description": "The response explains from the calculated cure that shrinking eligible collateral materially raises the required sale fraction above a debt-repayment-only estimate.",
+              "mode": "required"
+            },
+            {
+              "id": "pnl_nav_distinction",
+              "description": "The response identifies the reported-cost-basis sale loss as substantially larger than the additional post-stress NAV loss, since the preceding markdown is already in carrying value.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Keep the loan principal and collateral left by that minimum immediate sale unchanged from November 3 through December 31, 2025, inclusive. Accrue simple daily interest on the remaining principal at the SOFR fixing effective on each calendar day, with no publication lag, plus 200 basis points, ACT/360; carry the latest fixing across nonpublication days. Unpaid accrued interest counts in covenant debt at each day-end but does not itself earn interest. At the December 31 valuation, after the last fixing is published, capitalize the accrual once. Report the ending excess debt over the unchanged borrowing base and assess whether the immediate cure lasts through the financing window.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "year_end_borrowing_deficiency_m"
+          ],
+          "claims": [
+            {
+              "id": "accrual_covenant",
+              "description": "The response recognizes that positive accrued interest increases covenant debt and reverses an exact immediate cure while collateral value stays fixed.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Return to the stressed instant on November 3 before the first sale and choose one up-front percentage of every original selected position to sell under the same price and full-proceeds repayment terms. No other trades, repayments, collateral revaluations or cash flows occur during the financing window. Find the smallest sale percentage that keeps covenant debt at no more than the borrowing base both immediately and at each calendar day-end through December 31 under the carried SOFR convention. Report the sale percentage, explain its binding date and compare it with the immediate-only cure.",
+          "validator": "validate_turn_5",
+          "stores": [
+            "whole_window_minimum_sale_pct"
+          ],
+          "claims": [
+            {
+              "id": "horizon_binding",
+              "description": "The response identifies the year-end accrued-debt constraint as binding for the minimum whole-window sale, since borrowing is positive and the all-in daily rate is positive while the borrowing base remains fixed.",
+              "mode": "required"
+            },
+            {
+              "id": "actual_financing_boundary",
+              "description": "If the response describes this as Ares Capital's actual facility covenant or predicted financing requirement, it qualifies the statement because facility rules, markdown and sale are hypothetical and SOFR is a retrospective path.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Ares Capital's frozen September 2025 SEC BDC investment schedule and the frozen November–December 2025 New York Fed SOFR effective-rate path, under a hypothetical collateral facility.",
+    "facts": [
+      "The eligible scenario pool uses rows with positive reported principal, cost and fair value, and each row's lesser principal/fair-value amount determines the contractual eligible base.",
+      "A sale repays the loan but also removes proportionate collateral; solving only from loan repayment understates the required sale.",
+      "Sale P&L relative to reported adjusted cost basis includes the pre-sale valuation decline, while only the further sale discount changes NAV relative to the already stressed carrying value.",
+      "The same immediate cure becomes insufficient after interest accrues; the whole-window choice must satisfy the terminal debt constraint."
+    ],
+    "known_overclaims": [
+      "Calling the invented 70% advance rate or starting debt Ares's disclosed loan facility or regulatory asset coverage.",
+      "Charging the full historical-cost sale loss to NAV a second time after the valuation stress.",
+      "Treating the realized future SOFR path as known to the manager at the start of November."
+    ]
+  }
+}

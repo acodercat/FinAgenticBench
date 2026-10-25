@@ -1,0 +1,74 @@
+{
+  "name": "scf_age_wealth_duration_sensitivity",
+  "module": "evals.scenario_analysis.scf_age_wealth_duration_sensitivity",
+  "task_family": "scenario_analysis",
+  "data_sources": ["fed_scf", "treasury_yield_curve"],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [{
+    "id": "main",
+    "turns": [
+      {
+        "query": "Use the 2022 SCF households whose reference person is age 25 through 74. Form the bands 25-34, 35-44, 45-54, 55-64 and 65-74. Each provided per-row survey weight is already scaled to one fifth of its underlying final analysis weight so that summing across the five implicate rows estimates the population once. For the eligible weighted-household count, therefore sum the reported weights across all five implicate rows and do not average that total again. Treat the five implicates as multiple-imputation records for the share estimates: within each implicate use the reported survey weights to calculate every band's household share and aggregate-net-worth share, then take the arithmetic mean of each share across the five implicates. Select the band with the largest wealth-share-minus-household-share gap, breaking a tie by the younger lower bound. Report the distinct eligible-household count, the summed eligible survey weights, the selected band, both selected shares, and the selection margin over the runner-up. Explain what the two computed figures for the winning age band say about how much wealth sits there relative to how many families do.",
+        "validator": "validate_age_wealth_concentration",
+        "stores": ["eligible_scf_household_count", "survey_weighted_household_count_millions", "selected_age_band", "selected_household_share_pct", "selected_wealth_share_pct", "selection_margin_pp"],
+        "claims": [{
+          "id": "age_wealth_concentration_result",
+          "description": "The response identifies from the computed shares that the selected older band holds a much larger share of aggregate net worth than its share of weighted households.",
+          "mode": "required"
+        }]
+      },
+      {
+        "query": "For that selected age band, calculate the survey-weighted median (the smallest net worth at which cumulative weight in ascending net-worth order reaches half of total weight, without interpolation) and mean net worth and the survey-weighted share with net worth below zero separately within each implicate, then average each estimate across the five implicates. Report the implicate-row count, distinct-household count and the three averaged distribution estimates. Explain what the spacing between the two central estimates and the below-zero fraction together say about the shape of holdings in this cohort.",
+        "validator": "validate_selected_age_distribution",
+        "stores": ["selected_age_band_implicate_row_count", "selected_age_band_household_count", "selected_age_band_weighted_median_net_worth_usd", "selected_age_band_weighted_mean_net_worth_usd", "selected_age_band_negative_net_worth_share_pct"],
+        "claims": [{
+          "id": "wealth_distribution_shape_result",
+          "description": "The response uses the computed mean-median gap and nonzero negative-net-worth tail to characterize the selected cohort's wealth distribution as strongly right-skewed rather than treating its aggregate share as a typical-household balance.",
+          "mode": "required"
+        }]
+      },
+      {
+        "query": "Use the turn-2 weighted median net worth to calculate a 30% illustrative fixed-income allocation for the selected cohort's median household. Then inspect reported 2025 daily U.S. Treasury par yields: for the 10-year tenor, find the largest positive yield change from any observation to a strictly later observation, breaking an equal change by earlier starting date and then earlier ending date. Report the allocation, observation count, selected dates, both yields and elapsed calendar days. Explain how the selected start and end dates shape this change relative to other ways of summarizing the 2025 yield path.",
+        "validator": "validate_ten_year_drawup",
+        "stores": ["treasury_2025_observation_count", "ten_year_drawup_start_date", "ten_year_drawup_end_date", "ten_year_drawup_start_yield_pct", "ten_year_drawup_end_yield_pct", "ten_year_drawup_calendar_days", "median_household_bond_allocation_usd"],
+        "claims": [{
+          "id": "yield_path_result",
+          "description": "The response recognizes from the selected dates that the maximum draw-up is an ordered trough-to-later-peak path and is not the calendar-year endpoint change.",
+          "mode": "required"
+        }]
+      },
+      {
+        "query": "Apply a static first-order duration sensitivity to the turn-3 median-household fixed-income allocation using effective duration 6.5 and the selected yield increase. Report the positive estimated loss, the loss as a share of the turn-2 median net worth, post-shock median net worth, and the analogous aggregate loss obtained from 30% of the selected cohort's survey-weighted aggregate net worth. For that aggregate, sum each selected-band row's reported survey weight multiplied by its net worth across all five implicates; because the per-row weight is already scaled by one fifth, do not average the aggregate again. Explain what this sensitivity can and cannot say about household exposure.",
+        "validator": "validate_duration_sensitivity",
+        "stores": ["median_household_duration_loss_usd", "median_household_duration_loss_to_net_worth_pct", "median_household_post_shock_net_worth_usd", "selected_cohort_aggregate_duration_loss_usd_billions"],
+        "claims": [
+          {
+            "id": "duration_scenario_boundary",
+            "description": "The response characterizes the result as a first-order parallel-yield sensitivity under assumed allocation and duration, not an observed SCF portfolio loss or a full bond-pricing exercise.",
+            "mode": "required"
+          },
+          {
+            "id": "median_aggregate_population_boundary",
+            "description": "The response distinguishes the median-household illustration from the survey-weighted aggregate calculation and identifies household-level realized experience as outside both estimates.",
+            "mode": "required"
+          }
+        ]
+      }
+    ]
+  }],
+  "judge_reference": {
+    "source": "Frozen 2022 Federal Reserve SCF summary implicates and 2025 Treasury par-yield curve",
+    "facts": [
+      "The 65-74 band has the largest positive wealth-share-minus-household-share gap, with a clear margin over 55-64.",
+      "The selected cohort's weighted mean is far above its weighted median and a small weighted share has negative net worth.",
+      "The largest ordered 2025 10-year yield draw-up runs from 2025-04-04 to 2025-05-21.",
+      "The duration calculation is mechanical and depends on assumed allocation and duration, neither of which is observed in the frozen SCF extract."
+    ],
+    "known_overclaims": [
+      "Treating implicates as independent households.",
+      "Calling the aggregate wealth share the wealth of a typical household.",
+      "Presenting the duration sensitivity as an observed household loss or causal effect."
+    ]
+  }
+}

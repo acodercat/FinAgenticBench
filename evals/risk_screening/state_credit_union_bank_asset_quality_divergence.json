@@ -1,0 +1,110 @@
+{
+  "name": "state_credit_union_bank_asset_quality_divergence",
+  "module": "evals.risk_screening.state_credit_union_bank_asset_quality_divergence",
+  "task_family": "risk_screening",
+  "data_sources": [
+    "ncua_call_reports",
+    "fdic_bankfind",
+    "ffiec_nic_institutions"
+  ],
+  "case_type": "baseline",
+  "difficulty": "hard",
+  "conversations": [
+    {
+      "turns": [
+        {
+          "query": "Using the NCUA call-report population, compare 2024-09-30 with 2025-09-30. Keep only credit unions present on both dates with the same reported state or territory code, positive total loans and leases on both dates, and nonnegative loans delinquent two months or more. For each jurisdiction and date, divide the sum of delinquent loans by the sum of total loans. Identify the jurisdiction with the largest signed increase in this rate, breaking a tie by the lexicographically smallest code. Report its code, balanced-panel institution count and ending-minus-starting change in basis points. Briefly interpret the state-level movement.",
+          "validator": "validate_state_screen",
+          "stores": [
+            "selected_state_code",
+            "balanced_credit_union_count",
+            "credit_union_delinquency_change_bp"
+          ],
+          "claims": [
+            {
+              "id": "state_causality_boundary",
+              "description": "If the response attributes the state movement to a cause, it notes that the NCUA balance fields alone do not identify that cause.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "For that selected jurisdiction, use the current FFIEC NIC institution table to map each nonblank unique FDIC certificate to its reported state code. In FDIC BankFind, keep banks that map to the jurisdiction, are present on both comparison dates, and report positive net loans and leases and nonnegative noncurrent loans on both dates. At each date divide the sum of noncurrent loans by the sum of net loans and leases. Report the balanced bank count and signed ending-minus-starting change in basis points. Discuss the comparability of this bank benchmark with the preceding credit-union measure.",
+          "validator": "validate_bank_benchmark",
+          "stores": [
+            "balanced_bank_count",
+            "bank_noncurrent_change_bp"
+          ],
+          "claims": [
+            {
+              "id": "asset_quality_measure_boundary",
+              "description": "The response distinguishes FDIC noncurrent loans from NCUA loans delinquent two months or more and treats their changes as a benchmark comparison rather than identical regulatory measures.",
+              "mode": "required"
+            },
+            {
+              "id": "nic_snapshot_boundary",
+              "description": "The response notes that the NIC state bridge is a current identifier snapshot used for matching, not historical proof of each bank's organization at both report dates.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Return to the selected jurisdiction's balanced credit-union panel. Identify the credit union with the largest signed increase in delinquent-loan dollars, breaking a tie by the lexicographically smallest credit union number. Report that number, its signed increase in USD millions, and its share of the jurisdiction's aggregate delinquent-dollar increase. Explain what this contribution says about concentration of the state movement.",
+          "validator": "validate_credit_union_driver",
+          "stores": [
+            "credit_union_number",
+            "credit_union_delinquent_increase_usd_millions",
+            "leader_share_of_state_increase_pct"
+          ],
+          "claims": [
+            {
+              "id": "driver_concentration",
+              "description": "The response uses the selected institution's contribution to determine whether the aggregate deterioration is broadly distributed or concentrated in one credit union.",
+              "mode": "required"
+            },
+            {
+              "id": "institution_cause_boundary",
+              "description": "If the response explains why the selected institution deteriorated, it qualifies that the two balance snapshots do not establish a cause.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "For that selected credit union, start with its 2024-09-30 ratio of delinquent loans to total loans. Add the selected state's signed bank-panel basis-point change, then apply the resulting ratio to the credit union's 2025-09-30 total loans. Report the counterfactual ratio, the counterfactual delinquent amount in USD millions, and actual 2025-09-30 delinquent loans minus that counterfactual amount in USD millions. Explain how this benchmark should and should not be used.",
+          "validator": "validate_counterfactual",
+          "stores": [
+            "bank_change_counterfactual_delinquency_pct",
+            "bank_change_counterfactual_delinquent_usd_millions",
+            "actual_minus_counterfactual_delinquent_usd_millions"
+          ],
+          "claims": [
+            {
+              "id": "counterfactual_scope_limit",
+              "description": "The response gives at least one financially material comparability limitation, such as institution mix, regulatory definitions or unobserved credit composition.",
+              "mode": "required"
+            },
+            {
+              "id": "counterfactual_prediction_boundary",
+              "description": "If the response presents the counterfactual as observed or predictive, it identifies the result as a mechanical benchmark rather than a realized or forecast delinquency outcome.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen NCUA credit-union call reports, FDIC BankFind financials and the current FFIEC NIC institution identifier table in dataset_new.",
+    "facts": [
+      "New Hampshire leads the balanced-panel credit-union deterioration at +53.5603 basis points across 12 institutions.",
+      "The matched 16-bank New Hampshire panel's noncurrent-loan ratio changes by -13.6664 basis points.",
+      "Credit union 24921 has the largest delinquent-dollar increase, USD 58.8938 million, representing 94.4352 percent of the state's balanced-panel increase.",
+      "Applying the bank change to the credit union's starting rate gives a 0.3702 percent counterfactual rate, USD 19.7743 million of delinquent loans and a USD 62.7900 million actual-minus-counterfactual gap."
+    ],
+    "known_overclaims": [
+      "Treating the NCUA and FDIC asset-quality measures as definitionally identical.",
+      "Treating the current NIC state as a historical organizational attribute at both report dates.",
+      "Treating the mechanical counterfactual as a forecast, causal estimate or required reserve adjustment."
+    ]
+  }
+}

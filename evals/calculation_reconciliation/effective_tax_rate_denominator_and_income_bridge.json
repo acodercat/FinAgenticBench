@@ -1,0 +1,108 @@
+{
+  "name": "effective_tax_rate_denominator_and_income_bridge",
+  "module": "evals.calculation_reconciliation.effective_tax_rate_denominator_and_income_bridge",
+  "task_family": "calculation_reconciliation",
+  "data_sources": [
+    "sec_financial_statements",
+    "sec_companyfacts"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Select original full-year Form 10-Ks ending in calendar 2024, one per filer by latest report date, filing date, then accession. Report filer count. Retain filers with fiscal-year pretax income from continuing operations, income-tax expense or benefit, and net income; report their count. Among those with positive pretax income report count and median tax expense divided by pretax income, using linear interpolation. Interpret the exclusions and what the rate would mean outside that denominator cohort.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "annual_filer_count",
+            "complete_filer_count",
+            "positive_pretax_count",
+            "median_effective_tax_rate_pct"
+          ],
+          "claims": [
+            {
+              "id": "denominator_must_be_positive",
+              "mode": "required",
+              "description": "The response distinguishes an undefined zero pretax denominator from a numerically defined loss-year ratio that needs cautious interpretation. Only nonpositive-pretax filers are excluded from this median; a tax benefit with positive pretax income remains in the cohort and yields a negative rate."
+            }
+          ]
+        },
+        {
+          "query": "Stay with the filers whose pretax income is above zero. Report how many of them record a benefit rather than an expense, how many bear more tax than their whole pretax income, and how many sit below the 21 percent federal statutory rate. Then report the rate obtained by dividing their summed tax by their summed pretax income rather than by averaging the filer-level rates. Explain what can put a benefit against positive pretax income, and what that summed rate read against the median says about which filers bear what.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "tax_benefit_count",
+            "above_hundred_count",
+            "below_statutory_count",
+            "aggregate_effective_tax_rate_pct"
+          ],
+          "claims": [
+            {
+              "id": "benefit_and_weighting",
+              "mode": "required",
+              "description": "The response offers a reason a filer can book a benefit against positive pretax income, such as releasing a valuation allowance, settling a position or using a carryforward, and reads the distance between the size-weighted and the filer-level central rate as telling which filers bear the lighter burden."
+            }
+          ]
+        },
+        {
+          "query": "Return to the filers reporting all three figures. Compare pretax income after tax expense with reported net income. Report how many differ by at least one dollar and sum the signed gaps, positive when implied after-tax income exceeds reported net income. Then identify the filer whose gap is largest in absolute terms, breaking a tie by the numerically lower CIK, and report that CIK and its gap. Explain what the pretax figure this file carries does and does not cover, and what that implies about a gap between it and net income.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "residual_filer_count",
+            "residual_total_bn",
+            "largest_residual_cik",
+            "largest_residual_bn"
+          ],
+          "claims": [
+            {
+              "id": "what_the_pretax_tag_covers",
+              "mode": "required",
+              "description": "The response identifies the pretax figure as continuing operations before noncontrolling-interest attribution: it includes the minority share of continuing income but excludes discontinued operations. It treats the gap as potentially arising from attribution and scope differences rather than automatically as a reporting error."
+            }
+          ]
+        },
+        {
+          "query": "For T3 filers whose absolute gap reaches USD 1, read annual discontinued-operations net-of-tax and noncontrolling-interest income from the separate fact file. Use facts spanning 300–430 days to each filer's fiscal-year end; retain each concept's first-filed value and treat an unreported concept as zero when the other is reported. Report covered-filer count, count whose gap matches noncontrolling income less discontinued income within USD 1, and each component's sum across covered filers. Interpret any remaining gap.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "facts_matched_count",
+            "decomposition_holds_count",
+            "minority_interest_total_bn",
+            "discontinued_total_bn"
+          ],
+          "claims": [
+            {
+              "id": "the_gap_has_a_name",
+              "mode": "required",
+              "description": "The response reads the matching cases as accounted for by the two named items. For nonmatching cases, it treats the remainder as unassigned by those facts and calls for a filing-specific reconciliation before naming another cause; it keeps the selected target at NetIncomeLoss rather than income available to common shareholders."
+            },
+            {
+              "id": "remainder_is_not_an_error",
+              "mode": "conditional",
+              "description": "If the response calls a filer whose gap the two items fail to explain a filing error, it states that the fact file supplies only these two components and that other items also sit between pretax income and net income."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen SEC company-facts income-statement extracts for annual filings with period ends in calendar 2024, and the separate frozen numeric fact file for the 500 largest filers. The effective rate, the income bridge and its decomposition are analytic constructions rather than reported statistics.",
+    "facts": [
+      "5,524 filers enter the annual population; 3,515 report pretax continuing income, tax expense or benefit, and net income together. The requested median uses the 1,995 with positive pretax income and is 21.2760%. The other 1,520 have pretax losses: tax over that denominator can still be a defined rate, but loss-year signs and comparability need separate interpretation. Tax benefits with positive pretax income remain in the requested cohort.",
+      "139 of the 1,995 record a benefit rather than an expense against positive pretax income, which a valuation-allowance release, a settled position or a carryforward can produce; 32 bear more tax than their whole pretax income; and 965 sit below the statutory rate. Summed tax over summed pretax income gives 18.1859%, three percentage points under the median, so the largest profitable filers bear a lighter rate than the typical one.",
+      "For 2,405 of 3,515 filers, pretax continuing income after tax equals reported net income; 1,110 have a signed gap totaling +17.190644 USD billions. Pretax continuing income includes noncontrolling holders before attribution but excludes discontinued operations. Attribution and scope differences can contribute to the gap; it is not automatically an error. The largest absolute gap is CIK 1618921 at -6.829000 USD billions.",
+      "Among the 1,110 filers with a gap of at least USD 1, the separate fact file covers 140; 129 have a gap matching noncontrolling-interest income less discontinued-operations income within USD 1. Across covered filers those components sum to 19.573048 and 1.547843 USD billions. The eleven remaining gaps may involve additional income or attribution items not measured by these two facts; they are not established filing errors."
+    ],
+    "known_overclaims": [
+      "Substituting loss-year ratios for the requested positive-pretax cohort median, or declaring every defined loss-year rate meaningless rather than interpreting its sign and context.",
+      "Reading a negative effective rate as an error rather than as a tax benefit recorded against positive pretax income.",
+      "Averaging the filer-level rates in place of dividing summed tax by summed pretax income, which lets a filer with a tiny denominator dominate.",
+      "Treating a pretax-to-net-income gap as automatically erroneous: continuing pretax includes noncontrolling income before attribution but excludes discontinued operations.",
+      "Treating a gap the two named components fail to explain as a defect, when other items also sit between pretax income and net income.",
+      "Reading a filer reporting neither named component as reporting a zero gap, when it may simply be outside the fact file's coverage."
+    ]
+  }
+}

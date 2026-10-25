@@ -1,0 +1,94 @@
+{
+  "name": "nfip_gerber_shiu_ruin_capital",
+  "module": "evals.scenario_analysis.nfip_gerber_shiu_ruin_capital",
+  "task_family": "scenario_analysis",
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "data_sources": [
+    "fema_nfip",
+    "fema_disasters"
+  ],
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Fit a balanced-means two-phase hyperexponential severity distribution by matching the first two finite-population moments of Florida NFIP physical claim records with loss dates from 2019-01-01 through 2024-12-31. Require complete gross building, contents and ICC payments and a strictly positive combined payment; weight eligible records equally and leave payments uncapped. Label the faster exponential phase first. Report the eligible record count, fast-phase mixture probability, and both exponential rates per USD100,000. Carry the complete fitted severity law forward and assess its financial scope. Use unrounded inputs and state throughout.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "severity_record_count",
+            "fast_phase_probability",
+            "fast_phase_rate_per100k",
+            "slow_phase_rate_per100k"
+          ],
+          "claims": [
+            {
+              "id": "nfip_gerber_shiu_ruin_capital_t1_interpretation",
+              "description": "The response treats the fitted continuous law as a severity approximation to paid claim experience rather than an observed distribution of total economic disaster losses.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Build a hypothetical Cramér–Lundberg insurance book with the carried independent identically distributed severity law. Its homogeneous Poisson annual arrival intensity is the number of distinct FEMA disaster numbers for Florida DR declarations with incident type Hurricane or Flood and declaration date in 2019-2024, divided by six years. Each arrival represents one synthetic disaster loss, with its amount drawn independently from the carried claim-payment severity law. Use the expected-value premium principle with a 25-percent loading, collected continuously at a constant rate; the surplus has no investment earnings or other cash flows. Report annual arrival intensity, annual premium in USD thousands, the positive adjustment coefficient per USD100,000, and initial capital in USD millions at which the classical Lundberg exponential upper bound on ultimate ruin is one percent. Carry the full surplus model and capital forward, and assess the capital measure.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "annual_arrival_intensity",
+            "annual_premium_usd_thousand",
+            "adjustment_coefficient_per100k",
+            "lundberg_capital_usd_million"
+          ],
+          "claims": [
+            {
+              "id": "nfip_gerber_shiu_ruin_capital_t2_interpretation",
+              "description": "The response identifies the capital as satisfying a model-based exponential upper bound rather than equating that bound with the actual ruin probability.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Start the carried surplus process with half the preceding unrounded capital. Ruin is the first time surplus is strictly negative. Use the Gerber–Shiu discounted penalty function with a five-percent annual force of discount. Report the present value of USD1 paid at ruin and the present value of the positive deficit at ruin, with the latter in USD thousands; each payment is zero if ruin never occurs. Carry this starting capital and both discounted values forward and assess their risk meaning.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "discounted_ruin_value",
+            "discounted_deficit_usd_thousand"
+          ],
+          "claims": [
+            {
+              "id": "nfip_gerber_shiu_ruin_capital_t3_interpretation",
+              "description": "The response distinguishes the discounted stopping-time value from the undiscounted probability of eventual ruin.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Increase the carried Poisson arrival intensity by 50 percent while preserving the original annual premium rate, fitted severity law and discount force. Find the nonnegative initial capital that makes the stressed present value of USD1 paid at ruin equal to its third-turn value. Report this capital in USD millions and the stressed expected discounted deficit at that capital in USD thousands. Assess what this capital adjustment achieves for the stressed book, including the long-run surplus drift.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "stress_capital_usd_million",
+            "stress_discounted_deficit_usd_thousand"
+          ],
+          "claims": [
+            {
+              "id": "nfip_gerber_shiu_ruin_capital_t4_interpretation",
+              "description": "The response connects the negative stressed expected surplus drift to the limitation that a preserved discounted ruin value leaves the long-run premium margin negative.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen governed dataset_new and explicitly stipulated named-model scenario.",
+    "facts": [
+      "The response treats the fitted continuous law as a severity approximation to paid claim experience rather than an observed distribution of total economic disaster losses.",
+      "The response identifies the capital as satisfying a model-based exponential upper bound rather than equating that bound with the actual ruin probability.",
+      "The response distinguishes the discounted stopping-time value from the undiscounted probability of eventual ruin.",
+      "The response connects the negative stressed expected surplus drift to the limitation that preserving a discounted ruin value does not restore a positive long-run premium margin."
+    ],
+    "known_overclaims": [
+      "Treating a hypothetical model-based valuation or capital measure as an observed market price, causal estimate or guarantee."
+    ]
+  }
+}

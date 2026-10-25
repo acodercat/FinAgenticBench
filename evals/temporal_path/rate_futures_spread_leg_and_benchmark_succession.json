@@ -1,0 +1,118 @@
+{
+  "name": "rate_futures_spread_leg_and_benchmark_succession",
+  "task_family": "temporal_path",
+  "data_sources": [
+    "cftc_cot",
+    "nyfed_reference_rates"
+  ],
+  "case_type": "trap",
+  "module": "evals.temporal_path.rate_futures_spread_leg_and_benchmark_succession",
+  "difficulty": "hard",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Work in the futures-only Commitments of Traders scope throughout. Take the three-month SOFR futures contract, market code 134741, and the leveraged-funds trader category. Report how many report dates the contract covers, and on the last of them report its open interest, the category's long position and the category's net position, each in contracts. Explain what a weekly report date describes relative to the positions it carries.",
+          "validator": "validate_successor_positioning",
+          "stores": [
+            "successor_report_date_count",
+            "final_open_interest_contracts",
+            "final_long_contracts",
+            "final_net_contracts"
+          ],
+          "claims": [
+            {
+              "id": "report_date_semantics",
+              "mode": "required",
+              "description": "The response states that each row is a snapshot of positions held at the close of that Tuesday rather than trading that occurred during the week, so consecutive rows describe levels and not flows."
+            },
+            {
+              "id": "net_position_composition",
+              "mode": "conditional",
+              "description": "If the response reports a net position, it builds it from the two directional legs alone."
+            }
+          ]
+        },
+        {
+          "query": "Stay on that contract and that date. Report the category's spread position, and its three reported legs added together as a percent of that date's open interest. Then across every report date the contract covers, report how many carry three legs summing above open interest and how many carry a spread position above the long and short positions combined. Explain what open interest counts and why the three legs cannot be read against it as parts of a whole.",
+          "validator": "validate_spread_leg_against_open_interest",
+          "stores": [
+            "final_spread_contracts",
+            "final_three_leg_share_of_open_interest_pct",
+            "three_legs_exceed_open_interest_date_count",
+            "spread_exceeds_directional_date_count"
+          ],
+          "claims": [
+            {
+              "id": "spread_is_offsetting",
+              "mode": "required",
+              "description": "The response states that a spread position is an offsetting pair held at once, so it belongs to neither directional leg and carries no view on the direction of rates."
+            },
+            {
+              "id": "open_interest_counts_one_side",
+              "mode": "required",
+              "description": "The response states that open interest counts each contract a single time across every trader category, so one category's legs are not a partition of it and can add past it.",
+              "overlap_waiver": "The query asks what open interest counts without saying that it counts one side of each contract across every category. The claim supplies that mechanism, which is what makes the three legs non-additive against it."
+            }
+          ]
+        },
+        {
+          "query": "The three-month Eurodollar contract, market code 132741, preceded that one. Report how many report dates it covers, its last report date and its open interest on that date. Then at the last report date of 2022 report the SOFR contract's share of the two contracts' combined open interest. Explain what a contract that stops reporting partway through does to any total taken across the whole window.",
+          "validator": "validate_contract_succession",
+          "stores": [
+            "predecessor_report_date_count",
+            "predecessor_final_report_date",
+            "predecessor_final_open_interest_contracts",
+            "successor_share_at_migration_year_end_pct"
+          ],
+          "claims": [
+            {
+              "id": "succession_not_disappearance",
+              "mode": "required",
+              "description": "The response states that the earlier contract ceased trading rather than falling to no positions, so its absence from later dates is the end of a listing and not a reading of zero."
+            }
+          ]
+        },
+        {
+          "query": "Bring in the New York Fed overnight rate publication, which splits the daily rate and the accrual index across two rate types on the same dates. Over the window running from the Eurodollar contract's last report date through the SOFR contract's last report date, report how many calendar days it spans, the compounded overnight rate across it on an actual over 360 basis, the arithmetic mean of the daily rates published after the start date through the end date, and the first figure minus the second. Explain which of the two the published multi-day averages use.",
+          "validator": "validate_compounded_benchmark",
+          "stores": [
+            "succession_window_calendar_days",
+            "compounded_overnight_rate_pct",
+            "arithmetic_mean_overnight_rate_pct",
+            "compounding_gap_percentage_points"
+          ],
+          "claims": [
+            {
+              "id": "compounding_is_the_convention",
+              "mode": "required",
+              "description": "The response states that the published multi-day averages accrue interest on interest, so a plain mean of the daily prints understates the realised financing cost over a long window.",
+              "overlap_waiver": "The query asks which convention the published averages use and stops there. The claim earns its content by naming the mechanism, interest accruing on interest, and the direction of the error a plain mean produces."
+            },
+            {
+              "id": "gap_attribution",
+              "mode": "conditional",
+              "description": "If the response attributes the difference between the two figures to a change in the level of rates, it acknowledges that compounding alone separates them over a window this long."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen CFTC Commitments of Traders financial futures and the New York Fed reference rate publication; every figure recomputed from those tables.",
+    "facts": [
+      "The successor contract covers 365 report dates. On the final one it carries 12,419,866 contracts of open interest, the category holds 1,683,620 long and its net position is -476,567 contracts. Adding the spread leg into that net returns +3,617,801 contracts, which reverses the sign.",
+      "The spread leg on that date is 4,094,368 contracts, larger than the long and short positions combined. The three legs add to 63.9151 percent of open interest, and they exceed it outright on 27 report dates. A spread position is one long and one short held together and counts in neither directional leg, while open interest counts each contract once across every trader category.",
+      "The predecessor contract covers 232 report dates and stops at 2023-06-13 with 511,711 contracts outstanding. At the last report date of 2022 the successor already holds 57.6098 percent of their combined open interest.",
+      "The window spans 931 calendar days. The overnight benchmark compounds to 5.1296 percent on an actual over 360 basis while the arithmetic mean of the daily rates is 4.8196 percent, a gap of 0.3100 percentage points. The published multi-day averages are the compounded form: on the final date the ninety-day average reads 4.016140 percent against 4.016137 compounded and 3.992500 as a plain mean."
+    ],
+    "known_overclaims": [
+      "Adding the spread leg into a category's directional net position.",
+      "Reading one category's long, short and spread legs as shares of open interest that should sum to its footprint.",
+      "Treating the absence of the retired contract on later dates as open interest that fell to zero.",
+      "Averaging daily overnight rates arithmetically where the published convention compounds them."
+    ]
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "name": "hitec_factor_regression_2018_2022",
+  "module": "evals.comparison_ranking.hitec_factor_regression_2018_2022",
+  "task_family": "comparison_ranking",
+  "data_sources": [
+    "ken_french_daily_factors",
+    "ken_french_10_industry_portfolios"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "For 2018-01-01 through 2022-12-31, align the value-weighted HiTec portfolio with the daily factor table by date. Run OLS with HiTec minus RF as the dependent variable and an intercept, Mkt-RF, SMB and HML as regressors, all in the table's percentage units. Report the aligned observation count, the daily intercept, the three factor coefficients and the ordinary in-sample R-squared. Carry the fitted model forward and interpret what the coefficients and intercept describe.",
+          "validator": "validate_regression_fit",
+          "stores": [
+            "aligned_observation_count",
+            "daily_alpha_pct",
+            "market_beta",
+            "smb_beta",
+            "hml_beta",
+            "r_squared"
+          ],
+          "claims": [
+            {
+              "id": "coefficient_interpretation",
+              "description": "The response interprets the factor coefficients as historical conditional return sensitivities and the intercept as average daily return unexplained by this fitted specification.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Annualize that fitted intercept as (1 + daily alpha/100)^252 - 1 and report it as a percentage. Explain what this annual figure represents and what the regression does not establish.",
+          "validator": "validate_annualized_alpha",
+          "stores": [
+            "compounded_annualized_alpha_pct"
+          ],
+          "claims": [
+            {
+              "id": "annualization_scope",
+              "description": "The response identifies the reported annualized alpha as a mechanical compounding of the fitted daily intercept under the specified 252-day convention.",
+              "mode": "required"
+            },
+            {
+              "id": "regression_inference_boundary",
+              "description": "If the response discusses skill, causality, persistence, forecasting or investment merit, it does not present those claims as established by this in-sample historical regression alone.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Kenneth French daily factors and 10 Industry Portfolios frozen at 2025-12-31",
+    "facts": [
+      "The date-aligned sample contains 1259 observations.",
+      "OLS estimates daily alpha 0.0131 percentage points, market beta 1.1541, SMB beta -0.0740 and HML beta -0.3834.",
+      "Ordinary in-sample R-squared is 0.9576.",
+      "The specified compounded annualization of daily alpha is 3.36 percent."
+    ],
+    "known_overclaims": [
+      "Using raw HiTec returns instead of excess returns as the dependent variable.",
+      "Mixing decimal and percentage units.",
+      "Treating alpha as proof of manager skill, causality, persistence or future outperformance."
+    ]
+  }
+}

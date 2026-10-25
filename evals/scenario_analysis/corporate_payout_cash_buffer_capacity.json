@@ -1,0 +1,124 @@
+{
+  "name": "corporate_payout_cash_buffer_capacity",
+  "task_family": "scenario_analysis",
+  "data_sources": [
+    "sec_companyfacts",
+    "sec_submissions"
+  ],
+  "case_type": "baseline",
+  "module": "evals.scenario_analysis.corporate_payout_cash_buffer_capacity",
+  "difficulty": "hard",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Use each CompanyFacts issuer's latest original 10-K accepted by year-end 2025 for a fiscal year ending in 2024; break acceptance ties by greatest accession. Require a common 350–380-day annual window ending on its report date, positive operating cash flow, and reported nonnegative PP&E purchases, common-stock repurchases and total dividends. Count all eligible issuers before any shortfall filter. Rank the entire cohort by signed distribution shortfall relative to post-capex operating cash flow, descending; break ties by CIK ascending. Report that count, leader's CIK, accession, acceptance timestamp and shortfall. Explain what the leader's figure says about how its payouts line up with the cash its own operations left after equipment spending, and what it leaves open.",
+          "stores": [
+            "eligible_filer_count",
+            "selected_issuer_cik",
+            "selected_filing_accession",
+            "selected_acceptance_timestamp",
+            "payout_cash_shortfall_bn"
+          ],
+          "claims": [
+            {
+              "id": "cash_coverage",
+              "description": "The response interprets the positive selected shortfall as distributions exceeding same-period internally generated cash after PP&E purchases.",
+              "mode": "required"
+            },
+            {
+              "id": "funding_attribution",
+              "description": "If the response attributes the shortfall to borrowing, it distinguishes that assertion from what the coverage screen establishes.",
+              "mode": "conditional"
+            }
+          ],
+          "validator": "validate_turn_1"
+        },
+        {
+          "query": "For that filing, carry its annual flows and matching opening and closing cash-and-equivalent balances. Report closing cash, net investing inflow excluding PP&E purchases, net financing inflow excluding dividends and common-stock repurchases, and the signed cash-balance change unexplained by the three reported cash-flow totals. Interpret the financing contribution and the unexplained amount. Retain unrounded inputs throughout this case.",
+          "stores": [
+            "closing_cash_bn",
+            "other_investing_inflow_bn",
+            "other_financing_inflow_bn",
+            "cash_change_residual_bn"
+          ],
+          "claims": [
+            {
+              "id": "financing_net_scope",
+              "description": "The response interprets the positive financing remainder as a net contribution of financing items other than the excluded distributions.",
+              "mode": "required"
+            },
+            {
+              "id": "residual_boundary",
+              "description": "The response identifies the nonzero residual as requiring additional cash-flow or cash-scope information for attribution.",
+              "mode": "required"
+            },
+            {
+              "id": "debt_only",
+              "description": "If the response labels the financing remainder as new borrowing, it provides evidence beyond the net subtotal.",
+              "mode": "conditional"
+            }
+          ],
+          "validator": "validate_turn_2"
+        },
+        {
+          "query": "Project one hypothetical year from that closing cash balance. Operating cash flow falls 20 percent from the selected year's amount; PP&E purchases, total dividends and common-stock repurchases retain their selected-year amounts. Every other cash movement is zero. Report ending cash under the unchanged distribution plan and assess its cash-buffer consequence.",
+          "stores": [
+            "full_plan_stressed_closing_cash_bn"
+          ],
+          "claims": [
+            {
+              "id": "cash_buffer",
+              "description": "The response connects the projected reduction in cash to continuing the selected distributions under weaker operating cash generation.",
+              "mode": "required"
+            }
+          ],
+          "validator": "validate_turn_3"
+        },
+        {
+          "query": "Require ending cash of at least half the scenario's opening cash. Keep the preceding assumptions, allowing only common-stock repurchases to fall, with no negative repurchases or increase above the original plan. Report the maximum retained repurchase amount. Separately, vary operating cash flow alone and report its minimum annual amount that would support the full original repurchase plan at the same cash floor. Explain what the retained buyback figure protects under this scenario's fixed commitments, and whether any of it reflects what the company has actually announced.",
+          "stores": [
+            "maximum_retained_repurchases_bn",
+            "minimum_operating_cash_full_plan_bn"
+          ],
+          "claims": [
+            {
+              "id": "distribution_tradeoff",
+              "description": "The response relates the required repurchase reduction to preserving dividends, PP&E spending and the stipulated cash floor.",
+              "mode": "required"
+            },
+            {
+              "id": "policy_scope",
+              "description": "If the response describes this as the issuer's forecast or approved policy, it distinguishes the hypothetical assumptions from disclosed company policy.",
+              "mode": "conditional"
+            }
+          ],
+          "validator": "validate_turn_4"
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen governed runtime source tables; numerical outputs recomputed from these tables.",
+    "facts": [
+      "eligible_filer_count: 60",
+      "selected_issuer_cik: 0000021344",
+      "selected_filing_accession: 0000021344-25-000011",
+      "selected_acceptance_timestamp: 2025-02-20T20:17:12",
+      "payout_cash_shortfall_bn: 5.413",
+      "closing_cash_bn: 10.828",
+      "other_investing_inflow_bn: 4.588",
+      "other_financing_inflow_bn: 3.244",
+      "cash_change_residual_bn: -0.957",
+      "full_plan_stressed_closing_cash_bn: 4.054",
+      "maximum_retained_repurchases_bn: 0.435",
+      "minimum_operating_cash_full_plan_bn: 6.804"
+    ],
+    "known_overclaims": [
+      "Other financing is net new borrowing.",
+      "The unexplained cash bridge residual is entirely foreign exchange.",
+      "The hypothetical cash floor is a disclosed company policy."
+    ]
+  }
+}

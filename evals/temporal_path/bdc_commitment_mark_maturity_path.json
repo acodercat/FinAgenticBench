@@ -1,0 +1,60 @@
+{
+  "name": "bdc_commitment_mark_maturity_path",
+  "module": "evals.temporal_path.bdc_commitment_mark_maturity_path",
+  "task_family": "temporal_path",
+  "difficulty": "medium",
+  "case_type": "baseline",
+  "data_sources": ["sec_bdc", "sec_financial_statements"],
+  "conversations": [{
+    "id": "main",
+    "turns": [
+      {
+        "query": "Use BlackRock Private Credit Fund's original 2025-09-30 10-Q filed by 2025-12-31. Report its accession, consolidated total assets and cash. Carry the filing forward.",
+        "validator": "validate_turn_1",
+        "stores": ["bdc_maturity_accession", "bdc_maturity_assets_m", "bdc_maturity_cash_m"],
+        "claims": []
+      },
+      {
+        "query": "In that filing's investment schedule, report the signed total of reported fair values. Separately count debt rows with positive principal, positive fair value and a stated future maturity, and report their principal. Count zero-principal rows with negative fair value and a stated future maturity, and report their signed value. How do these figures relate to balance-sheet cash?",
+        "validator": "validate_turn_2",
+        "stores": ["bdc_maturity_schedule_fair_m", "bdc_maturity_funded_count", "bdc_maturity_funded_principal_m", "bdc_maturity_negative_count", "bdc_maturity_negative_fair_m"],
+        "claims": [
+          {"id": "bdc_maturity_mark_not_cash", "mode": "required", "description": "The response distinguishes the investment schedule's report-date fair values and contractual loan principal from cash on the statement of assets and liabilities."}
+        ]
+      },
+      {
+        "query": "For that positive-principal cohort, find the first September 30 anniversary after the report date when cumulative stated principal maturities reach at least 10% of its total principal. Report the date, maturing row count, cumulative principal and those rows' report-date fair value. What does the maturity window establish about available cash?",
+        "validator": "validate_turn_3",
+        "stores": ["bdc_maturity_threshold_date", "bdc_maturity_by_threshold_count", "bdc_maturity_by_threshold_principal_m", "bdc_maturity_by_threshold_fair_m"],
+        "claims": [
+          {"id": "bdc_maturity_contract_not_collection", "mode": "required", "description": "The response treats the selected dates and principal as contractual asset maturities, not present cash or guaranteed future collections, and keeps their report-date fair values separate."}
+        ]
+      },
+      {
+        "query": "By that anniversary, how many of the zero-principal, negative-value rows mature, and what is their signed report-date fair value? Compare the two groups. What do the marks establish about possible future funding?",
+        "validator": "validate_turn_4",
+        "stores": ["bdc_maturity_negative_by_threshold_count", "bdc_maturity_negative_by_threshold_fair_m"],
+        "claims": [
+          {"id": "bdc_maturity_commitment_mark", "mode": "required", "description": "The response identifies the zero-principal negative values as valuation marks on unfunded commitments rather than negative funded principal."},
+          {"id": "bdc_maturity_undrawn_scope", "mode": "required", "description": "The response distinguishes those valuation marks from undrawn contractual amounts not given by the marks and from future draw timing."},
+          {"id": "bdc_maturity_future_cash_boundary", "mode": "conditional", "description": "If the response forecasts actual repayments, commitment draws or cash available at the selected anniversary, it qualifies that the reported positions and marks alone do not establish those future cash flows."}
+        ]
+      }
+    ]
+  }],
+  "judge_reference": {
+    "source": "Frozen 2025q4 SEC BDC investment-schedule rows and the matching SEC CompanyFacts-derived financial statement for BlackRock Private Credit Fund's original 2025-09-30 10-Q, accession 0001193125-25-271826; the original filing's schedule footnote explains negative balances.",
+    "facts": [
+      "The 10-Q was filed 2025-11-07. Its consolidated assets are USD 2,142.302058 million and cash and cash equivalents USD 47.135851 million.",
+      "Across 428 current-date investment rows, reported signed fair values sum to USD 2,069.092639 million. That amount plus cash is USD 26.073568 million below total assets because other asset lines exist; missing fair value is not imputed as zero.",
+      "The eligible funded debt cohort has 342 rows, USD 2,091.012197 million positive principal and reported positive fair value with future maturity. One other positive-principal row lacks a fair value and is excluded. Fifty-five zero-principal rows have negative fair value totaling USD -2.317280 million; the original filing says negative balances represent unfunded commitments acquired or valued at a discount.",
+      "The first September 30 anniversary at which cumulative eligible principal reaches 10% is 2028-09-30: 67 funded rows, USD 219.302955 million principal and USD 214.352424 million report-date fair value. The preceding 2027-09-30 anniversary reaches only 0.8732%, versus 10.4879% by 2028-09-30.",
+      "By 2028-09-30, six zero-principal negative-fair-value rows have stated maturities, totaling USD -0.051437 million at the report date. Their fair-value mark is not the undrawn contractual commitment amount and their instrument maturity does not determine when a draw will occur."
+    ],
+    "known_overclaims": [
+      "Treating a positive-principal row with missing fair value as a zero-marked eligible loan, or discarding reported negative investment marks from the signed schedule total.",
+      "Treating scheduled principal maturities as cash currently available or guaranteed repayment proceeds.",
+      "Treating the negative fair value of zero-principal commitment rows as negative funded principal or the undrawn amount that will be paid on their maturity date."
+    ]
+  }
+}

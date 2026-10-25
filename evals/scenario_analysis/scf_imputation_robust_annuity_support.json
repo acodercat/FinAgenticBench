@@ -1,0 +1,102 @@
+{
+  "name": "scf_imputation_robust_annuity_support",
+  "module": "evals.scenario_analysis.scf_imputation_robust_annuity_support",
+  "task_family": "scenario_analysis",
+  "data_sources": ["fed_scf", "treasury_yield_curve"],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Build five separate worlds from the 2022 SCF household implicates, one world per implicate. Within each, retain reference-person ages 45–74 with net worth strictly below USD 50,000, in groups 45–54, 55–64 and 65–74. The supplied row survey weight is already one fifth of its underlying final weight: multiply it by five for each world's population and dollar budget. Each household's convertible balance is its net worth floored at zero, so negative-net-worth households stay eligible with a zero balance. From the 2025-12-31 Treasury par curve at 6 months and 1, 2, 3, 5, 7, 10 and 20 years, interpolate par yields linearly at intervening half-year maturities and bootstrap semiannual par-bond discount factors. Assume a household's convertible balance funds level year-end payments over 20 years in the 45-54 group, 15 years in 55-64 and 10 years in 65-74, with no mortality or fees. Against a USD 10,000 annual resource target, floor each household's annual shortfall before support at zero and take its survey-weighted mean over all eligible households in a world. Report mean eligible population, three annual-payment present-value factors and the arithmetic mean of that shortfall across the five worlds. Carry the five household ledgers and curve forward, and interpret the baseline resource gap.",
+          "validator": "validate_turn_1",
+          "stores": ["eligible_mean_population_mn", "annuity_45_54_factor", "annuity_55_64_factor", "annuity_65_74_factor", "baseline_mean_shortfall_kusd"],
+          "claims": [
+            {
+              "id": "baseline_gap_result",
+              "description": "The response identifies from the annualized eligible-household resources that a substantial positive mean annual shortfall remains before any subsidy.",
+              "mode": "required"
+            },
+            {
+              "id": "resource_boundary",
+              "description": "If the response calls the constructed resource or curve an observed household income or insurer annuity quote, it qualifies the scenario assumption and the absence of mortality and liquidity data.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Set one common annual subsidy for each carried age group, payable at the same year ends as its resource annuity; each group amount must lie in the closed range USD 0 to USD 10,000. For each implicate separately, floor each eligible household's post-subsidy annual shortfall at zero and take the survey-weighted mean of its square over all eligible households in that world as the policy loss; take the survey-weighted present value of subsidy payments as fiscal cost. Choose the one three-group policy minimizing the arithmetic mean of the five losses subject to the arithmetic mean of the five costs being at most USD 650 billion. Use unrounded balances and discount factors. Report the three annual subsidy amounts and the mean squared shortfall. Say which age group receives the most annual support, and explain how its payment horizon and annuity factor produce that result.",
+          "validator": "validate_turn_2",
+          "stores": ["mean_policy_45_54_kusd", "mean_policy_55_64_kusd", "mean_policy_65_74_kusd", "mean_policy_mean_squared_shortfall"],
+          "claims": [
+            {
+              "id": "mean_policy_allocation_result",
+              "description": "The response uses the optimized amounts to identify the highest annual support for the oldest eligible group and relates the allocation to its annuity resource and payment horizon.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Freeze the unrounded policy chosen in turn 2 and evaluate its present-value fiscal cost and mean squared positive shortfall in each of the five separate SCF worlds, without re-optimizing or substituting the displayed rounded subsidies. Report the world with greatest cost, the amount by which that world's cost exceeds the USD 650 billion budget if positive, and the world with greatest squared shortfall; ties use lower implicate number. Explain how a policy chosen against the average budget fares in each world separately, and whether the costliest world is also the one with the worst shortfall.",
+          "validator": "validate_turn_3",
+          "stores": ["mean_policy_worst_budget_world", "mean_policy_budget_overage_bn", "mean_policy_worst_shortfall_world"],
+          "claims": [
+            {
+              "id": "mean_budget_mismatch_result",
+              "description": "The response uses its reported budget overage and worst-shortfall implicates to explain the frozen mean policy's distinct fiscal and loss outcomes across the five worlds.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Using the same five frozen household worlds, annuity terms, annual target and amount bounds, propose one common three-group subsidy vector that this time minimizes the largest world-specific policy loss rather than their mean, using the same per-world loss defined in turn 2. The present-value fiscal cost must now be at most USD 650 billion in each world separately. Report the three amounts, the largest squared shortfall and the world with the greatest cost, ties by lower implicate number. Compare this jointly feasible proposal with the turn-2 policy and interpret the fiscal trade-off.",
+          "validator": "validate_turn_4",
+          "stores": ["robust_45_54_kusd", "robust_55_64_kusd", "robust_65_74_kusd", "robust_worst_squared_shortfall", "robust_binding_budget_world"],
+          "claims": [
+            {
+              "id": "robust_feasibility_result",
+              "description": "The response explains that the common robust policy reallocates support to meet all five budgets, with implicate four setting the tightest fiscal limit and a larger worst shortfall than the mean-budget policy.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Before implementing the proposed policy, revise only the 45–54 group's hypothetical term from 20 to 15 year-end payments, changing both its positive-net-worth annuity resource conversion and the present value of its subsidy payments. Keep all households, eligibility, net-worth balances, survey weights, other group terms, annual target and USD 650 billion per-world budget unchanged. Re-solve the turn-4 common-policy robust decision across all five worlds. Report the three revised annual amounts and the revised largest squared shortfall. Interpret how the single term change alters the feasible allocation and remaining gap.",
+          "validator": "validate_turn_5",
+          "stores": ["revised_45_54_kusd", "revised_55_64_kusd", "revised_65_74_kusd", "revised_worst_squared_shortfall"],
+          "claims": [
+            {
+              "id": "term_reallocation_result",
+              "description": "The response identifies from the revised solve that the youngest group's annual support rises and the worst mean squared shortfall falls.",
+              "mode": "required"
+            },
+            {
+              "id": "policy_inference_boundary",
+              "description": "If the response presents this as an observed retirement-income program, causal welfare estimate or statistically precise population interval, it qualifies the synthetic policy and lack of replicate-weight uncertainty analysis.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen 2022 Federal Reserve SCF summary implicates and 2025-12-31 U.S. Treasury par curve under a hypothetical annuity-resource and fiscal-policy contract.",
+    "facts": [
+      "The five eligible populations average 14.684152 million after restoring each implicate's per-row fifth weight. The 20/15/10-year annuity factors are 13.04439782, 10.94131799 and 8.12250400; the baseline mean positive annual shortfall is USD 8.93903152 thousand.",
+      "The mean-budget policy pays about USD 3.33, 4.23 and 5.27 thousand annually by age group; its mean squared shortfall is 24.72160273 squared USD thousands. Its implicate-four cost is USD 656.6613 billion, exceeding the USD 650 billion per-world threshold by USD 6.6613 billion, while implicate one has the largest shortfall.",
+      "The five-budget robust policy pays about USD 3.28, 4.26 and 5.14 thousand; implicate four is tight at USD 650 billion and implicate one sets the 25.26402644 worst shortfall. Each other world is within budget.",
+      "Shortening only the first group's term to 15 years changes its annuity factor/resource conversion and subsidy present value. The revised robust subsidies are about USD 3.98, 4.22 and 5.10 thousand, with a 22.24909586 worst squared shortfall.",
+      "The exercise does not model actual retirement cash flows, wealth liquidity, mortality, insurer prices, causal program effects or replicate-weight standard errors."
+    ],
+    "known_overclaims": [
+      "Treating five SCF implicate rows as five independent households.",
+      "Using one-fifth row weights for an absolute cost in each separate world without restoring the factor five.",
+      "Averaging five independently optimized subsidies and calling the result one jointly feasible policy.",
+      "Using a Treasury par yield as every payment-date spot discount rate.",
+      "Changing only subsidy cost, but not household resource conversion, when the young-group term changes."
+    ]
+  }
+}

@@ -1,0 +1,136 @@
+{
+  "name": "treasury_coupon_setting_and_tranche_pricing",
+  "module": "evals.calculation_reconciliation.treasury_coupon_setting_and_tranche_pricing",
+  "task_family": "calculation_reconciliation",
+  "data_sources": [
+    "treasury_auctions",
+    "treasury_marketable_securities"
+  ],
+  "case_type": "baseline",
+  "difficulty": "hard",
+  "judge_reference": {
+    "source": "Frozen Treasury auction records and monthly statements of the public debt through 2025. The coupon rule, the premium counts and the tranche comparison are analytic constructions rather than published statistics.",
+    "facts": [
+      "623 original nominal note and bond auctions were held from 2015 through 2025, and every coupon is the largest multiple of one eighth of a percent not above the high yield, with one eighth as the minimum; the high yield exceeds the coupon by at most 12.4 basis points. The two-year note auctioned on 2021-02-23 cleared at 0.119 percent, below one eighth, took the minimum coupon of 0.125 and is the only original issue priced above par.",
+      "Of the 239 reopenings in the window, 83 priced above par, exactly those whose high yield fell below the coupon, because a reopening carries the coupon set at the original auction.",
+      "350 nominal notes and bonds were outstanding on 2025-12-31; 141 were issued in more than one tranche and 62 include both a tranche sold at a yield below the coupon and one above it, so the same security with the same coupon was issued at a premium and at a discount.",
+      "Two outstanding original tranches, 30-year bonds auctioned in 1996, have coupons their high yields do not reproduce. They were sold in multiple-price auctions, where the coupon followed the average accepted yield: 6.119 percent gave a 6.0 coupon and 6.619 percent a 6.5 coupon, where the high yields would have given 6.125 and 6.625.",
+      "The debt statement shows 219.3 billion dollars fewer outstanding than issued across the 350 securities, retired before maturity. Weighted by those retired amounts their coupon is 2.7307 percent against a median coupon of 3.625 percent, so early retirement has fallen mostly on low-coupon issues sold when rates were low."
+    ]
+  },
+  "conversations": [
+    {
+      "turns": [
+        {
+          "query": "Take the Treasury auctions of nominal notes and bonds, leaving out inflation-indexed and floating-rate securities, with auction dates from 2015-01-01 through 2025-12-31. Among the original issues, not the reopenings, report how many there are. Find the rule by which every one of their coupons follows from the auction's high yield. Report the largest amount by which a high yield exceeds its coupon, in basis points, and the auction date of the one original issue whose price per 100 is above par. Explain the rule, and why that issue is priced above par when the others are not.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "original_issue_count",
+            "max_yield_above_coupon_bp",
+            "premium_original_auction_date"
+          ],
+          "claims": [
+            {
+              "id": "largest_eighth_not_above_yield",
+              "mode": "required",
+              "description": "States that the coupon is the largest multiple of one eighth of a percent at or below the high yield, with one eighth as the minimum."
+            },
+            {
+              "id": "minimum_coupon_explains_premium",
+              "mode": "required",
+              "description": "Explains that the issue above par cleared at a yield below one eighth, so the minimum coupon exceeded its yield and lifted its price above par."
+            },
+            {
+              "id": "coupon_at_or_below_yield",
+              "mode": "optional",
+              "description": "Notes that with the coupon at or below the yield an original issue prices at par or at a discount."
+            }
+          ]
+        },
+        {
+          "query": "Now take the reopenings in the same window. Report how many there are and how many are priced above par. Explain what decides whether a reopening is priced above or below par, and why a reopening can sit above par when an original issue almost never does.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "reopening_count",
+            "reopening_premium_count"
+          ],
+          "claims": [
+            {
+              "id": "reopening_keeps_original_coupon",
+              "mode": "required",
+              "description": "States that more of an existing security is sold at the coupon fixed when it was first auctioned, so the price turns on whether today's yield sits below or above that fixed coupon."
+            },
+            {
+              "id": "yields_fell_since_original",
+              "mode": "optional",
+              "description": "Relates premium reopenings to yields having fallen since the security was first auctioned."
+            }
+          ]
+        },
+        {
+          "query": "Turn to the monthly statement of the public debt at 2025-12-31: take notes and bonds outstanding that mature after that date, excluding TIPS and floating-rate notes. Report how many securities there are, how many were issued in more than one tranche, and how many have both a tranche whose yield is strictly below the coupon and one strictly above it. Match each security's earliest tranche to its auction and report how many of these carry a coupon that the first turn's rule, applied to the auction's high yield, does not reproduce. Explain what the securities with both kinds of tranche show, and what accounts for the originals the rule misses.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "outstanding_security_count",
+            "reopened_security_count",
+            "mixed_tranche_security_count",
+            "high_yield_rule_failures"
+          ],
+          "claims": [
+            {
+              "id": "one_coupon_many_prices",
+              "mode": "required",
+              "description": "Explains that one security can be sold at a premium in one tranche and at a discount in another because every tranche carries the original coupon while market yields move between auctions."
+            },
+            {
+              "id": "multiple_price_auctions",
+              "mode": "required",
+              "description": "Attributes the original tranches the rule misses to multiple-price auctions, in which the coupon followed the average accepted yield rather than the high yield."
+            },
+            {
+              "id": "single_price_switch",
+              "mode": "optional",
+              "description": "Places the move to single-price auctions for all notes and bonds in the late 1990s."
+            }
+          ]
+        },
+        {
+          "query": "Stay with the securities of the previous turn and use the debt statement's amounts issued and outstanding for each at 2025-12-31. Report the amount it shows issued less the amount it shows outstanding, summed across the securities, in billions of dollars. Then report their coupon weighted by each security's amount issued less amount outstanding, and the median coupon across the securities, both in percent. Explain what the difference between issued and outstanding amounts records, and what comparing the two coupons shows.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "issued_less_outstanding_billion_usd",
+            "issued_less_outstanding_weighted_coupon_pct",
+            "median_coupon_pct"
+          ],
+          "claims": [
+            {
+              "id": "retired_before_maturity",
+              "mode": "required",
+              "description": "Reads the amount issued in excess of the amount outstanding as securities retired before they matured."
+            },
+            {
+              "id": "falls_disproportionately_on_low_coupons",
+              "mode": "required",
+              "description": "Observes that the difference between issued and outstanding amounts falls disproportionately on securities with coupons below those of the stock as a whole."
+            },
+            {
+              "id": "buybacks",
+              "mode": "optional",
+              "description": "Attributes much of that early retirement to the Treasury's buyback operations resumed in 2024."
+            },
+            {
+              "id": "auction_record_cannot_show_it",
+              "mode": "optional",
+              "description": "Notes that the auction record shows only what was sold and cannot reveal securities retired early."
+            },
+            {
+              "id": "issued_when_rates_were_low",
+              "mode": "optional",
+              "description": "Connects those low-coupon securities to issues sold when interest rates were low."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

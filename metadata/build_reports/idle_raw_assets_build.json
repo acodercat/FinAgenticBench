@@ -1,0 +1,212 @@
+{
+  "ftd": {
+    "built_at": "2026-08-27T03:20:48.763935+00:00",
+    "freeze_date": "2025-12-31",
+    "tables": {
+      "fails_to_deliver": {
+        "file": "sec_ftd/fails_to_deliver.csv.gz",
+        "rows": 2611647,
+        "columns": [
+          "settlement_date",
+          "cusip",
+          "symbol",
+          "quantity_fails",
+          "description",
+          "price",
+          "source_file"
+        ]
+      }
+    }
+  },
+  "z1": {
+    "built_at": "2026-08-27T03:21:09.199446+00:00",
+    "freeze_date": "2025-12-31",
+    "tables": {
+      "series_observations": {
+        "file": "fed_z1_vintages/series_observations.csv.gz",
+        "rows": 2479600,
+        "columns": [
+          "vintage",
+          "table",
+          "series",
+          "frequency",
+          "date",
+          "value"
+        ]
+      }
+    }
+  },
+  "midas": {
+    "built_at": "2026-08-27T03:22:10.270755+00:00",
+    "freeze_date": "2025-12-31",
+    "tables": {
+      "daily_security": {
+        "file": "sec_midas_security_exchange/daily_security.csv.gz",
+        "rows": 3875346,
+        "columns": [
+          "date",
+          "security_type",
+          "ticker",
+          "mcap_rank",
+          "turnover_rank",
+          "volatility_rank",
+          "price_rank",
+          "exchange_count",
+          "cancels",
+          "trades",
+          "lit_trades",
+          "odd_lots",
+          "hidden",
+          "trades_for_hidden",
+          "order_volume_thousands",
+          "trade_volume_thousands",
+          "lit_volume_thousands",
+          "odd_lot_volume_thousands",
+          "hidden_volume_thousands",
+          "trade_volume_for_hidden_thousands"
+        ],
+        "exchange_level_rows_read": 51834293
+      }
+    }
+  },
+  "13f": {
+    "built_at": "2026-08-27T12:11:38.568474+00:00",
+    "freeze_date": "2025-12-31",
+    "tables": {
+      "filings": {
+        "file": "sec_13f/filings.csv.gz",
+        "rows": 243129,
+        "columns": [
+          "accession_number",
+          "filing_date",
+          "submissiontype",
+          "cik",
+          "periodofreport",
+          "reportcalendarorquarter",
+          "isamendment",
+          "amendmenttype",
+          "filingmanager_name",
+          "filingmanager_stateorcountry",
+          "reporttype",
+          "otherincludedmanagerscount",
+          "tableentrytotal",
+          "tablevaluetotal",
+          "isconfidentialomitted",
+          "source_archive",
+          "value_reporting_convention"
+        ]
+      },
+      "holdings_by_cusip": {
+        "file": "sec_13f/holdings_by_cusip.csv.gz",
+        "rows": 959379,
+        "columns": [
+          "period_of_report",
+          "cusip",
+          "issuer_name",
+          "title_of_class",
+          "holding_rows",
+          "value_usd_total",
+          "share_value_usd_total",
+          "share_amount_total",
+          "put_value_usd_total",
+          "call_value_usd_total",
+          "sole_voting_shares_total",
+          "filer_count",
+          "value_reporting_convention"
+        ]
+      }
+    }
+  },
+  "notes": {
+    "built_at": "2026-08-27T03:31:45.932441+00:00",
+    "freeze_date": "2025-12-31",
+    "tables": {
+      "submissions": {
+        "file": "sec_notes/submissions.csv.gz",
+        "rows": 19059,
+        "columns": [
+          "adsh",
+          "cik",
+          "name",
+          "sic",
+          "form",
+          "period",
+          "fy",
+          "fp",
+          "filed",
+          "prevrpt",
+          "detail",
+          "source_archive"
+        ]
+      },
+      "numeric_facts": {
+        "file": "sec_notes/numeric_facts.csv.gz",
+        "rows": 8963293,
+        "columns": [
+          "adsh",
+          "tag",
+          "version",
+          "ddate",
+          "qtrs",
+          "uom",
+          "dimh",
+          "iprx",
+          "value",
+          "footnote",
+          "footlen",
+          "dimn",
+          "coreg",
+          "durp",
+          "datp",
+          "dcml",
+          "cik",
+          "name",
+          "form",
+          "filed"
+        ]
+      }
+    }
+  },
+  "notes_dimensional": {
+    "built_at": "2026-08-28T01:56:55.822862+00:00",
+    "freeze_date": "2025-12-31",
+    "tables": {
+      "dimensional_facts": {
+        "file": "sec_notes/dimensional_facts.csv.gz",
+        "rows": 10660459,
+        "columns": [
+          "adsh",
+          "cik",
+          "name",
+          "form",
+          "filed",
+          "tag",
+          "version",
+          "ddate",
+          "qtrs",
+          "uom",
+          "dimh",
+          "axis",
+          "member",
+          "iprx",
+          "value",
+          "coreg",
+          "dcml",
+          "source_archive"
+        ]
+      },
+      "dimensions": {
+        "file": "sec_notes/dimensions.csv.gz",
+        "rows": 391339,
+        "columns": [
+          "dimh",
+          "axis_count",
+          "axis",
+          "member",
+          "segments",
+          "segment_type"
+        ]
+      }
+    }
+  }
+}

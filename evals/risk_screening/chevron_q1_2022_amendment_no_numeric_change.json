@@ -1,0 +1,69 @@
+{
+  "name": "chevron_q1_2022_amendment_no_numeric_change",
+  "module": "evals.risk_screening.chevron_q1_2022_amendment_no_numeric_change",
+  "task_family": "risk_screening",
+  "data_sources": [
+    "sec_companyfacts",
+    "sec_submissions"
+  ],
+  "difficulty": "medium",
+  "case_type": "trap",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Chevron filed an original 10-Q and a 10-Q/A for the quarter ended 2022-03-31 on the same filing date. Using accessions 0000093410-22-000026 and 0000093410-22-000028, report each filing's SEC acceptance timestamp and its Q1 Revenues. Carry both accessions forward. Establish which filing came first and what the two revenue figures show.",
+          "validator": "validate_filing_order",
+          "stores": [
+            "original_acceptance_datetime",
+            "amendment_acceptance_datetime",
+            "original_q1_revenue_usd_billions",
+            "amended_q1_revenue_usd_billions"
+          ],
+          "claims": [
+            {
+              "id": "intraday_order",
+              "description": "The response uses the acceptance timestamps rather than the shared filing date to establish which of the two filings came first.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "For the same two accessions, compare normalized facts keyed by taxonomy, concept, unit, start date and end date. Report how many shared keys carry equal values and how many carry changed values. Explain what this comparison establishes about a numerical restatement and what it leaves open.",
+          "validator": "validate_fact_comparison",
+          "stores": [
+            "matched_normalized_fact_count",
+            "changed_normalized_fact_count"
+          ],
+          "claims": [
+            {
+              "id": "point_in_time_comparison_scope",
+              "description": "The response uses the acceptance timestamps to establish intraday order and states that equality of the shared normalized CompanyFacts observations supports no numerical change in that compared set, not identity of the complete filings or an explanation of the amendment's purpose.",
+              "mode": "required"
+            },
+            {
+              "id": "amendment_scope_boundary",
+              "description": "If the response characterizes the amendment's broader purpose or contents, it does not infer that purpose from unchanged normalized numeric facts alone.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "SEC CompanyFacts and submissions frozen at 2025-12-31",
+    "facts": [
+      "The original 10-Q was accepted 2022-05-04T16:16:42.000Z and the 10-Q/A was accepted later at 2022-05-04T21:21:50.000Z.",
+      "Both accessions report Q1 Revenues of 54.373 billion USD.",
+      "All 330 normalized fact keys shared by the accessions have equal values, and zero shared keys have changed values.",
+      "This supports no numeric change in the compared normalized facts; it does not establish why the filing was amended or whether non-CompanyFacts content changed."
+    ],
+    "known_overclaims": [
+      "Treating both filings as simultaneous because their filing dates match.",
+      "Assuming every amendment is a financial restatement.",
+      "Concluding that the entire filing is textually identical from CompanyFacts equality."
+    ]
+  }
+}

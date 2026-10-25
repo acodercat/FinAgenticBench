@@ -1,0 +1,116 @@
+{
+  "name": "debt_modification_effective_interest_derecognition",
+  "module": "evals.temporal_path.debt_modification_effective_interest_derecognition",
+  "task_family": "temporal_path",
+  "data_sources": [
+    "sec_financial_statements",
+    "treasury_yield_curve"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Construct a hypothetical IFRS 9 financial liability whose principal equals ACI Worldwide's reported noncurrent long-term debt in its original 2024 annual filing, accession 0000935036-25-000006 (principal only). The liability runs five years with a 5% annual coupon paid in exact half-year periods and bullet repayment. It is issued at the value of its cash flows on the 2024-12-31 Treasury yields for 1, 2, 3, 6 months and 1, 2, 3, 5, 7, 10, 20, 30 years, read as zero rates, semiannually compounded, linearly interpolated with flat ends, less a cash issuance fee of 1% of principal. Report the initial net carrying amount and the original semiannual effective interest rate.",
+          "stores": [
+            "net_issuance_mn",
+            "original_semiannual_eir_pct"
+          ],
+          "validator": "validate_turn_1",
+          "claims": []
+        },
+        {
+          "query": "Execute the first four scheduled original coupons. There are no rate resets, modifications or additional fees during these two years. Immediately after the fourth coupon, report the liability carrying amount and effective-interest expense for that fourth half-year period. Explain the relation between the coupon and the accounting interest charge.",
+          "stores": [
+            "pre_modification_carrying_mn",
+            "fourth_coupon_interest_mn"
+          ],
+          "validator": "validate_turn_2",
+          "claims": [
+            {
+              "id": "effective_vs_cash_interest",
+              "description": "The response explains that contractual coupon payments and effective-interest expense differ because issuance price and issuance fees affect the amortized-cost carrying amount.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "At that date execute proposal A: keep the original principal, pay a 4% annual coupon, and extend the remaining term to eight half-years, with a lender fee of 0.4% of original principal and a third-party legal fee of 0.6%. Run the quantitative 10% test at the original effective rate; it alone is decisive. Follow the IASB's October 2017 clarification on modifications without derecognition; modification fees adjust a continuing liability and amortize over its modified term. Report A's absolute percentage change in the 10% test, the modification gain before fees, the fee-adjusted carrying amount and the semiannual fee-amortizing effective rate. Explain the role of the two fees and the accounting consequence.",
+          "stores": [
+            "A_ten_percent_test_pct",
+            "A_modification_gain_mn",
+            "A_adjusted_carrying_mn",
+            "A_fee_amortizing_semiannual_eir_pct"
+          ],
+          "validator": "validate_turn_3",
+          "claims": [
+            {
+              "id": "test_fee_scope",
+              "description": "The response explains why lender fees enter the quantitative substantiality test whereas independent third-party legal fees do not.",
+              "mode": "required"
+            },
+            {
+              "id": "modification_fee_accretion",
+              "description": "The response relates A's changed contractual payments to its recognized modification gain, distinguishing that gain from the subsequent fee amortization.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "For comparison only, return to the state right after the fourth original coupon. Proposal B cuts principal by 20%, pays 5% annual coupons on the reduced principal for six semiannual periods and repays it at the last, with the same lender and legal fees as A. Keep the original-rate, quantitative-only 10% test, and measure market value on the original zero curve shifted up 200 basis points. Report B's classification, the carrying amount immediately after it, and the current-period gain or loss including the applicable fee treatment, without executing B. Explain how the accounting result relates to the contractual cash savings.",
+          "stores": [
+            "B_classification",
+            "B_postchange_carrying_mn",
+            "B_accounting_gain_mn"
+          ],
+          "validator": "validate_turn_4",
+          "claims": [
+            {
+              "id": "cash_savings_vs_accounting_gain",
+              "description": "The response distinguishes nominal contractual payment savings from the current-period accounting result based on its selected treatment, liability measurements and applicable fee treatment.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Continue the executed A liability with its fee amortization. Pay its next two coupons, then exchange the remaining six-period contract for one with the same coupon amounts and dates but a final principal lower by 15% of original face, with no new fees. Run the 10% test at the initial-recognition effective rate against the legally current pre-exchange A cash flows, not the fee-adjusted carrying amount; the quantitative criterion again decides, and market value uses the original curve plus 200 basis points. Report the carrying amount before the exchange, the 10% test's absolute percentage change and the resulting accounting gain. Explain how the substantiality assessment relates to the recognized gain.",
+          "stores": [
+            "second_prechange_carrying_mn",
+            "second_ten_percent_test_pct",
+            "second_gain_mn"
+          ],
+          "validator": "validate_turn_5",
+          "claims": [
+            {
+              "id": "second_test_vs_gain",
+              "description": "The response explains why the second exchange's accounting gain depends on the carried A liability and replacement market measurement, rather than treating the substantiality-test percentage as a gain percentage.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen governed dataset_new tables; explicitly hypothetical financial contracts in the conversation.",
+    "facts": [
+      "net_issuance_mn: 905.6861",
+      "original_semiannual_eir_pct: 2.2962",
+      "pre_modification_carrying_mn: 899.7044",
+      "fourth_coupon_interest_mn: 20.6945",
+      "A_ten_percent_test_pct: 2.8405",
+      "A_modification_gain_mn: 29.1148",
+      "A_adjusted_carrying_mn: 861.6932",
+      "A_fee_amortizing_semiannual_eir_pct: 2.4371",
+      "B_classification: DERECOGNIZE",
+      "B_postchange_carrying_mn: 687.3913",
+      "B_accounting_gain_mn: 203.4166",
+      "second_prechange_carrying_mn: 868.1857",
+      "second_ten_percent_test_pct: 13.3085",
+      "second_gain_mn: 143.8326"
+    ],
+    "known_overclaims": []
+  }
+}

@@ -1,0 +1,122 @@
+{
+  "name": "storm_payroll_policy_state_preservation",
+  "module": "evals.scenario_analysis.storm_payroll_policy_state_preservation",
+  "task_family": "scenario_analysis",
+  "data_sources": [
+    "bls_qcew",
+    "noaa_storm_events"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Establish a hypothetical parametric payroll-protection book for Louisiana counties using 2019 BLS QCEW private-sector county NAICS-sector annual wages. Require positive, nonmissing wages for both manufacturing, NAICS31–33, and health care and social assistance, NAICS62. Select the five counties with the largest manufacturing wages, breaking ties by ascending county FIPS. The original book insures 25 percent of each selected county’s manufacturing annual payroll, distributed uniformly over 365 calendar days. Report total insured annual payroll and the largest-exposure county. Assess exposure concentration. Use unrounded state throughout.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "original_insured_payroll_million",
+            "largest_exposure_county"
+          ],
+          "claims": [
+            {
+              "id": "storm_payroll_policy_state_preservation_t1_interpretation",
+              "description": "The response recognizes the largest selected county as a material share of the original insured payroll rather than treating the five counties as equally exposed.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "For the original book, use NOAA County-geography Flood and Flash Flood records in those counties with source begin datetimes in 2021. A contract trigger interval runs from source begin through 48 hours after source end, clipped at 2022-01-01. Measure naive source-local elapsed hours without time-zone or daylight-saving adjustment. A NOAA episode is one occurrence; within a county-occurrence, overlapping trigger intervals cover time only once. Each county-occurrence has a 24-hour aggregate time deductible and a USD500,000 indemnity limit. Indemnity covers the insured payroll accruing during trigger time beyond that deductible. Aggregate county indemnities within each occurrence. The annual book limit is USD8 million, applied by earliest in-scope source begin datetime and then ascending episode identifier. Report total indemnity before the annual limit and the largest occurrence indemnity. Explain how the biggest single-occurrence figure is built up from the county pieces underneath it, and what the per-county ceiling does there.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "original_preaggregate_claims_million",
+            "largest_original_occurrence_million"
+          ],
+          "claims": [
+            {
+              "id": "storm_payroll_policy_state_preservation_t2_interpretation",
+              "description": "The response relates the largest occurrence amount to multiple county-level indemnities rather than treating the per-county cap as a book-wide occurrence cap.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Quote an independent health-care and social-assistance book for the same counties. Insure 25 percent of their corresponding annual payroll and use a 12-hour aggregate time deductible; retain all other trigger, limit and ordering terms. Report its insured annual payroll and total indemnity before the annual limit. Compare the two books on what they insure and what they pay, and explain which terms and locations drive any difference between those two outcomes.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "comparison_insured_payroll_million",
+            "comparison_preaggregate_claims_million"
+          ],
+          "claims": [
+            {
+              "id": "storm_payroll_policy_state_preservation_t3_interpretation",
+              "description": "The response explains that the comparison’s larger insured payroll nevertheless produces lower aggregate indemnity because the geographic distribution and binding county caps matter alongside the shorter deductible.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Allocate that comparison book’s annual capacity across its occurrences. Report the episode in which the annual limit is first exhausted and the percentage of that occurrence’s pre-annual-limit indemnity that is paid. Explain what determines how much of that occurrence gets paid, working back through what earlier events had already drawn from the yearly pot.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "comparison_exhaustion_episode",
+            "comparison_exhaustion_paid_pct"
+          ],
+          "claims": [
+            {
+              "id": "storm_payroll_policy_state_preservation_t4_interpretation",
+              "description": "The response identifies partial payment of the exhaustion occurrence as a consequence of previously consumed annual capacity.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Complete the annual-capacity allocation for the original committed manufacturing book. Report its exhaustion episode and the amount paid on that occurrence. Say what sets the point at which this book runs out of yearly room, and how that compares with the other book's timing.",
+          "validator": "validate_turn_5",
+          "stores": [
+            "original_exhaustion_episode",
+            "original_exhaustion_payment_million"
+          ],
+          "claims": [
+            {
+              "id": "storm_payroll_policy_state_preservation_t5_interpretation",
+              "description": "The response attributes when the annual limit is exhausted to cumulative indemnity in occurrence order rather than to the size of the book's insured payroll.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "For the original book’s actual payments under its annual limit, apply a per-occurrence reinsurance layer of USD750,000 excess of USD250,000, with no annual reinsurance cap or premium cash flow. Report total ceded claims and the episode with the largest retained payment, breaking a tie by ascending episode identifier. Explain which slices of each occurrence payment move to the reinsurer and which stay with the original writer under this layer's boundaries.",
+          "validator": "validate_turn_6",
+          "stores": [
+            "original_ceded_claims_million",
+            "largest_retained_episode"
+          ],
+          "claims": [
+            {
+              "id": "storm_payroll_policy_state_preservation_t6_interpretation",
+              "description": "The response explains that the reinsurance layer leaves both attachment retention and amounts above its per-occurrence upper boundary with the original insurer.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen governed dataset_new and the explicitly stipulated hypothetical financial contract.",
+    "facts": [
+      "The response recognizes the largest selected county as a material share of the original insured payroll rather than treating the five counties as equally exposed.",
+      "The response relates the largest occurrence amount to multiple county-level indemnities rather than treating the per-county cap as a book-wide occurrence cap.",
+      "The response explains that the comparison’s larger insured payroll nevertheless produces lower aggregate indemnity because the geographic distribution and binding county caps matter alongside the shorter deductible.",
+      "The response identifies partial payment of the exhaustion occurrence as a consequence of previously consumed annual capacity.",
+      "The response identifies that the original book exhausts capacity earlier in the occurrence sequence than the comparison despite having lower insured annual payroll.",
+      "The response explains that the reinsurance layer leaves both attachment retention and amounts above its per-occurrence upper boundary with the original insurer."
+    ],
+    "known_overclaims": [
+      "Treating hypothetical prices, asset bases, funding policies or return proxies as observed executable contracts, statutory requirements or guaranteed forecasts."
+    ]
+  }
+}

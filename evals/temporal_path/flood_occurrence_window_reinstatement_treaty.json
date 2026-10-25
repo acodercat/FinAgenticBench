@@ -1,0 +1,114 @@
+{
+  "name": "flood_occurrence_window_reinstatement_treaty",
+  "module": "evals.temporal_path.flood_occurrence_window_reinstatement_treaty",
+  "task_family": "temporal_path",
+  "data_sources": [
+    "fema_nfip",
+    "fema_disasters"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Build a retrospective Louisiana calendar-2020 claim cohort from the frozen NFIP snapshot. A claim qualifies if its five-digit county FIPS and loss date fall within at least one FEMA declaration area's inclusive incident interval, among Louisiana declarations with incident beginning in 2020 and incident type Hurricane or Flood. Keep claims with all three gross building, contents and ICC payment fields present and a positive sum, counting each claim once however many declaration areas cover it. Report distinct qualifying claims and their source gross payment sum.",
+          "stores": [
+            "eligible_claim_count",
+            "source_gross_mn"
+          ],
+          "validator": "validate_turn_1",
+          "claims": []
+        },
+        {
+          "query": "Build a hypothetical insured daily loss ledger at 40% of those gross payments, each loss at midnight on its loss date. An occurrence is a 72-hour half-open window starting at midnight on any date from August 20 through October 27, 2020. The treaty has a USD 5m attachment per window, a USD 10m layer, USD 10m of paid reinstatement capacity and a USD 18m annual aggregate. A window recovers its loss above attachment up to the current layer and remaining aggregate. After every settlement, exhausted layer is restored from unused reinstatement capacity, up to USD 10m, for cash premium of USD 3m times restored capacity over USD 10m times days from window end to 2021-01-01 over 366; premium leaves the aggregate untouched. For fixed starts August 25 and October 8, report total gross recovery and paid reinstatement premium. Explain their effect on later capacity.",
+          "stores": [
+            "fixed_windows_gross_recovery_mn",
+            "fixed_windows_paid_premium_mn"
+          ],
+          "validator": "validate_turn_2",
+          "claims": [
+            {
+              "id": "capacity_and_premium_ledger",
+              "description": "The response relates gross settlements, layer restoration and required cash premium to the distinct carried annual and reinstatement capacities.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "From the untouched initial treaty state, select up to three chronological nonoverlapping windows, which may group any losses and need not use every loss, to maximize total recovery net of required reinstatement premiums; the base premium is sunk. Use perfect retrospective knowledge of the supplied ledger; there is no uncertainty or discounting. Resolve equal net values by fewer selected windows, then lexicographically earlier chronological start dates. Report maximum net recovery, the selected window starts and their total required reinstatement premium. Explain how the treaty terms affect the optimal selection.",
+          "stores": [
+            "maximum_net_recovery_mn",
+            "optimal_window_starts",
+            "optimal_reinstatement_premium_mn"
+          ],
+          "validator": "validate_turn_3",
+          "claims": [
+            {
+              "id": "net_objective_window_selection",
+              "description": "The response explains how attachments, available capacities and required reinstatement premiums make net treaty recovery depend on more than loss-window size.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Execute only the first window of that optimal selection and carry the resulting layer, aggregate and reinstatement capacity; that premium is sunk. New information cuts every loss dated October 6 to 10 to 10% of its amount and multiplies every loss dated October 28 by 20, leaving the rest unchanged. Choose up to two future nonoverlapping windows starting on or after the executed window's end and within the original start calendar, under the same tie rules, to maximize future net recovery, without executing them. Report the remaining annual aggregate, the future optimal starts and the future net recovery. Explain how the executed history affects the new decision.",
+          "stores": [
+            "carried_aggregate_remaining_mn",
+            "future_optimal_starts",
+            "future_net_recovery_mn"
+          ],
+          "validator": "validate_turn_4",
+          "claims": [
+            {
+              "id": "executed_capacity_future_state",
+              "description": "The response explains the future optimum using the actually consumed annual and reinstatement capacity rather than resetting to the initial treaty or executing all originally planned windows.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "From that same actual post-first-window state and revised ledger, evaluate an immediate optional endorsement adding USD8m to the remaining annual gross aggregate and USD10m to unused reinstatement capacity. It does not increase the current layer, original occurrence limit or attachment; the same USD3m reinstatement premium base and time rule apply. Reoptimize up to two future windows under the same calendar and tie rules. Report enhanced optimal starts and the maximum additional endorsement price supported by incremental future net recovery. The quoted endorsement costs USD1m cash; choose BUY only when its incremental net value strictly exceeds that quote, otherwise DECLINE. Explain the decision and the role of reoptimization.",
+          "stores": [
+            "endorsement_optimal_starts",
+            "endorsement_max_price_mn",
+            "endorsement_decision"
+          ],
+          "validator": "validate_turn_5",
+          "claims": [
+            {
+              "id": "incremental_endorsement_reoptimization",
+              "description": "The response supports the endorsement decision using the difference between independently optimized future net recoveries from the same actual state, including any change in selected window starts.",
+              "mode": "required"
+            },
+            {
+              "id": "retrospective_contract_scope",
+              "description": "If the response treats the computed recovery as an actual NFIP reinsurance entitlement or a causal catastrophe forecast, it qualifies that inference because the contract and revised ledger are hypothetical retrospective constructions.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen governed dataset_new tables; explicitly hypothetical financial contracts in the conversation.",
+    "facts": [
+      "eligible_claim_count: 2638",
+      "source_gross_mn: 125.3175",
+      "fixed_windows_gross_recovery_mn: 18.0000",
+      "fixed_windows_paid_premium_mn: 1.0328",
+      "maximum_net_recovery_mn: 16.9836",
+      "optimal_window_starts: 2020-08-27,2020-10-07",
+      "optimal_reinstatement_premium_mn: 1.0164",
+      "carried_aggregate_remaining_mn: 8.0000",
+      "future_optimal_starts: 2020-10-26",
+      "future_net_recovery_mn: 8.0000",
+      "endorsement_optimal_starts: 2020-10-27",
+      "endorsement_max_price_mn: 1.4836",
+      "endorsement_decision: BUY"
+    ],
+    "known_overclaims": []
+  }
+}

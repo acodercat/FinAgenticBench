@@ -1,0 +1,4 @@
+subset,n_configs,r2_model,r2_slot,r2_slot_x_model
+all,14,0.023806,0.277745,0.673027
+strong,4,0.007576,0.311828,0.677243
+thinking,8,0.01693,0.267113,0.643084

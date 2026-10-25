@@ -1,0 +1,124 @@
+{
+  "name": "tips_accretion_stock_versus_daily_increment",
+  "module": "evals.calculation_reconciliation.tips_accretion_stock_versus_daily_increment",
+  "task_family": "calculation_reconciliation",
+  "data_sources": [
+    "treasury_marketable_securities",
+    "treasury_dts_public_debt"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "judge_reference": {
+    "source": "The Monthly Statement of the Public Debt and the Daily Treasury Statement, as frozen in the runtime layer. The principal of an inflation-protected Treasury accretes with the price index; the monthly statement carries the accrued amount as a balance beside each security, while the daily statement records it as a transaction line.",
+    "facts": [
+      "The monthly statement covers 84 month ends. At 2025-12-31 its inflation-protected detail carries 134 security-level rows describing 53 distinct securities, USD2,133.881769 billion outstanding, USD1,757.996692 billion issued and USD385.656277 billion accrued, which is 18.072992 percent of the outstanding balance.",
+      "A security appears once for each time it was sold but its outstanding balance is stated once, so only 53 of the 134 rows carry one. The aggregate identity still closes on every one of the 84 month ends -- issued plus accrued plus redeemed equals outstanding -- with the largest residual across all of them 5e-10 of a million dollars. Redemptions are stored as negative amounts.",
+      "The daily statement carries 1,757 inflation-increment lines, 323 of them negative because the price index fell, totalling USD457.434000 billion.",
+      "83 calendar months carry both a month-to-month change in the accrued balance and a daily total. Comparing them directly leaves a mean absolute gap of USD2,512.193653 million and 7 months in which the two move in opposite directions.",
+      "22 month ends lose an inflation-protected security that was present the month before, and USD204.679361 billion of accrued compensation leaves with them. Taking that out of the daily total brings the mean absolute gap to USD48.235140 million, a fifty-two-fold reduction, with the worst month at USD271.452971 million.",
+      "July 2025 shows it plainly: the accrued balance fell USD10,197.547 million while the daily lines added USD4,387 million, because one security matured carrying USD14,438.975 million of accrued principal.",
+      "The residual that survives the adjustment is a settlement-timing difference between a daily transaction file and a month-end snapshot, not an error in either."
+    ],
+    "known_overclaims": [
+      "Reading the accrued amount as money the Treasury borrowed; it accumulated after issue and was never raised in an auction.",
+      "Treating the change in a balance and the sum of a period's transactions as the same quantity when securities leave the population between the two dates.",
+      "Summing the file's published class totals together with its security-level rows, which counts the same balances twice.",
+      "Treating a negative increment line as a data error; the principal falls when the index falls.",
+      "Forcing the remaining gap to zero, or reading it as evidence that one of the two publications is wrong."
+    ]
+  },
+  "conversations": [
+    {
+      "turns": [
+        {
+          "query": "The monthly statement of the public debt lists every marketable Treasury security outstanding at each month end, and for the inflation-protected ones it reports separately how much of the principal has accrued with the price index. Working from the security-level rows and leaving the file's published class totals aside, report how many month ends the file covers and, at the last of them, how many inflation-protected rows it carries, how many distinct securities those rows describe, and the outstanding balance summed across those rows in billions of dollars. Explain why the row count and the security count differ.",
+          "validator": "validate_tips_stock",
+          "stores": [
+            "tips_month_end_count",
+            "tips_issue_row_count",
+            "tips_cusip_count",
+            "tips_outstanding_usd_billions"
+          ],
+          "claims": [
+            {
+              "id": "row_versus_security_grain",
+              "mode": "required",
+              "description": "A security is listed once for each occasion it was sold, while the balance it leaves outstanding is stated once, so counting lines counts sales rather than securities."
+            },
+            {
+              "id": "total_row_exclusion",
+              "mode": "required",
+              "description": "The same file carries summary lines alongside the individual securities, and adding both together would count the same balances twice."
+            }
+          ]
+        },
+        {
+          "query": "Staying at that month end, report the accrued inflation compensation as a percent of the outstanding balance, and the total amount issued on the same rows in billions of dollars. Then, across the whole file, report how many month ends lose an inflation-protected security that was present the month before, and how much accrued compensation those departing securities were carrying, in billions of dollars. Explain what the accrued share says about what the Treasury owes against what it raised.",
+          "validator": "validate_accrued_principal",
+          "stores": [
+            "accretion_share_of_outstanding_pct",
+            "cumulative_issued_usd_billions",
+            "month_ends_with_a_departing_security_count",
+            "departing_accretion_usd_billions"
+          ],
+          "claims": [
+            {
+              "id": "accrued_is_unborrowed_debt",
+              "mode": "required",
+              "description": "Close to a fifth of what is owed on these securities was never raised at auction; it accumulated with the price index after they were sold."
+            },
+            {
+              "id": "index_direction_boundary",
+              "mode": "conditional",
+              "description": "If the response treats the accrued amount as bound to keep rising, it should note the index can fall and the principal with it."
+            }
+          ]
+        },
+        {
+          "query": "The daily statement records the same accretion as a transaction rather than a balance. Report how many of its lines are inflation-increment lines whatever amount they carry, how many of those lines are negative, and the total across all of them in billions of dollars. Then report how many calendar months carry both a month-to-month change in the accrued balance and a daily total for the month. Explain what it signifies when one of those increment lines carries a minus sign, and what happens to the amount owed on the bond.",
+          "validator": "validate_daily_flow",
+          "stores": [
+            "increment_day_count",
+            "negative_increment_day_count",
+            "dts_increment_total_usd_billions",
+            "months_compared_count"
+          ],
+          "claims": [
+            {
+              "id": "negative_increment_meaning",
+              "mode": "required",
+              "description": "A line below zero marks a period when the price index fell, which lowers the principal owed rather than recording a repayment."
+            }
+          ]
+        },
+        {
+          "query": "Now set the month-to-month change in the accrued balance against the sum of that month's daily increments, across those months. Report in how many of them the two have opposite signs, and the mean absolute gap between them in millions of dollars. Then subtract the accrued compensation carried away by that month's departing securities from the daily total, report the same mean on that adjusted basis, and report the largest single month's absolute gap on it. Explain what the adjustment repairs and what the remaining gap is.",
+          "validator": "validate_stock_flow_bridge",
+          "stores": [
+            "opposite_direction_month_count",
+            "unadjusted_mean_absolute_gap_usd_millions",
+            "adjusted_mean_absolute_gap_usd_millions",
+            "largest_adjusted_gap_usd_millions"
+          ],
+          "claims": [
+            {
+              "id": "stock_versus_flow",
+              "mode": "required",
+              "description": "A balance and a running total of transactions answer different questions: what a security takes with it when it matures never comes back out of the additions already recorded."
+            },
+            {
+              "id": "adjustment_size",
+              "mode": "required",
+              "description": "Allowing for what leaves at maturity cuts the discrepancy by roughly a factor of fifty and disposes of the months in which the two series appeared to move opposite ways."
+            },
+            {
+              "id": "residual_timing_boundary",
+              "mode": "conditional",
+              "description": "If the response reads the surviving gap as a mistake, it should note that a daily transaction file and a month-end snapshot need not fall on the same settlement day."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

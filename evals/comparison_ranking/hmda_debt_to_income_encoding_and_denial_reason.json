@@ -1,0 +1,103 @@
+{
+  "name": "hmda_debt_to_income_encoding_and_denial_reason",
+  "module": "evals.comparison_ranking.hmda_debt_to_income_encoding_and_denial_reason",
+  "task_family": "comparison_ranking",
+  "data_sources": [
+    "hmda",
+    "ffiec_nic_institutions"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "The mortgage disclosure file reports debt-to-income in one column under more than one encoding: an exact integer inside one band of the scale, a named range outside it, and separate codes where the ratio was not collected. Take every record in the file. Report how many records it holds, how many distinct values that column takes, how many of those values can be placed on the ratio scale, and how many records carry one of the values that cannot. Explain what those last records are, and what the mixture of encodings means for summarising this column.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "record_count",
+            "distinct_dti_values",
+            "ordered_class_count",
+            "unorderable_record_count"
+          ],
+          "claims": [
+            {
+              "id": "no_mean_from_this_column",
+              "mode": "required",
+              "description": "The response states that a column mixing exact integers with named ranges supports an ordering and a class-level summary rather than a mean, and gives a reason such as a range having no single number behind it."
+            }
+          ]
+        },
+        {
+          "query": "One of the two off-scale codes marks a filer using the partial reporting exemption rather than a borrower whose ratio is unknown. Match each lender identifier in the file to a deposit-insurance certificate through the institution identifier file. Report how many of the lenders filing here carry such a match, how many records they filed, and the percentage of records carrying that exemption code among those lenders and among the rest. Explain what the two percentages together say about whether that code describes the application or the institution that filed it.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "bank_linked_lei_count",
+            "bank_linked_record_count",
+            "bank_exempt_pct",
+            "nonbank_exempt_pct"
+          ],
+          "claims": [
+            {
+              "id": "exemption_is_about_the_filer",
+              "mode": "required",
+              "description": "The response reads the exemption code as a property of the reporting institution rather than of the borrower, and supports that with the gap between the two percentages it computed."
+            }
+          ]
+        },
+        {
+          "query": "Turn to the records whose first denial reason is the debt-to-income ratio, which the register codes as 1. Report how many there are, how many of them report a ratio in one of the ranges at or above 50 percent, how many report one of the ranges below 36 percent, and how many report a value that is off the scale altogether. Explain what a record denied on this ratio while reporting one of the low ranges would tell you about the relationship between the reason code and the reported field.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "dti_denied_count",
+            "dti_denied_above_50_count",
+            "dti_denied_below_36_count",
+            "dti_denied_unreported_count"
+          ],
+          "claims": [
+            {
+              "id": "reason_and_field_are_separate",
+              "mode": "required",
+              "description": "The response treats the reason code as an underwriting judgement recorded against a programme limit and the ratio column as a figure computed under the reporting rules, and allows that the two can disagree on a record without either being wrong."
+            }
+          ]
+        },
+        {
+          "query": "Place the two groups on the scale. Order the scale values from the lowest range through the exact integers to the highest range, and take as the median class the first one whose cumulative count reaches half the records placed on the scale. Report how many records in the whole file report an exact integer, how many of the denial records do, then the median class across every record on the scale and the median class across the denial records. Explain what ordering this column as text would do to that ranking, and what the two median classes say when read against each other.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "exact_integer_record_count",
+            "dti_denied_exact_integer_count",
+            "all_record_median_class",
+            "dti_denied_median_class"
+          ],
+          "claims": [
+            {
+              "id": "text_order_is_not_the_scale",
+              "mode": "required",
+              "description": "The response says a text ordering fails to reproduce the scale, placing the lowest range above the exact integers, and reads the two median classes as locating the denial records higher on the ratio scale than the file as a whole."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen 2024 Home Mortgage Disclosure Act loan and application records and the frozen current FFIEC NIC institution identifier file. The scale ordering, the median class and the lender split are analytic constructions rather than published statistics.",
+    "facts": [
+      "The file holds 12,043,028 records for activity year 2024 and the ratio column takes 21 distinct values: three ranges below 36 percent, the exact integers 36 through 49, two ranges at or above 50 percent, and the two codes NA and Exempt. 19 values sit on the scale and 4,320,765 records carry one of the other two. No mean of the column is defined, because a range carries no single number and the integers appear only inside one band.",
+      "The institution file maps 2,126 lender identifiers to a deposit-insurance certificate, never to more than one, and 1,711 of those appear as filers here, accounting for 2,999,048 records. Those lenders report Exempt on 5.2955% of their records against 1.3361% for the rest. The exemption is a partial reporting relief open to smaller insured depositories and credit unions, so the code describes the filer rather than the applicant.",
+      "668,880 records name the debt-to-income ratio as their first denial reason. 545,342 of them report one of the two ranges at or above 50 percent, 25,287 report one of the three ranges below 36 percent, and 21,101 report NA or Exempt. A denial on this reason with a low reported ratio is not a contradiction to resolve: the reason records an underwriting decision against a programme's own limit, while the column records a ratio computed under the reporting rules.",
+      "3,740,552 records in the file report an exact integer ratio and 77,150 of the denial records do. Ordered from <20% through the integers to >60%, the median class is 41 across every record on the scale and >60% across the denial records, neither landing on a class edge: the running count across the file is 3,756,195 before class 41 and 4,027,713 through it against a half of 3,861,131.5. Sorting the column as text instead opens at 20%-<30% and leaves <20% second from the top, between 50%-60% and >60%, which reads the whole-file median class as 42."
+    ],
+    "known_overclaims": [
+      "Averaging the ratio column, which mixes exact integers with named ranges that carry no single value.",
+      "Treating the exemption code as a missing ratio, when it marks a filer relieved of reporting it and concentrates in insured depositories.",
+      "Dropping the off-scale records from the denominators, which changes every share reported here.",
+      "Calling a denial on the debt-to-income ratio with a low reported ratio an error in the file, when the reason and the column record different things.",
+      "Sorting the ratio column as text, which lifts the lowest range above every exact integer.",
+      "Reading the lenders without a certificate as unmatched records rather than as the independent mortgage companies that file most of this data."
+    ]
+  }
+}

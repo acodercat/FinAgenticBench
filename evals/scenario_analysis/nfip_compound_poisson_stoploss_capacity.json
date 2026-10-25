@@ -1,0 +1,92 @@
+{
+  "name": "nfip_compound_poisson_stoploss_capacity",
+  "module": "evals.scenario_analysis.nfip_compound_poisson_stoploss_capacity",
+  "task_family": "scenario_analysis",
+  "data_sources": [
+    "fema_nfip",
+    "treasury_yield_curve"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Construct a hypothetical reinsurance severity model from Florida NFIP physical claim records with loss dates from 2019-01-01 through 2022-12-31. Include records with strictly positive total net building, contents and ICC payments, using each record equally. Cap each total at USD500,000 and use upper discretization on a USD10,000 lattice. Report the eligible record count and the first two raw severity moments. Carry the full empirical severity distribution forward and discuss its use for treaty pricing. Use unrounded model state throughout.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "severity_record_count",
+            "severity_mean_thousand",
+            "severity_second_moment_million"
+          ],
+          "claims": [
+            {
+              "id": "nfip_compound_poisson_stoploss_capacity_t1_interpretation",
+              "description": "The response identifies capped paid claim experience as the severity proxy, with annual claim frequency still unspecified.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Use the carried severity distribution in an independent compound-Poisson annual collective risk model with expected claim count three. Obtain the aggregate distribution by Panjer recursion. Report the lower 99-percent aggregate loss quantile, integrated-quantile 99-percent expected shortfall and aggregate mean. Carry this loss distribution and quantile forward and interpret the modeled tail.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "aggregate_var99_thousand",
+            "aggregate_es99_thousand",
+            "aggregate_mean_thousand"
+          ],
+          "claims": [
+            {
+              "id": "nfip_compound_poisson_stoploss_capacity_t2_interpretation",
+              "description": "The response distinguishes the aggregate tail from the individual-severity cap because annual claim count is random.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "An unlimited annual aggregate stop-loss treaty attaches at the carried 99-percent quantile and pays at the end of one year. Use the Treasury one-year constant-maturity quote on 2024-12-31 as an annual effective discount rate for this scenario. Report the ceded expected-loss present value and undiscounted retained expected loss. Carry the deductible and premium forward and interpret the risk transfer.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "stoploss_present_value_thousand",
+            "retained_mean_thousand"
+          ],
+          "claims": [
+            {
+              "id": "nfip_compound_poisson_stoploss_capacity_t3_interpretation",
+              "description": "The response explains that the small expected ceded payment prices a remote aggregate layer rather than the whole loss portfolio.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Keep the carried deductible, severity distribution and discount convention fixed. Find the largest Poisson annual mean claim count in the closed interval from three to ten whose expected-loss present-value premium does not exceed twice the carried premium. Report this capacity and its probability of strictly exceeding the deductible. Interpret the resulting underwriting capacity and discuss its model dependence.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "capacity_frequency",
+            "capacity_exhaustion_probability"
+          ],
+          "claims": [
+            {
+              "id": "nfip_compound_poisson_stoploss_capacity_t4_interpretation",
+              "description": "The response explains that capacity increases by less than a doubling of expected claim frequency under the fixed deductible.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Governed dataset_new and the uniquely specified quantitative model.",
+    "facts": [
+      "The response identifies capped paid claim experience as the severity proxy, with annual claim frequency still unspecified.",
+      "The response distinguishes the aggregate tail from the individual-severity cap because annual claim count is random.",
+      "The response explains that the small expected ceded payment prices a remote aggregate layer rather than the whole loss portfolio.",
+      "The response explains that capacity increases by less than a doubling of expected claim frequency under the fixed deductible."
+    ],
+    "known_overclaims": [
+      "Interpreting this conditional historical/scenario model as evidence of future performance."
+    ]
+  }
+}

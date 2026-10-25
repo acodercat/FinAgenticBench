@@ -1,0 +1,119 @@
+{
+  "name": "fails_to_deliver_exposure_measure_divergence",
+  "task_family": "risk_screening",
+  "data_sources": [
+    "sec_ftd",
+    "sec_financial_statements"
+  ],
+  "case_type": "trap",
+  "module": "evals.risk_screening.fails_to_deliver_exposure_measure_divergence",
+  "difficulty": "hard",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Work with settlement failures recorded from 2024-07-01 through 2024-12-31 inclusive, keyed by trading symbol. A balance stands on a date whether or not the file reports a price for it. Report how many securities are recorded on at least half the window's settlement dates. Among them report the one with the largest average balance per settlement date in the window, breaking a tie by the lower symbol, together with that average and how far it stands above the runner-up. Explain what recurrence on half the window's dates selects for.",
+          "validator": "validate_recurring_balance",
+          "stores": [
+            "recurring_symbol_count",
+            "largest_average_balance_symbol",
+            "largest_average_balance_shares",
+            "largest_average_balance_margin_pct"
+          ],
+          "claims": [
+            {
+              "id": "recurrence_screen_meaning",
+              "mode": "required",
+              "description": "The response states that a security appearing on half the dates carries a chronic rather than an episodic undelivered position, so the screen selects for securities where delivery keeps failing."
+            },
+            {
+              "id": "absent_date_treatment",
+              "mode": "conditional",
+              "description": "If the response reports an average, it treats a settlement date on which the security is absent as a date carrying no undelivered balance rather than as a date to leave out of the denominator."
+            }
+          ]
+        },
+        {
+          "query": "Value each balance at the price the file reports for its own settlement date, leaving a balance unvalued where no price is reported. Across the same securities report the one with the largest summed valued balance, breaking a tie by the lower symbol, that total, the runner-up's symbol and how far the leader stands above it. Then report where the security selected in the first turn sits in this ranking, counting from one. Explain what kind of security tends to rise to the top under each of the two orderings, and what a large valued balance does not establish about short selling.",
+          "validator": "validate_valued_exposure",
+          "stores": [
+            "dollar_exposure_leader_symbol",
+            "dollar_exposure_leader_usd_millions",
+            "dollar_exposure_runner_up_symbol",
+            "dollar_exposure_leader_margin_pct",
+            "share_leader_dollar_exposure_rank"
+          ],
+          "claims": [
+            {
+              "id": "measure_changes_the_subject",
+              "mode": "required",
+              "description": "The response states that ranking by quantity surfaces low-priced securities while ranking by value surfaces large funds, so the two rankings describe different economic problems rather than disagreeing about one."
+            },
+            {
+              "id": "fund_failure_reading",
+              "mode": "conditional",
+              "description": "If the response reads the valued leaders as evidence of shorting pressure, it acknowledges that failures in a fund share can arise from its creation and redemption mechanics."
+            }
+          ]
+        },
+        {
+          "query": "Bring in the common shares outstanding that periodic corporate filings report on the balance sheet, not the count on the report's cover page, counting a security as carrying one when a filing made on or before the window's end reports a figure above zero for it. Report how many cohort securities carry one and how many of the twenty largest by valued balance carry one. Then report the portion of the cohort's summed balance, and of its summed valued balance, that the carrying securities represent. Explain what the difference between those two portions implies about scaling settlement failures by a share count.",
+          "validator": "validate_share_count_coverage",
+          "stores": [
+            "cohort_symbols_with_share_count",
+            "leading_dollar_symbols_with_share_count",
+            "share_weighted_share_count_coverage_pct",
+            "dollar_weighted_share_count_coverage_pct"
+          ],
+          "claims": [
+            {
+              "id": "denominator_availability_is_selective",
+              "mode": "required",
+              "description": "The response states that the securities carrying most of the valued exposure are the ones without a share count, so scaling by that denominator quietly restricts the analysis to the smaller part of the problem."
+            }
+          ]
+        },
+        {
+          "query": "Compare the two halves of 2024. Report how many settlement dates each half holds, the cohort's average balance per settlement date in each half, and the later figure divided by the earlier one. The United States shortened its standard settlement cycle by one business day on 2024-05-28, inside the earlier half. Interpret the direction of the change and give a material limit on attributing it to that move.",
+          "validator": "validate_half_year_comparison",
+          "stores": [
+            "first_half_settlement_date_count",
+            "later_half_settlement_date_count",
+            "first_half_mean_daily_balance_shares",
+            "second_half_mean_daily_balance_shares",
+            "second_half_to_first_half_ratio"
+          ],
+          "claims": [
+            {
+              "id": "confounded_comparison",
+              "mode": "required",
+              "description": "The response states that issuance, trading volume and cohort composition all moved across the two halves as well, so the before-and-after difference carries no attribution to the cycle change on its own.",
+              "overlap_waiver": "The query asks for a material limit without naming one. The claim earns its content by identifying which quantities moved alongside the cycle change, which the response has to supply rather than paraphrase."
+            },
+            {
+              "id": "direction_of_change",
+              "mode": "required",
+              "description": "The response states that the later half carries the larger average balance, which runs opposite to the expectation that a shorter cycle leaves less room for delivery to fail."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen SEC fails-to-deliver files for calendar 2024 and the SEC financial statement extract; every figure recomputed from those tables.",
+    "facts": [
+      "The window holds 126 settlement dates and 3,694 securities recorded on at least half of them. SIRI leads on average balance at 3,226,336.2778 shares per settlement date, 17.4323 percent above the runner-up. Dividing each security's summed balance by the number of dates it happens to appear on instead returns 3,946,780.3010 shares and a 1.4707 percent margin.",
+      "Valuing each balance at its own date's reported price moves the lead to QQQ at 10,295.9579 million USD, 16.8980 percent above SPY. The share-count leader sits 15th on that ranking. Counting shares surfaces low-priced securities; valuing them surfaces index funds, where a failure is an artifact of creation and redemption rather than shorting pressure.",
+      "Only 511 cohort securities carry a reported share count, and only 4 of the twenty largest by valued balance do. Those securities hold 35.6545 percent of the cohort's balance but only 18.5381 percent of its valued balance: coverage falls as exposure rises, because exchange-traded funds file no periodic report carrying a share count.",
+      "The earlier half holds 124 settlement dates against 126 in the later one. The cohort averages 78,554,279.1452 shares per date then and 93,658,451.4444 in the later half, a ratio of 1.1923. Balances rose across a shortening of the settlement cycle, and nothing here separates that change from issuance, volume or composition."
+    ],
+    "known_overclaims": [
+      "Dividing a security's summed balance by the number of dates it appears on rather than by the window's settlement dates.",
+      "Reading a large valued balance in an index fund as evidence of short selling or manipulation.",
+      "Scaling failures by a share count without noting that the securities carrying most of the valued exposure have none.",
+      "Attributing the half-over-half change in balances to the shortened settlement cycle."
+    ]
+  }
+}

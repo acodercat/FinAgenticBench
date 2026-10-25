@@ -1,0 +1,118 @@
+{
+  "name": "county_flood_loss_metro_price_grain",
+  "task_family": "risk_screening",
+  "data_sources": [
+    "fema_nfip",
+    "hmda",
+    "fhfa_hpi"
+  ],
+  "case_type": "baseline",
+  "module": "evals.risk_screening.county_flood_loss_metro_price_grain",
+  "difficulty": "hard",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Screen National Flood Insurance Program claims whose date of loss falls in 2024. Keep records identifying a county with a five-digit number. Measure each record's loss as its net building payment plus net contents payment plus net increased-cost-of-compliance payment, keeping the reported sign. Report the qualifying claim count, the number of distinct counties covered and their summed loss. Report the county with the largest summed loss, breaking a tie by the lower number. Separately report how many qualifying claims were opened in a calendar year later than their loss year, and explain what that lag means for reading a loss year as a settled figure.",
+          "validator": "validate_county_loss_population",
+          "stores": [
+            "county_claim_count",
+            "affected_county_count",
+            "total_net_paid_usd_millions",
+            "largest_loss_county_code",
+            "loss_year_claims_opened_later_count"
+          ],
+          "claims": [
+            {
+              "id": "settlement_lag_meaning",
+              "mode": "required",
+              "description": "The response states that a loss year keeps accumulating payments on claims opened and settled after the year ends, so the total is provisional at any observation date."
+            },
+            {
+              "id": "gross_versus_net_basis",
+              "mode": "conditional",
+              "description": "If the response treats the summed figure as the amount insurers disbursed, it acknowledges that the net fields already absorb recoveries and adjustments the gross fields leave in."
+            }
+          ]
+        },
+        {
+          "query": "Carry those counties to metropolitan areas. Nothing here holds a county-to-metropolitan crosswalk, so build one from 2024 mortgage applications, assigning each county the metropolitan number appearing on the most of its applications and breaking a tie by the lower number. A reserved number of five nines marks an application outside any metropolitan area. Report how many affected counties land inside a metropolitan area, how many carry the reserved number and how many the mortgage geography leaves unassigned. Report the metropolitan group's share of the summed loss. Explain what a metropolitan-level reading of this loss keeps and what it discards.",
+          "validator": "validate_metropolitan_bridge",
+          "stores": [
+            "metropolitan_county_count",
+            "non_metropolitan_county_count",
+            "unmatched_county_count",
+            "metropolitan_net_paid_share_pct"
+          ],
+          "claims": [
+            {
+              "id": "place_versus_money_divergence",
+              "mode": "required",
+              "description": "The response states that the counties outside any metropolitan area are a large minority of the affected places while holding a small minority of the money, so counting places and counting dollars answer different questions."
+            },
+            {
+              "id": "crosswalk_provenance",
+              "mode": "required",
+              "description": "The response states that the assignment rests on where lenders reported applications during one year, making it a behavioural artifact rather than an administrative boundary definition."
+            }
+          ]
+        },
+        {
+          "query": "Stay with the metropolitan counties. Report how many distinct metropolitan areas carry loss and how many of them the quarterly house price index covers, taking the traditional, all-transactions, not seasonally adjusted metropolitan series. Report the metropolitan area with the largest summed loss, breaking a tie by the lower number, together with that loss. Report the three largest areas' combined share of metropolitan loss. Explain what this concentration implies about treating the metropolitan panel as a sample of national flood exposure.",
+          "validator": "validate_metro_concentration",
+          "stores": [
+            "affected_metro_area_count",
+            "indexed_metro_area_count",
+            "largest_loss_metro_code",
+            "largest_loss_metro_net_paid_usd_millions",
+            "top_three_metro_net_paid_share_pct"
+          ],
+          "claims": [
+            {
+              "id": "event_sample_boundary",
+              "mode": "required",
+              "description": "The response states that the leading areas were struck by the same season's storms, making the panel an event sample whose composition reflects where those storms landed."
+            }
+          ]
+        },
+        {
+          "query": "Take the five largest-loss metropolitan areas the index covers. For each, compute index growth from the fourth quarter of 2023 to the fourth quarter of 2025. Report the area with the lowest growth and the area with the highest, each with its number and its growth, breaking a tie by the lower number. Explain what the spread between them establishes about the relationship between insured flood loss and measured house prices, and give a material limitation of reading a repeat-transaction index in a market where many properties were damaged.",
+          "validator": "validate_price_path_divergence",
+          "stores": [
+            "weakest_price_metro_code",
+            "weakest_price_index_growth_pct",
+            "strongest_price_metro_code",
+            "strongest_price_index_growth_pct"
+          ],
+          "claims": [
+            {
+              "id": "transaction_selection_limit",
+              "mode": "required",
+              "description": "The response explains that a transaction-based index measures only the homes that changed hands, so a damaged market can post a rising index while its underlying stock lost value."
+            },
+            {
+              "id": "loss_to_price_causation",
+              "mode": "conditional",
+              "description": "If the response reads the weaker area's decline as an effect of its flood loss, it acknowledges that the compared areas differ in ways this design leaves uncontrolled."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen FEMA National Flood Insurance Program claims, the 2024 mortgage-application register and the FHFA metropolitan house price index; every figure recomputed from those tables.",
+    "facts": [
+      "2024 date-of-loss claims with a usable county number 102,009 across 1,193 counties and 8,798.2578 million USD of signed net payments. 1,982 of those claims were opened in a later calendar year, so a loss year is still accumulating when the year ends. County 12103 carries the largest county total.",
+      "The mortgage-application crosswalk places 710 affected counties in a metropolitan area, 472 outside one and leaves 11 unassigned. The metropolitan counties hold 97.0167 percent of the money, so a metropolitan reading keeps almost all the dollars while dropping roughly two fifths of the affected counties.",
+      "Loss reaches 326 metropolitan areas, 322 of which the quarterly index covers. Area 41304 leads at 3,376.9609 million USD and the three largest hold 74.5948 percent of metropolitan loss.",
+      "Among the five largest-loss covered areas, 39460 grew -7.3460 percent from 2023 Q4 to 2025 Q4 while 45294 grew 2.9369 percent. Both sit on the same coast and absorbed the same storm season, so insured flood loss and measured house prices moved independently."
+    ],
+    "known_overclaims": [
+      "Reading the metropolitan share of loss as evidence that flood exposure is a metropolitan phenomenon.",
+      "Treating the mortgage-application crosswalk as an official county-to-metropolitan boundary definition.",
+      "Reading a metropolitan index decline as a measured loss of value on the damaged housing stock."
+    ]
+  }
+}

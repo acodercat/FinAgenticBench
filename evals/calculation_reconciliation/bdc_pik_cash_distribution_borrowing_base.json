@@ -1,0 +1,54 @@
+{
+  "name": "bdc_pik_cash_distribution_borrowing_base",
+  "task_family": "calculation_reconciliation",
+  "data_sources": ["sec_bdc", "nyfed_reference_rates"],
+  "case_type": "baseline",
+  "module": "evals.calculation_reconciliation.bdc_pik_cash_distribution_borrowing_base",
+  "difficulty": "hard",
+  "conversations": [{
+    "id": "main",
+    "turns": [
+      {
+        "query": "Build a retrospective hypothetical loan book from Chicago Atlantic BDC, Inc.'s December 31, 2024 annual 10-K investment schedule filed March 31, 2025. Keep individually identified term loans, delayed-draw term loans, incremental term loans, senior secured notes and Series A senior notes with positive reported principal and fair value, an explicit nonnegative PIK rate and reported all-in rate, and maturity after June 30, 2025. Carry unrounded amounts across turns and round only reported outputs. Report the position count, opening principal and opening fair value in USD millions. Explain what comes from the filing and what will be hypothetical in the financing exercise.",
+        "stores": ["loan_count", "opening_principal_mn", "opening_mark_mn"],
+        "claims": [{"id": "source_scope", "description": "The answer attributes observed loan positions to the historical filing and labels the financing terms as an imposed hypothetical contract.", "mode": "required"}],
+        "validator": "validate_turn_1"
+      },
+      {
+        "query": "For this frozen book, impose a new January 1–March 31, 2025 contract: each loan's contract coupon is the December 31, 2024 published SOFR plus 5 percentage points. Within that coupon, the loan's explicitly reported PIK percentage points of principal are capitalized at quarter end only, and the remainder of the coupon is paid in cash. Use 90 ACT/360 interest days and opening principal throughout the quarter. Opening cash is zero. Opening debt is 64.5% of opening fair value, with financing interest at the same SOFR plus 2.5 percentage points, paid March 31; new debt drawn that day carries no first-quarter interest. Report cash loan interest, capitalized PIK and financing interest in USD millions. Explain which part of the quarter's coupon adds to loan principal and which part is cash the fund can actually spend.",
+        "stores": ["q1_cash_coupon_mn", "q1_capitalized_pik_mn", "q1_financing_interest_mn"],
+        "claims": [{"id": "pik_cash_principal", "description": "The response distinguishes the quarter's PIK addition to loan principal from cash interest available for payments.", "mode": "required"}],
+        "validator": "validate_turn_2"
+      },
+      {
+        "query": "At March 31 pay a cash distribution of 80% of the quarter's total contractual loan interest, counting the capitalized PIK portion together with the cash-paid portion. Eligible collateral is only the opening fair value, advanced at 65%; newly capitalized PIK has zero eligible value this quarter. Fund the distribution and paid financing interest first with cash coupon receipts, then draw up to unused borrowing capacity, then inject the minimum external equity. Assume no fees and no other flows. Report the paid distribution, new end-quarter borrowing and equity injection in USD millions. Explain how the distribution and the financing interest compare with the quarter's cash coupon receipts, and what covers any gap.",
+        "stores": ["q1_distribution_mn", "q1_new_borrowing_mn", "q1_external_equity_mn"],
+        "claims": [{"id": "payout_funding", "description": "The response explains that the paid distribution exceeds cash remaining after financing interest, and identifies borrowing capacity and external equity as the subsequent funding sources.", "mode": "required"}],
+        "validator": "validate_turn_3"
+      },
+      {
+        "query": "Immediately after that payment, reduce by 15% the opening fair values of those positions whose reported PIK rate is strictly positive; all other opening marks stay fixed. The new PIK principal remains ineligible. Apply the same 65% advance rate and repay any borrowing-base excess immediately with additional external equity; the earlier distribution and financing payments remain executed. Report the revised borrowing base and additional equity cure in USD millions. Explain how the revised base compares with borrowing already drawn, and what has to happen when the two differ once the distribution has gone out.",
+        "stores": ["shocked_borrowing_base_mn", "shock_cure_equity_mn"],
+        "claims": [{"id": "shock_cure_reason", "description": "The response explains that outstanding borrowing exceeds the reduced eligible base and that the positive equity cure repays that excess after the earlier cash distribution has already been paid.", "mode": "required"}],
+        "validator": "validate_turn_4"
+      },
+      {
+        "query": "Plan April 1–June 30 from the cured state, with no maturities or mark changes. Loan coupons reset to March 31, 2025 SOFR plus 5 percentage points; each loan retains its reported PIK percentage points. Use beginning-of-quarter capitalized principal, 91 ACT/360 interest days, and quarter-end PIK posting. Financing costs the same SOFR plus 2.5 percentage points on debt outstanding throughout this quarter. A fresh USD 3 million equity budget may be injected April 1 and applied to debt repayment or held as cash; any unused borrowing capacity can be drawn only June 30. With no other flows, choose the allocation that maximizes a nonnegative June 30 cash distribution while leaving zero cash and debt no greater than the post-shock borrowing base. Report the April 1 debt repayment, maximum distribution and ending loan principal in USD millions. Explain how applying the April 1 budget to debt compares with holding it as cash, and when any freed capacity can be redrawn.",
+        "stores": ["q2_early_debt_repayment_mn", "q2_max_distribution_mn", "q2_ending_principal_mn"],
+        "claims": [{"id": "equity_timing", "description": "The answer explains why using the new equity to reduce debt early changes financing interest and why any replacement draw occurs only after that interest period.", "mode": "required"}],
+        "validator": "validate_turn_5"
+      }
+    ]
+  }],
+  "judge_reference": {
+    "source": "Frozen governed BDC annual investment schedule and NYFed SOFR; hypothetical contract terms are in the conversation.",
+    "facts": [
+      "loan_count: 27", "opening_principal_mn: 263.1380", "opening_mark_mn: 260.3850",
+      "q1_cash_coupon_mn: 5.7684", "q1_capitalized_pik_mn: 0.4745", "q1_financing_interest_mn: 2.9349",
+      "q1_distribution_mn: 4.994", "q1_new_borrowing_mn: 1.3019", "q1_external_equity_mn: 0.859",
+      "shocked_borrowing_base_mn: 161.649", "shock_cure_equity_mn: 7.601",
+      "q2_early_debt_repayment_mn: 3.0000", "q2_max_distribution_mn: 6.015", "q2_ending_principal_mn: 264.0967"
+    ],
+    "known_overclaims": ["The hypothetical payout follows a BDC regulatory minimum.", "Capitalized PIK generates immediate cash or borrowing-base value."]
+  }
+}

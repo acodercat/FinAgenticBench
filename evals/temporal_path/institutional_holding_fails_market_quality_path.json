@@ -1,0 +1,106 @@
+{
+  "name": "institutional_holding_fails_market_quality_path",
+  "module": "evals.temporal_path.institutional_holding_fails_market_quality_path",
+  "task_family": "temporal_path",
+  "data_sources": ["sec_13f_holdings", "sec_ftd", "sec_midas_security_exchange"],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [{
+    "id": "main",
+    "turns": [
+      {
+        "query": "Using the 13F holdings-by-CUSIP table for report period 2025-09-30, rank CUSIPs by plain-share institutional value (the plain-share value total in dollars, which excludes put, call and non-share rows) descending, breaking ties by CUSIP ascending. Report the count of distinct CUSIPs in the period; the leader's CUSIP, issuer name as recorded in the table, distinct filer count, plain-share value in USD billions and plain-share amount; and the leader's margin over the runner-up in USD billions. Explain what the aggregate does and does not say about ownership of the issuer.",
+        "validator": "validate_institutional_leader",
+        "stores": ["period_cusip_count", "leader_cusip", "leader_issuer_name", "leader_filer_count", "leader_share_value_usd_billions", "leader_share_amount", "leader_margin_usd_billions"],
+        "claims": [
+          {
+            "id": "institutional_leader_result",
+            "description": "The response identifies the leading CUSIP by plain-share institutional value and reports a margin over the runner-up that is a small fraction of the leading value.",
+            "mode": "required"
+          },
+          {
+            "id": "thirteen_f_coverage_boundary",
+            "description": "The response explains that 13F aggregates cover only managers above the reporting threshold and only original 13F-HR holdings tables, and that affiliated managers can file overlapping holdings, so the total is neither the issuer's market capitalization nor a clean measure of institutional ownership and can even exceed capitalization.",
+            "mode": "required"
+          }
+        ]
+      },
+      {
+        "query": "Link that CUSIP to the SEC fails-to-deliver files for settlement dates 2025-10-01 through 2025-12-31 (inclusive). Report the symbol the CUSIP maps to (require a single symbol), the count of distinct settlement dates in that window across all securities, the count of settlement dates with a fails row for the CUSIP, the total failed shares, the largest single-date fails quantity and its settlement date (earliest on a tie), and total failed shares as a percent of the turn-1 plain-share amount. Explain how the failed-share total sizes up against the holding from turn one, and what a single daily row actually counts about undelivered stock.",
+        "validator": "validate_fails_linkage",
+        "stores": ["leader_symbol", "window_settlement_date_count", "leader_fail_date_count", "leader_total_fails", "leader_peak_fails", "leader_peak_fail_settlement_date", "leader_fails_to_institutional_shares_pct"],
+        "claims": [
+          {
+            "id": "fails_scale_result",
+            "description": "The response concludes that the leader's cumulative fails over the quarter are a negligible fraction of institutional holdings, even though fails appear on most settlement dates.",
+            "mode": "required"
+          },
+          {
+            "id": "fails_semantics_boundary",
+            "description": "The response explains that a fails-to-deliver row is the aggregate net balance of undelivered shares at a settlement date, not a flow of new failures and not evidence of naked short selling on its own.",
+            "mode": "required"
+          }
+        ]
+      },
+      {
+        "query": "Using MIDAS daily security rows of security type Stock for the same date window, compute for the mapped symbol the count of trading days, odd-lot volume divided by trade volume, and hidden volume divided by the trade volume eligible for hidden orders (SEC's hidden-volume rate), each as a percent of window sums. Map each of the top-20 CUSIPs from turn 1 to its fails-to-deliver symbol (first symbol by settlement date in the window) and match that symbol to MIDAS Stock rows by exact string equality only; CUSIPs whose symbol has no Stock rows drop out of the cohort. Compute the same two shares for every mapped symbol. Report the mapped cohort size, the cohort medians of the two shares, and the leader's rank by odd-lot share descending (1 = highest). Explain where the leader's figure sits among its peers, what drives that measure apart from liquidity, and which names the exact-string matching excluded.",
+        "validator": "validate_market_quality_context",
+        "stores": ["leader_midas_trading_day_count", "leader_odd_lot_volume_share_pct", "leader_hidden_volume_share_pct", "cohort_symbol_count", "cohort_median_odd_lot_volume_share_pct", "cohort_median_hidden_volume_share_pct", "leader_odd_lot_share_rank"],
+        "claims": [
+          {
+            "id": "odd_lot_context_result",
+            "description": "The response recognizes that the leader's odd-lot volume share is well below the cohort median and ranks in the lower half of the twenty largest holdings.",
+            "mode": "required"
+          },
+          {
+            "id": "odd_lot_price_level_boundary",
+            "description": "The response explains that odd-lot share is driven by share price level and retail trading conventions, so a higher share alone is insufficient evidence of poorer liquidity or more retail ownership.",
+            "mode": "required"
+          },
+          {
+            "id": "symbol_identity_boundary",
+            "description": "The response notes that symbols are matched by exact string and that ETFs and differently rendered share-class symbols fall out of the cohort, so the cohort is a subset of the top-20 holdings rather than a mismatch to be repaired ad hoc.",
+            "mode": "required"
+          },
+          {
+            "id": "ratio_of_sums_boundary",
+            "description": "If the response describes the shares as averages of daily ratios, it corrects that they are ratios of window sums, which weight high-volume days more.",
+            "mode": "conditional"
+          }
+        ]
+      },
+      {
+        "query": "Compare the leader's 2025-09-30 holdings row with its 2024-09-30 row; both periods report values in dollars and lie after the issuer's 2024 share split, so no unit or split adjustment applies. Report the 2024-09-30 plain-share value in USD billions, the percent change in plain-share value, the 2024-09-30 filer count, the change in filer count, and the percent change in plain-share amount. Explain what the value and share-count changes together establish about how the position changed.",
+        "validator": "validate_prior_period_change",
+        "stores": ["prior_period_share_value_usd_billions", "share_value_change_pct", "prior_period_filer_count", "filer_count_change", "share_amount_change_pct"],
+        "claims": [
+          {
+            "id": "value_versus_shares_result",
+            "description": "The response concludes that the year-over-year value increase far exceeds the change in shares held, so price appreciation rather than accumulation explains most of it.",
+            "mode": "required"
+          },
+          {
+            "id": "unit_convention_boundary",
+            "description": "If the response discusses earlier 13F periods, it notes that pre-2023 filings reported values in thousands of dollars and that comparisons across that boundary require the normalized dollar columns.",
+            "mode": "conditional"
+          }
+        ]
+      }
+    ]
+  }],
+  "judge_reference": {
+    "source": "SEC 13F data sets aggregated by report period and CUSIP, SEC fails-to-deliver files, and SEC MIDAS security-day market-quality metrics",
+    "facts": [
+      "The 2025-09-30 period has 33,030 CUSIPs. NVIDIA (67066G104) leads with 2,950.432962 billion USD of plain-share value from 5,234 filers over 15,826,983,277 shares, 202.306566 billion USD ahead of Microsoft.",
+      "The CUSIP maps to symbol NVDA. The Q4-2025 fails window has 62 settlement dates; NVDA has fails on 50 of them, 2,782,262 shares in total, peaking at 761,202 on 2025-12-18, which is 0.017580 percent of the institutional share amount.",
+      "Over 64 MIDAS trading days NVDA's odd-lot volume share is 31.1167 percent and its hidden-volume rate (hidden volume over hidden-eligible trade volume) 20.7796 percent; 17 of the 20 cohort CUSIPs map to a MIDAS stock symbol (IVV and SPY are ETFs and Berkshire's fails symbol BRKB has no exact MIDAS match), with medians of 46.7980 and 32.4104 percent, and NVDA ranks 14th by odd-lot share.",
+      "At 2024-09-30 the plain-share value was 2,580.086465 billion USD from 4,573 filers over 15,387,326,658 shares; value rose 14.3540 percent while shares held rose 2.8573 percent and the filer count rose by 661."
+    ],
+    "known_overclaims": [
+      "Reading 13F aggregates as market capitalization or complete institutional ownership.",
+      "Treating fails-to-deliver balances as naked short sales or as daily flows.",
+      "Reading a low odd-lot share as better liquidity or less retail interest.",
+      "Attributing the value change to accumulation rather than price."
+    ]
+  }
+}

@@ -1,0 +1,108 @@
+{
+  "name": "hmda_origination_vs_mortgage_transactions",
+  "module": "evals.calculation_reconciliation.hmda_origination_vs_mortgage_transactions",
+  "task_family": "calculation_reconciliation",
+  "data_sources": [
+    "hmda",
+    "fed_z1_vintages"
+  ],
+  "difficulty": "medium",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "In 2024 HMDA, keep originated first-lien, owner-occupied, nonbusiness loans on site-built one-to-four-unit homes. Report their count and gross loan amount. Carry this cohort forward.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "hmda_cohort_rows",
+            "hmda_gross_bn"
+          ],
+          "claims": []
+        },
+        {
+          "query": "Within that cohort, report ordinary-refinance and cash-out-refinance counts and gross amounts separately. Interpret the cash-out amount.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "ordinary_refinance_rows",
+            "ordinary_refinance_bn",
+            "cashout_refinance_rows",
+            "cashout_refinance_bn"
+          ],
+          "claims": [
+            {
+              "id": "cashout_face_not_cash",
+              "description": "The response distinguishes the new cash-out refinance loan principal from cash released to the borrower, recognizing that part of the new loan repays an existing mortgage.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Using the latest supplied Z.1 release, report its date and the sum of four 2024 unadjusted quarterly transactions for household-and-nonprofit one-to-four-family mortgage liabilities. Compare this flow with the carried gross originations and refinance split.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "latest_z1_release",
+            "latest_z1_transactions_bn"
+          ],
+          "claims": [
+            {
+              "id": "gross_net_boundary",
+              "description": "The response contrasts gross HMDA origination face amounts, including replacement refinance principal, with Z.1 sector net mortgage transactions.",
+              "mode": "required"
+            },
+            {
+              "id": "population_boundary",
+              "description": "The response identifies the restricted HMDA origination cohort and the Z.1 sector mortgage-liability population as covering different loans and borrowers.",
+              "mode": "required"
+            },
+            {
+              "id": "gap_as_repayment_boundary",
+              "mode": "conditional",
+              "description": "If the response interprets the cross-source amount difference as measured mortgage repayment or cash extraction, it qualifies that the two populations and compilation methods differ."
+            }
+          ]
+        },
+        {
+          "query": "Repeat that Z.1 measure in the first supplied release covering all four 2024 quarters. Report its date and amount, compare the two releases, and report the carried cohort's home-purchase gross amount. Assess whether excluding refinances reconciles HMDA originations to the Z.1 flow.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "first_full_z1_release",
+            "first_full_z1_transactions_bn",
+            "purchase_gross_bn"
+          ],
+          "claims": [
+            {
+              "id": "revision_and_scope",
+              "description": "The response recognizes the earlier and later Z.1 releases as different estimates of the same historical transaction series while the HMDA cohort stays fixed.",
+              "mode": "required"
+            },
+            {
+              "id": "nonrefinance_not_purchase",
+              "description": "The response identifies home purchases as only a subset of non-refinance HMDA originations and distinguishes that remaining gross financing from the Z.1 net transaction flow.",
+              "mode": "required"
+            },
+            {
+              "id": "balance_overclaim",
+              "description": "If the response describes Z.1 unadjusted transactions as the observed change in outstanding mortgage debt, it distinguishes transactions from the balance change.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Governed 2024 HMDA loan-level register and frozen Z.1 vintage series FU153165105.Q in table fu101. Official CFPB HMDA purpose codes and Fed Financial Accounts series structure.",
+    "facts": [
+      "The selected HMDA cohort has 3,887,656 rows and gross loan amount USD 1426.415070 billion.",
+      "Ordinary refinancing: 435,013 rows and USD 160.540365 billion; cash-out refinancing: 455,830 rows and USD 128.749150 billion; purchase: USD 1097.545825 billion. The remaining 208,420 non-refinance/nonpurchase rows have USD 39.579730 billion.",
+      "The first supplied complete 2024 Z.1 FU vintage is 2025-03-13 at USD 344.006 billion; the latest supplied is 2025-09-11 at USD 367.886 billion."
+    ],
+    "known_overclaims": [
+      "Treating cash-out refinance face value as borrower cash extracted.",
+      "Treating gross HMDA originations, including purchase-only originations, as same-population Z.1 net mortgage transactions.",
+      "Treating FU transactions as observed change in the mortgage liability stock or summing duplicate fu101 and fu218 displays."
+    ]
+  }
+}

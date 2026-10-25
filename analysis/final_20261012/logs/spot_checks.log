@@ -1,0 +1,5 @@
+max_steps turns 591; strong tier 109, of which Gemini 95 (87.2%)
+never assigned any target variable: 431/591 = 73%
+config wrong in all 3 runs with one identical value: 629/1525 = 41%
+knows_but_fails=yes by class: {'K1': 3, 'K7': 1, 'K5': 3, 'K8': 1, 'K6': 1, 'K4': 2, 'K3': 1} | decidable: 68
+explicit-check share of snippets: max_steps turns 25.6% | passing turns (n=600 sample) 17.0%

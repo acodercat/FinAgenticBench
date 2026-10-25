@@ -1,0 +1,66 @@
+{
+  "name": "bank_run_liquidity_equity_frontier",
+  "task_family": "risk_screening",
+  "data_sources": ["fdic_bankfind", "nyfed_reference_rates"],
+  "case_type": "baseline",
+  "module": "evals.risk_screening.bank_run_liquidity_equity_frontier",
+  "difficulty": "hard",
+  "conversations": [{
+    "id": "main",
+    "turns": [
+      {
+        "query": "From 2024-12-31 FDIC BankFind reports, keep banks with USD 5–10 billion total assets inclusive, positive cash, deposits and book equity, securities exceeding 30% of assets, and cash plus securities no greater than assets. Select the lowest cash-to-deposits ratio, breaking a tie by certificate ascending. Report its certificate, cash, securities and book equity/assets. Treat its reported cash and securities as available in a hypothetical deposit-run balance sheet; freeze all other assets and nondeposit liabilities at the opening accounting identity. Compare the bank's cash with its deposits and its securities, and say which of the two is the real source of liquidity in a run.",
+        "stores": ["selected_certificate", "opening_cash_mn", "opening_securities_mn", "opening_equity_assets_pct"],
+        "claims": [
+          {"id": "opening_liquidity_mix", "description": "The response quantifies that selected-bank cash is less than 1% of deposits while the much larger securities balance is the main stipulated liquidity source.", "mode": "required"}
+        ],
+        "validator": "validate_turn_1"
+      },
+      {
+          "query": "Model a first-period withdrawal of 35% of that bank's opening deposits. Securities may be sold in cumulative book-value tranches: first 25% at 97% of book, next 25% at 94%, remainder at 80%. A repo facility lends at most USD 1,000 million total. Each repo draw pledges exactly the securities book value needed at an 80% advance rate, with no excess pledge; pledged securities cannot also be sold. Execute the selected security sales and repo draw at period start; cash earns no interest, and the withdrawal occurs at period end. Repo interest for the full 90 days is simple ACT/360 at New York Fed SOFR effective 2024-12-31 plus 150 basis points, paid at period end. Choose sale and repo amounts to minimize recognized sale loss plus interest, while ending cash is at least 2% of the deposits remaining after that period's withdrawal and period-end book equity/assets is at least 8.5%. Report securities sold at book, repo principal and ending book equity/assets. Explain why the repo raises cash without reducing what the bank owes, while selling into the deepest tranche raises cash only by taking a loss against book equity.",
+        "stores": ["first_sale_book_mn", "first_repo_principal_mn", "first_ending_equity_assets_pct"],
+        "claims": [
+          {"id": "sale_repo_accounting", "description": "The response explains that the executed repo provides cash but remains a liability, while the deep-tranche sale supplies cash at a book-equity loss.", "mode": "required"},
+          {"id": "regulatory_boundary", "description": "If the response calls the 8.5% equity/assets floor a regulatory capital test, it identifies it instead as the stipulated internal book-balance constraint.", "mode": "conditional"}
+        ],
+        "validator": "validate_turn_2"
+      },
+      {
+          "query": "As a comparison against the frozen opening balance sheet, find the largest first-period deposit withdrawal feasible with no new equity under the same sale prices, 90-day repo terms, ending cash reserve and book-equity/assets floor. This frontier does not replace the first-period trades already executed. Report the withdrawal amount, its share of opening deposits, and which cash-reserve, collateral and book-capital conditions bind. Interpret the role of funding choices and constraints in this capacity.",
+        "stores": ["frontier_runoff_mn", "frontier_runoff_pct", "frontier_bindings"],
+        "claims": [
+          {"id": "joint_frontier", "description": "The response explains that the maximum withdrawal needs both security-sale proceeds and repo liquidity, while security losses restrict book capital and the remaining security book restricts repo collateral.", "mode": "required"}
+        ],
+        "validator": "validate_turn_3"
+      },
+      {
+        "query": "Continue the executed 35% withdrawal and trades, not the comparison frontier. In the following 91-day period, another 4% of opening deposits is withdrawn at period end. Existing repo remains outstanding and cannot be prepaid within the modeled horizon; its period-two interest uses SOFR effective 2025-03-31 plus 350 basis points, simple ACT/360, paid at period end. Further security sales occur at period end, continuing the same cumulative price schedule from the point stage one reached, so the remaining sellable book prices at 80%; these sales may come only from unpledged securities; the USD 1,000 million total repo line and 80% collateral limit still apply. Inject new common equity cash at period end if needed and minimize that new equity while keeping the same ending reserve and book-equity/assets floor, selling no more securities than that minimum requires. Report new equity, additional book securities sold and ending cash. Explain what caps the cash that further sales can raise in this period, and where that cap comes from.",
+        "stores": ["second_new_equity_mn", "second_sale_book_mn", "second_ending_cash_mn"],
+        "claims": [
+          {"id": "second_stage_equity_need", "description": "The response explains that positive new equity is needed after exhausting the available unpledged securities because much of the remaining book secures the earlier repo.", "mode": "required"}
+        ],
+        "validator": "validate_turn_4"
+      },
+      {
+        "query": "Continue after the second withdrawal, sale, interest payment and equity injection. A third period lasts 92 days and ends with another withdrawal equal to 1% of opening deposits. Period-three repo interest on the outstanding balance returns to SOFR effective 2025-06-30 plus 150 basis points, with the same simple ACT/360 and period-end interest payment; prior transactions remain posted. Minimize fresh period-three equity under the unchanged sale, collateral, reserve and book-capital terms. Report fresh equity and final book equity/assets. Interpret what the spread restoration changes in the carried balance sheet and the scope of this stress exercise.",
+        "stores": ["third_new_equity_mn", "third_ending_equity_assets_pct"],
+        "claims": [
+          {"id": "spread_reversal_history", "description": "The response links the continuing equity need to depleted saleable collateral and outstanding repo even though future funding is cheaper.", "mode": "required"},
+          {"id": "observed_capacity_boundary", "description": "If the response presents the scenario as actual liquidity or regulatory compliance capacity, it distinguishes stipulated sale/pledge/price assumptions from reported FDIC balances.", "mode": "conditional"}
+        ],
+        "validator": "validate_turn_5"
+      }
+    ]
+  }],
+  "judge_reference": {
+    "source": "Frozen FDIC 2024-12-31 report and NYFed SOFR fixings, with stipulated disposal, repo and internal-capital scenario terms.",
+    "facts": [
+      "Certificate 622 has USD 63.459m cash and USD 3,215.263m securities, with opening book equity/assets 8.7402%.",
+      "The cost-minimum first stage sells USD 1,659.8788m securities book and draws USD 1,000.0000m repo; ending book equity/assets is 9.4134%.",
+      "The opening-state first-period no-new-equity frontier is USD 2,783.904m, or 38.489% of original deposits, with cash reserve, collateral and book-capital constraints binding.",
+      "The continuation sells USD 305.3842m more book securities and requires USD 59.2200m new common equity; ending cash is USD 88.2423m.",
+      "With the later spread restored and past losses/interest retained, the third withdrawal still requires USD 86.0887m fresh equity; final equity/assets is 10.6553%."
+    ],
+    "known_overclaims": ["Treating repo principal as fresh equity.", "Treating an internal equity/assets floor as a regulatory CET1 ratio or the hypothetical disposal as observed bank action."]
+  }
+}

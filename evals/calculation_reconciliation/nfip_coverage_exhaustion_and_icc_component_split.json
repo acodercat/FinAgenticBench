@@ -1,0 +1,146 @@
+{
+  "name": "nfip_coverage_exhaustion_and_icc_component_split",
+  "module": "evals.calculation_reconciliation.nfip_coverage_exhaustion_and_icc_component_split",
+  "task_family": "calculation_reconciliation",
+  "data_sources": [
+    "fema_nfip",
+    "noaa_storm_events"
+  ],
+  "difficulty": "hard",
+  "case_type": "trap",
+  "judge_reference": {
+    "source": "FEMA NFIP redacted claims and NOAA Storm Events, as frozen in the runtime layer. A National Flood Insurance Program policy carries separate statutory limits for building coverage, contents coverage and increased cost of compliance; the last is additional coverage capped at USD30,000 and is not drawn against the building limit.",
+    "facts": [
+      "The claim file holds 312,322 rows, of which 308,230 carry a recorded cause of damage.",
+      "The cause column stores the same code in two spellings: 133,349 rows read 4 and a further 12,564 read 4.0, and 702 rows carry the letter codes A, B, C and D. Treating a code as one cause regardless of numeric formatting gives 12 distinct causes and a leading cause of 145,913 claims; reading the recorded values gives 19 causes and 133,349 claims, and coercing the column to a number gives 8 causes.",
+      "305,292 claims report a positive building coverage amount, and 11,934 of them received a gross building payment reaching or passing that coverage, totalling USD2,233.450134 million. 11,140 of the 11,934 settle at exactly the coverage amount, and 794 pass it.",
+      "4,686 of the exhausted claims carried building coverage of exactly USD250,000.",
+      "1,402 claims received a gross increased cost of compliance payment totalling USD33.158440 million; 637 were paid at exactly USD30,000 and 5 rows record more than that cap, the largest USD900,000.",
+      "229 of the exhausted claims also received an increased cost of compliance payment, together USD4.936133 million, which is coverage paid after the building limit was already consumed.",
+      "Folding the compliance payment into the comparison reports 12,097 exhausted claims and USD2,262.423430 million; folding in the contents payment reports 18,137; folding in both reports 18,308.",
+      "Restricting the storm file to rows placed on a county and carrying a recorded flood cause, the two files share 6,855 county-months holding 138,621 claim rows. Claim rows outside them carry USD13,818.473127 million of gross payments across the three coverages, against USD20,090.184060 million over the whole file.",
+      "Heavy Rain is the most widely recorded flood cause inside the shared county-months, covering 6,264 of the 6,855.",
+      "The cause is populated only on the 49,617 rows labelled Flash Flood (29,226), Flood (19,224) and Debris Flow (1,167), every one of which is placed on a county. A further 5,485 water-related rows -- Tropical Storm 2,143, Coastal Flood 1,709, Storm Surge/Tide 354, Hurricane (Typhoon) 227, Lakeshore Flood 290, Tsunami 19 and others -- carry no cause, and all 5,485 are filed against a forecast zone rather than a county.",
+      "683 claim rows carry no county code and can never be paired; they hold USD21.153562 million of gross payments and are counted outside the pairing, so dropping them instead would report USD13,797.319565 million.",
+      "The cause count is 12 under every reasonable normalisation -- casting to an integer, stripping a trailing .0 as text, or casefolding first -- and the leading count is 145,913 under all of them and under numeric coercion; only reading the values as recorded misses both.",
+      "The storm file numbers the outlying territories outside the standard range -- Puerto Rico 99, American Samoa 97, Guam 98 and the Virgin Islands 96, against the 72, 60, 66 and 78 the claim file uses -- and leaves the state abbreviation blank on all 1,766 of those flood-cause rows. Restricting the storm side to the fifty states and DC drops exactly those rows and changes none of the sixteen figures, because they could never have met a claim county as recorded. A reader who repaired the codes instead would pair 22 more county-months, 72 more claim rows, USD1.901940 million less unmatched payment and 20 more county-months on the leading cause."
+    ],
+    "known_overclaims": [
+      "Treating the three coverages as one pot, so that contents or compliance payments count toward exhausting the building limit.",
+      "Reading the recorded cause values as distinct causes without reconciling the two numeric spellings, or coercing the column to a number and silently dropping the letter codes.",
+      "Reading exhaustion as a measure of the flood damage suffered; it measures the policy limit reached, and the uninsured excess is absent from the file.",
+      "Reconciling NFIP claim payments against NOAA reported property damage; the two dollar measures cover different universes.",
+      "Treating an unmatched county-month as evidence that no flood occurred; the storm file records a cause only for events it labels Flash Flood, Flood or Debris Flow, and the coastal and tropical labels that carry none are filed against forecast zones.",
+      "Reporting figures that pair the territories by repairing the storm file's state numbering; the question restricts the storm side to the fifty states and DC."
+    ]
+  },
+  "conversations": [
+    {
+      "turns": [
+        {
+          "query": "The federal flood insurance claim file records one settled claim per row, each row able to carry a code for what caused the damage. Working from the whole file, report how many claim rows it holds and how many of those carry a recorded cause of damage. Then report how many distinct causes those coded rows describe among them, and how many claim rows carry the single most frequent cause. Explain what the coding does and does not settle about why these properties flooded.",
+          "validator": "validate_cause_population",
+          "stores": [
+            "claim_record_count",
+            "cause_coded_claim_count",
+            "distinct_cause_code_count",
+            "leading_cause_claim_count"
+          ],
+          "claims": [
+            {
+              "id": "cause_code_representation",
+              "mode": "required",
+              "description": "The file stores one cause under more than one numeric spelling, so counting the recorded values as they stand overstates how many distinct causes there are."
+            },
+            {
+              "id": "cause_legend_boundary",
+              "mode": "conditional",
+              "description": "If the response names what an individual cause code means, it should say the claim file supplies the code without a legend."
+            }
+          ]
+        },
+        {
+          "query": "A flood policy insures the building and its contents under separate coverage amounts, and the file reports the gross amount paid under each alongside the coverage carried. Restrict to claims reporting a positive building coverage amount, whatever they report as paid, and report how many there are. Among them, report how many exhausted their building coverage, counting a coverage as exhausted when payment reaches that amount rather than only when it passes it. Report the exhausted claims' total gross building payment in millions of dollars, and how many exhausted claims carried building coverage of exactly 250,000 dollars, the most the programme writes on a residential building. Explain what exhaustion does and does not imply about the loss suffered.",
+          "validator": "validate_building_exhaustion",
+          "stores": [
+            "positive_building_coverage_claim_count",
+            "building_coverage_exhausted_claim_count",
+            "exhausted_gross_building_payment_usd_millions",
+            "exhausted_at_maximum_residential_coverage_claim_count"
+          ],
+          "claims": [
+            {
+              "id": "building_limit_consumption",
+              "mode": "required",
+              "description": "Only the gross building payment is drawn against the building coverage, so payments made under the other coverages leave that limit where it was."
+            },
+            {
+              "id": "paid_to_limit_signature",
+              "mode": "required",
+              "description": "Nearly all of these settle on the coverage amount itself rather than above it, the fingerprint of a settlement halted by a ceiling."
+            },
+            {
+              "id": "exhaustion_loss_boundary",
+              "mode": "conditional",
+              "description": "If the response reads exhaustion as a measure of flood damage, it should note the payment is bounded by the policy limit and the uninsured excess is absent from the file."
+            }
+          ]
+        },
+        {
+          "query": "Increased cost of compliance is a separate statutory coverage under the same policy, capped at 30,000 dollars. Across the whole file, report how many claims received a gross increased cost of compliance payment above zero, how many of those were paid at exactly that cap, and the total gross amount paid under it in millions of dollars. Then, for the exhausted claims carried forward from the previous turn, report how many of them also received such a payment. Explain what that last count establishes about how this coverage stands in relation to the building coverage.",
+          "validator": "validate_compliance_coverage",
+          "stores": [
+            "icc_paid_claim_count",
+            "icc_at_statutory_cap_claim_count",
+            "icc_gross_payment_usd_millions",
+            "exhausted_claim_icc_recipient_count"
+          ],
+          "claims": [
+            {
+              "id": "compliance_coverage_is_additional",
+              "mode": "required",
+              "description": "This is a supplementary grant of protection carrying its own ceiling, which is why structures whose principal limit was already spent still collect under it."
+            },
+            {
+              "id": "statutory_cap_exception_boundary",
+              "mode": "conditional",
+              "description": "If the response treats the cap as absolute, it should note a handful of rows record a payment above it."
+            }
+          ]
+        },
+        {
+          "query": "The storm file records a cause for the events it classes as floods, and places each on a county or a broader forecast zone. Keep only the rows carrying a cause and sitting in the fifty states or the District of Columbia. Pair those against the claims on five-digit county code and calendar month, taking the month of loss on the claim side and the month an event began on the storm side. The storm file writes a county as a two-digit state code then a three-digit county code; a claim whose county is blank falls outside the pairing. Report the shared county-month count, how many claim rows fall in them, the total gross payment across all three coverages on the rows outside them in millions of dollars, and how many shared county-months the most common flood cause covers. Explain what the unmatched claims say about the two files' scopes.",
+          "validator": "validate_storm_scope_bridge",
+          "stores": [
+            "noaa_matched_county_month_count",
+            "noaa_matched_claim_count",
+            "unmatched_claim_gross_payment_usd_millions",
+            "leading_noaa_flood_cause_county_month_count"
+          ],
+          "claims": [
+            {
+              "id": "event_scope_mismatch",
+              "mode": "required",
+              "description": "More than two thirds of the insured dollars sit where no meteorological record was paired to them, so neither collection bounds the other."
+            },
+            {
+              "id": "coastal_and_tropical_absence",
+              "mode": "required",
+              "description": "Coastal and tropical flooding is catalogued under labels carrying no cause at all and is filed against broad warning areas rather than counties, so the pairing never sees it."
+            },
+            {
+              "id": "territory_coding_boundary",
+              "mode": "conditional",
+              "description": "If the response treats the pairing as reaching everywhere the two files describe, it should note that the outlying territories are numbered differently on the two sides and are set aside here."
+            },
+            {
+              "id": "damage_comparison_boundary",
+              "mode": "conditional",
+              "description": "If the response compares claim payments with the storm file's reported damage amounts, it should note the two dollar measures cover different universes and are not reconciled here."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

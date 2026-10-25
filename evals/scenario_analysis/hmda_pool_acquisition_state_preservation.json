@@ -1,0 +1,125 @@
+{
+  "name": "hmda_pool_acquisition_state_preservation",
+  "module": "evals.scenario_analysis.hmda_pool_acquisition_state_preservation",
+  "task_family": "scenario_analysis",
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "data_sources": [
+    "hmda",
+    "fhfa_hpi",
+    "nyfed_reference_rates"
+  ],
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Establish the acquisition pool from 2024 HMDA Florida conventional first-lien originations for owner-occupied, one-unit home purchases. Retain numeric loan amounts from USD100,000 through USD750,000, annual incomes from USD40,000 through USD250,000, interest rates from 3 through 10 percent, and property values from USD100,000 through USD1,500,000, all inclusive. Retain identical public rows as separate exposures. Treat each retained loan as a hypothetical new 360-month, level-payment, fully amortizing loan at its reported nominal annual rate convertible monthly, with end-month principal-and-interest payments. Report the pool count, initial principal and aggregate monthly payment. Carry its individual exposures and contracts forward. Assess the scope of using these reported originations to construct the acquisition pool. Use unrounded inputs and state throughout.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "pool_count",
+            "pool_principal_million",
+            "pool_monthly_payment_million"
+          ],
+          "claims": [
+            {
+              "id": "hmda_pool_acquisition_state_preservation_t1_interpretation",
+              "description": "The response gives a material limitation of treating the origination cross-section as a hypothetical amortizing acquisition pool rather than observed subsequent loan performance.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Set the acquisition underwriting case. As a stipulated collateral overlay, index each property value by the Florida traditional purchase-only quarterly FHFA NSA index growth from 2023Q4 to 2024Q4, then apply a 20-percent haircut. Reduce each reported income by 20 percent. Every loan makes its first 24 scheduled payments; immediately afterwards it defaults exactly when annual scheduled principal-and-interest exceeds 35 percent of stressed income and its remaining balance exceeds stressed collateral. A default settles for 92 percent of stressed collateral, capped at that remaining balance; a nondefault loan settles for its remaining balance. There are no other prepayments, defaults or cash flows. Report the pool scheduled balance after payment 24 and its terminal credit loss. Carry this underwriting case and cash-flow state forward, and interpret the loss mechanism.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "month24_scheduled_balance_million",
+            "base_terminal_credit_loss_million"
+          ],
+          "claims": [
+            {
+              "id": "hmda_pool_acquisition_state_preservation_t2_interpretation",
+              "description": "The response relates the positive modeled loss to the joint payment-burden and collateral tests, rather than treating either test alone as the stipulated default event.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Prepare a separate FHA comparison pool using the same initial eligibility and hypothetical loan-contract conventions, except for FHA insurance in place of conventional loan type. Scale all its exposures proportionally to the acquisition pool’s initial principal. Apply the acquisition underwriting case to this comparison. Report its eligible loan count before scaling, equal-notional monthly payment and terminal credit loss. Compare the two pools once sized to the same starting principal, and say what such a gap can and cannot establish about insurance.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "fha_count",
+            "fha_equal_notional_payment_million",
+            "fha_base_loss_million"
+          ],
+          "claims": [
+            {
+              "id": "hmda_pool_acquisition_state_preservation_t3_interpretation",
+              "description": "The response interprets the greater FHA comparison loss at common initial notional as a difference in the stipulated pool cash flows, not a causal estimate of insurance effects.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "For the FHA comparison only, evaluate a severe alternative with 30-percent income reduction and a 30-percent collateral haircut after the same index overlay; all other comparison conventions remain. Report its equal-notional terminal credit loss and the fraction of original FHA principal assigned to default. Explain how the fraction of principal going bad differs from how much is ultimately lost per dollar once collateral is sold.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "fha_severe_loss_million",
+            "fha_severe_default_principal_pct"
+          ],
+          "claims": [
+            {
+              "id": "hmda_pool_acquisition_state_preservation_t4_interpretation",
+              "description": "The response distinguishes the share of exposure defaulting from loss severity after collateral recovery when interpreting the severe FHA result.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Quote the acquisition pool under its underwriting case. Discount its scheduled payments and terminal settlements at a flat annual-effective hurdle equal to the New York Fed SOFR fixing effective 2024-12-31 plus 150 basis points, with each month one twelfth of a year. Report the maximum acquisition price per 100 initial principal and the Macaulay duration of these cash flows. Explain what the computed price per 100 represents given the required return and the assumed payments, and how it differs from a traded level.",
+          "validator": "validate_turn_5",
+          "stores": [
+            "acquisition_bid_per100",
+            "acquisition_duration_years"
+          ],
+          "claims": [
+            {
+              "id": "hmda_pool_acquisition_state_preservation_t5_interpretation",
+              "description": "The response interprets the below-par bid as a hurdle-consistent price for the stipulated stressed cash flows, not an observed market quote.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "The acquisition desk can purchase that pool at 98 per 100 initial principal. Finance 80 percent of the purchase cost with debt and the remainder with initial equity. Debt compounds at the carried annual-effective hurdle and is settled after month 24; deposit each loan receipt in an account earning that same rate until then. Report terminal equity wealth after debt settlement and its compound annual return over the two-year holding period under the acquisition underwriting case. Explain how the two-year equity result ties back to the price paid versus the earlier valuation, and how far one scenario supports it.",
+          "validator": "validate_turn_6",
+          "stores": [
+            "equity_terminal_million",
+            "equity_annual_return_pct"
+          ],
+          "claims": [
+            {
+              "id": "hmda_pool_acquisition_state_preservation_t6_interpretation",
+              "description": "The response relates the positive leveraged equity return to buying below the underwriting bid, and identifies that return as conditional on the single stipulated underwriting scenario.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Governed frozen data and explicitly stipulated financial contracts.",
+    "facts": [
+      "The response gives a material limitation of treating the origination cross-section as a hypothetical amortizing acquisition pool rather than observed subsequent loan performance.",
+      "The response relates the positive modeled loss to the joint payment-burden and collateral tests, rather than treating either test alone as the stipulated default event.",
+      "The response interprets the greater FHA comparison loss at common initial notional as a difference in the stipulated pool cash flows, not a causal estimate of insurance effects.",
+      "The response distinguishes the share of exposure defaulting from loss severity after collateral recovery when interpreting the severe FHA result.",
+      "The response interprets the below-par bid as a hurdle-consistent price for the stipulated stressed cash flows, not an observed market quote.",
+      "The response relates the positive leveraged equity return to buying below the underwriting bid while recognizing that the fixed scenario does not establish a guaranteed investment return."
+    ],
+    "known_overclaims": [
+      "Treating a synthetic underwriting or liquidity scenario as observed performance or a guaranteed outcome."
+    ]
+  }
+}

@@ -1,0 +1,130 @@
+{
+  "name": "corporate_factoring_revolver_cash_waterfall",
+  "module": "evals.scenario_analysis.corporate_factoring_revolver_cash_waterfall",
+  "task_family": "scenario_analysis",
+  "data_sources": [
+    "sec_notes",
+    "nyfed_reference_rates"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Prepare a hypothetical January–June 2025 receivable wind-down cash budget for Mondelez International, Inc. using its original 2024-12-31 10-K filing in the SEC financial-statement-notes source, not a later amended or repeated filing fact. Restrict to that exact original accession's undimensioned USD instant note facts reported by the registrant itself, excluding any co-registrant rows, and identify the issuer CIK and accession. Freeze on-book net current receivables, unrestricted cash, cash including restricted cash and current restricted cash; reconcile unrestricted cash against cash including restricted cash and current restricted cash. Separately identify the disclosed principal amount of receivables already sold under its factoring program at that balance date. Those sold amounts are outside the owned opening receivable balance used below: assume the firm services and remits them at March end without a free-cash receipt. Treat all forward cash flows and financing terms below as hypothetical, not reported company agreements. Report issuer CIK, accession, owned receivables, unrestricted cash, cash including restricted cash, current restricted cash and already-sold outstanding face in USD millions. Explain which disclosed balances enter this budget and how the rights attached to them affect liquidity.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "issuer_cik",
+            "original_accession",
+            "owned_receivables_mn",
+            "usable_cash_mn",
+            "cash_including_restricted_mn",
+            "current_restricted_cash_mn",
+            "already_sold_face_mn"
+          ],
+          "claims": [
+            {
+              "id": "owned_vs_serviced",
+              "description": "The response gives a sound rights-based explanation of which filing balances can fund the six-month spending plan.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Use the turn-1 owned receivable balance as the only opening collection pool: 20%, 30%, 30% and 20% of that balance arrive at January, February, March and April month end respectively; nothing new is sold and there are no other business receipts. Hypothetical operating and investment cash payments at January–June month end are USD 2,300m, 1,800m, 500m, 200m, 100m and 100m. An initially empty revolver has a USD 600m limit. For each month take the New York Fed SOFR fixing with the latest Effective Date strictly before the first calendar day of that month, add 200 basis points, and charge simple interest for that month's actual calendar days on debt outstanding at the beginning of the month, on an ACT/360 basis. At month end put only still-owned collections, accrued interest and scheduled payments in one clearing balance; then draw just enough to avoid negative cash and use any positive cash to repay debt. Check cash and the credit limit at month end, with no separate intramonth draw or limit test. Newly drawn debt starts interest next month. For this no-factoring diagnostic only, let debt exceed the cap to identify the unfunded path. Report its peak required debt, aggregate six-month interest, and first month in which required debt exceeds USD 600m. Say in which month required debt first passes the limit, and explain why the month-by-month path, not the June cash position, is what reveals it.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "unfunded_peak_debt_mn",
+            "unfunded_interest_mn",
+            "first_no_factor_breach_month"
+          ],
+          "claims": [
+            {
+              "id": "first_credit_failure",
+              "description": "The response identifies the first original-limit failure from the monthly path rather than from terminal cash alone.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Before January begins, allow a hypothetical nonrecourse sale of two separately identified eligible owned receivable lots: one USD 200m face lot due in February and one USD 200m face lot due in March, each sold completely or kept completely. The remainder of those February and March monthly collections cannot be sold on day zero. Also allow any continuous face amount of the still-owned April collection cohort to be sold on day zero. Pay sale proceeds immediately at 98%, 97% and 96% of February, March and April face respectively, plus one USD 10m activation cash fee if any lot or April face is sold. The sold face is removed from its future owned collection, has no later firm repayment, and its discount is a financing cost. A sold lot's face leaves the factoring program only when its underlying receivable is collected: February face at February end, March face and the disclosed serviced balance at March end, and April face at April end. Immediately before each of those release points, the disclosed previously sold balance plus all sold face not yet released may not exceed a hypothetical USD 665m factoring-program outstanding-face cap. Keep the original USD 600m revolver cap and turn-2 interest/waterfall rules. Enumerate the four sell-or-keep combinations of the two lots and, within each, choose the day-zero April face giving the lowest total six-month factoring-discount, activation-fee and revolver-interest cost among feasible plans; use unrounded amounts. Break an exact cost tie by keeping the February lot, then by keeping the March lot, then by the smaller April face. Report SELL or KEEP for each eligible lot, the day-zero April face, the total financing cost and executed end-February revolver balance, in USD millions where numeric. Trace how each lot sold becomes cash on day zero and then removes that face from a later month's collections, and what that does to borrowing.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "day_zero_feb_lot",
+            "day_zero_mar_lot",
+            "day_zero_april_face_mn",
+            "day_zero_total_financing_cost_mn",
+            "end_feb_revolver_mn"
+          ],
+          "claims": [
+            {
+              "id": "factor_rights_conservation",
+              "description": "The response ties the reported selected sales to their immediate proceeds, the specific later owned-collection reductions, and the resulting financing path.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Execute the selected day-zero contract and January–February collections, interest, expenses and revolver actions exactly as carried from turn 3. At the start of March, new information delays 75% of the still-owned March receivable collection to May month end; any March face already sold remains sold and its contracted settlement timing is unchanged. Keep all paid fees and the end-February cash/debt state. Before selecting a cure, calculate the updated March borrowing demand by temporarily relaxing the original USD 600m revolver cap solely for this diagnostic. Report that March credit demand in USD millions and the first original-limit breach month under this delayed path. Explain the funding implication of the delay and how owned-versus-sold receivables affect it.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "stressed_march_credit_demand_mn",
+            "stressed_first_breach_month"
+          ],
+          "claims": [
+            {
+              "id": "conditional_delay_state",
+              "description": "The response explains the reported March credit demand using the executed February financing state and the resulting March-to-May owned-cash shift, with sold-face servicing kept outside available cash.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "From that actual end-February state, compare two March-start cures for the delayed path through June. Option AMEND charges a one-time USD 15m cash amendment fee to March's clearing balance before sizing that month's required draw, then raises the total revolver limit just enough to satisfy every month-end cash requirement; include the fee in sizing the required limit. Option FACTOR keeps the USD 600m limit and sells a continuous additional face amount from still-owned April receivables at 96% immediate proceeds, plus a USD 2m incremental activation cash fee in the March clearing balance. This new face must fit the remaining April owned batch and the same USD 665m unsettled sold-face cap immediately before March settlements; keep the disclosed previously sold balance outstanding until March end. Under either option retain all earlier day-zero sale prices, fees, rights transfers, outstanding debt, monthly SOFR effective-date fixings, spending and cash-sweep rules. Choose the lowest full six-month total of factoring discounts, all activation/amendment fees and revolver interest among feasible cures; use unrounded amounts. Report the AMEND total required limit and its total cost, the FACTOR additional April face and its total cost, the unused factoring outstanding-face headroom immediately after that additional sale, exactly FACTOR or AMEND as the selected cheaper cure, and June-end unrestricted cash under the winner. Explain the cost, ownership and capacity trade-off between the two cures.",
+          "validator": "validate_turn_5",
+          "stores": [
+            "amend_required_limit_mn",
+            "amend_total_financing_cost_mn",
+            "additional_april_factor_face_mn",
+            "factor_total_financing_cost_mn",
+            "factor_remaining_headroom_mn",
+            "chosen_cure",
+            "chosen_final_cash_mn"
+          ],
+          "claims": [
+            {
+              "id": "cure_decision_result",
+              "description": "The response supports its final funding choice with the two independently priced cash-rights paths.",
+              "mode": "required"
+            },
+            {
+              "id": "scenario_not_actual_terms",
+              "description": "If the response says the facility cap, factoring prices or delayed receipts are actual Mondelez agreements or forecasts, it qualifies them as hypothetical scenario terms.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Exact original Mondelez 2024-12-31 SEC financial-statement-notes accession 0001103982-25-000030 and New York Fed SOFR daily reference rates, under hypothetical 2025 monthly cash and factoring terms.",
+    "facts": [
+      "Issuer CIK 1103982 has USD3,874m owned net current receivables, USD1,351m usable cash after excluding USD49m restricted from USD1,400m total cash, and a separate USD159m already sold factoring principal outstanding. The sold amount is serviced/remitted, not a company-owned collection.",
+      "Without factoring, the hypothetical revolver path first exceeds USD600m in 2025-02 and peaks at USD812.864419m with USD6.165897m six-month interest.",
+      "The least-cost day-zero option keeps the eligible February lot, sells the USD200m March lot, and sells USD29.166667m of April face. Six-month financing cost is USD21.221884m and end-February debt USD600m.",
+      "Delaying 75% of still-owned March receipts makes the uncured March credit demand USD862.7515m. A USD15m-fee amendment needs a total USD877.7515m credit limit and costs USD42.015903m all-in. Additional factoring needs USD275.782813m April face, costs USD38.544503m, leaves USD1.050521m sold-face headroom and yields USD186.455497m June-end cash with no debt. FACTOR is cheaper.",
+      "All future spending, month allocations, sale prices, fees and facilities are hypothetical; annual reported CFO cannot be added to the decomposed cash bridge."
+    ],
+    "known_overclaims": [
+      "Including USD159m serviced sold receivables as a new firm-owned collection.",
+      "Using restricted cash in the spendable opening balance.",
+      "Collecting a sold lot again in its scheduled month.",
+      "Charging current-month interest on a new month-end draw.",
+      "Delaying the already-sold March lot or reopening the day-zero sale after February.",
+      "Ignoring the USD15m amendment fee when sizing March credit demand."
+    ]
+  }
+}

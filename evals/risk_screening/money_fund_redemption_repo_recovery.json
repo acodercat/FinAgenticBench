@@ -1,0 +1,99 @@
+{
+  "name": "money_fund_redemption_repo_recovery",
+  "module": "evals.risk_screening.money_fund_redemption_repo_recovery",
+  "task_family": "risk_screening",
+  "data_sources": ["sec_nmfp", "nyfed_reference_rates"],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [{
+    "id": "main",
+    "turns": [
+      {
+        "query": "Across original Form N-MFP3 series-report observations dated from 2025-01-01 through 2025-12-31, retain dates on which the New York Fed table reports TGCR, BGCR and SOFR. Require at least USD 1 billion of series net assets, at least one reported same-date share-class flow row, positive reported same-date daily liquid assets, and original N-MFP3 filings for that series at both the last day of the immediately preceding calendar month and the last day of the immediately following calendar month. Within each accession, aggregate all share-class flow rows whose flow date equals that series report date, define net redemption as gross redemptions minus gross subscriptions, and select the highest net-redemption-to-daily-liquid-assets ratio, breaking a tie by earlier report date, then series name and series ID ascending. Report the eligible series-report-observation count; selected report date, series name, series ID and accession; contributing class count; both gross flows; daily liquid assets; the ratio; and its margin over the runner-up. Explain what the selected ratio does and does not establish about liquidity capacity.",
+        "validator": "validate_pressure_screen",
+        "stores": ["eligible_large_fund_report_observation_count", "redemption_pressure_event_date", "redemption_pressure_leader_series_name", "redemption_pressure_leader_series_id", "redemption_pressure_leader_accession", "leader_flow_share_class_count", "leader_gross_subscriptions_usd_billions", "leader_gross_redemptions_usd_billions", "leader_daily_liquid_assets_usd_billions", "leader_redemption_liquidity_ratio_pct", "redemption_liquidity_ratio_leader_margin_pp"],
+        "claims": [{
+          "id": "gross_flow_liquidity_capacity_boundary",
+          "description": "The response recognizes that aggregate same-day net redemption can exceed a reported daily-liquid-asset snapshot without by itself proving failed settlements, forced sales or an inability to meet redemptions, because other assets, inflows, timing and portfolio actions also matter.",
+          "mode": "required"
+        }]
+      },
+      {
+        "query": "Trace that selected SEC series across the original N-MFP3 filing for the last day of the immediately preceding calendar month, the selected report date and the last day of the immediately following calendar month. Report the preceding and following accessions, and for all three positions report net assets, weighted-average maturity and weighted-average life. Describe what the three reported states establish about the observed balance and maturity path.",
+        "validator": "validate_monthly_path",
+        "stores": ["previous_month_end_selected_accession", "previous_month_end_net_assets_usd_billions", "previous_month_end_wam_days", "previous_month_end_wal_days", "event_net_assets_usd_billions", "event_wam_days", "event_wal_days", "following_month_end_selected_accession", "following_month_end_net_assets_usd_billions", "following_month_end_wam_days", "following_month_end_wal_days"],
+        "claims": [
+          {
+            "id": "maturity_path_divergence_result",
+            "description": "The response identifies from the three computed snapshots that WAM declines across both intervals while WAL first rises and then falls below its preceding-month level.",
+            "mode": "required"
+          },
+          {
+            "id": "reported_snapshot_path_boundary",
+            "description": "If the response invents a continuous daily path or attributes all intervening balance and maturity changes to the screened report date, it qualifies that claim because the source provides three reported snapshots rather than daily fund states or causal attribution.",
+            "mode": "conditional"
+          }
+        ]
+      },
+      {
+        "query": "For the report date selected in the first turn, report the New York Fed TGCR, BGCR and overnight SOFR, and SOFR's first and ninety-ninth percentiles. Explain what the three benchmarks and the percentile range contribute to the selected fund event's same-date funding-market context, while respecting their transaction-coverage differences.",
+        "validator": "validate_repo_snapshot",
+        "stores": ["event_day_tgcr_pct", "event_day_bgcr_pct", "event_day_sofr_pct", "event_day_sofr_first_percentile_pct", "event_day_sofr_ninety_ninth_percentile_pct"],
+        "claims": [
+          {
+            "id": "repo_benchmark_scope_distinction",
+            "description": "The response gives a concrete coverage distinction: BGCR extends TGCR by including GCF Repo transactions, and SOFR is broader still by including centrally cleared bilateral Treasury repo transactions.",
+            "mode": "required"
+          },
+          {
+            "id": "sofr_percentile_span_meaning",
+            "description": "The response interprets the computed first-to-ninety-ninth percentile span as dispersion in the published SOFR transaction-rate distribution.",
+            "mode": "required"
+          },
+          {
+            "id": "fund_specific_repo_rate_boundary",
+            "description": "If the response presents the published benchmarks or SOFR percentile span as this fund's own borrowing rate or an accounting reconciliation, it qualifies that claim because the source has no fund-specific transaction linkage.",
+            "mode": "conditional"
+          }
+        ]
+      },
+      {
+        "query": "Using the three selected filings, report the preceding-to-event decline in net assets as a percentage of the preceding balance; the event-to-following rebound as a percentage of the event balance; the rebound as a percentage of the prior decline; and following-minus-event changes in WAM and WAL. Assess whether the one-month evidence is a full, partial or absent balance recovery, and keep any explanation of the fund path separate from causal claims about the repo snapshot.",
+        "validator": "validate_recovery",
+        "stores": ["previous_to_event_net_asset_decline_pct", "event_to_following_net_asset_rebound_pct", "one_month_decline_recovered_pct", "event_to_following_wam_change_days", "event_to_following_wal_change_days"],
+        "claims": [
+          {
+            "id": "partial_recovery_result",
+            "description": "The response concludes from the computed balances that the following month recovers only part of the preceding-to-event decline.",
+            "mode": "required"
+          },
+          {
+            "id": "maturity_recovery_mechanism_boundary",
+            "description": "If the response claims that the reported WAM or WAL changes explain the balance rebound, it qualifies that claim because the three filings do not identify the mechanism behind the intervening flows or portfolio changes.",
+            "mode": "conditional"
+          },
+          {
+            "id": "funding_redemption_causality_boundary",
+            "description": "If the response attributes the redemption or subsequent recovery to repo-market conditions, it qualifies that inference because a same-date benchmark snapshot and three month-end filings do not identify the cause of fund flows or portfolio decisions.",
+            "mode": "conditional"
+          }
+        ]
+      }
+    ]
+  }],
+  "judge_reference": {
+    "source": "Frozen original SEC Form N-MFP3 series, class-flow and daily-liquidity tables plus New York Fed reference rates",
+    "facts": [
+      "The eligible population contains 1,248 series-report observations with complete adjacent-month original paths. TCW Central Cash Fund on 2025-10-31 leads with 4.778040 billion USD net redemption, 3.158400 billion USD daily liquid assets and a 151.2804% ratio, 19.7699 percentage points above the runner-up.",
+      "Net assets are 5.2691, 4.2506 and 4.7546 billion USD at the three month ends; WAM is 14, 13 and 6 days and WAL is 42, 48 and 34 days.",
+      "On 2025-10-31 TGCR and BGCR are 4.15%, SOFR is 4.22%, and the SOFR first-to-ninety-ninth percentile span is 0.30 percentage point.",
+      "The October decline is 1.0186 billion USD and the November rebound is 0.5040 billion, recovering 49.4820% of the decline; November remains 0.5146 billion below September."
+    ],
+    "known_overclaims": [
+      "Calling a gross redemption ratio above 100% proof of a liquidity failure.",
+      "Treating three month-end filings as a continuous daily portfolio path.",
+      "Treating repo benchmarks as the fund's funding cost or as causal evidence for its flows.",
+      "Calling the November balance a full recovery."
+    ]
+  }
+}

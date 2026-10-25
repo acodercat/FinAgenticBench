@@ -1,0 +1,8 @@
+steps (raw): {'0-9': '84.2%', '10-19': '80.2%', '20-29': '72.1%', '30+': '12.3%'}
+steps within task: above-median 82.0% vs at/below 84.2% -> +2.2%
+outputs required -> pass: {1: '81.1%', 2: '77.8%', 3: '76.8%', 4: '82.2%', 5: '89.2%', 6: '86.6%', 7: '86.6%'}
+every declared table used vs >=1 never loaded, within case (43 cases): +11.6%
+cue 'assumption': raw gap +6.4% (no-cue minus cue) | within-task +2.1% over 472 slots, 40% positive
+cue 'verified': raw gap +4.4% (no-cue minus cue) | within-task +1.4% over 522 slots, 34% positive
+cue 'uncertain': raw gap +1.6% (no-cue minus cue) | within-task +1.4% over 298 slots, 30% positive
+-> analysis/final_20261012/tables/intuitions.csv

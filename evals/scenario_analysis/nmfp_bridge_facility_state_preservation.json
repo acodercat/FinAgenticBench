@@ -1,0 +1,109 @@
+{
+  "name": "nmfp_bridge_facility_state_preservation",
+  "module": "evals.scenario_analysis.nmfp_bridge_facility_state_preservation",
+  "task_family": "scenario_analysis",
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "data_sources": [
+    "sec_nmfp_series_filings",
+    "sec_nmfp_liquidity",
+    "nyfed_reference_rates"
+  ],
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Build a hypothetical USD10 million treasury liquidity vehicle with the balance-sheet mix of the three largest Government-category series in original Form N-MFP3 reports dated 2025-10-31. Require positive net assets, positive weighted-average maturity, and same-report-date daily and weekly liquid-asset amounts satisfying positive daily assets, weekly assets at least daily assets, and weekly assets no greater than net assets. Rank by net assets descending, breaking ties by SEC series ID ascending; weight the selected series by net assets. For this vehicle, the reported daily-liquid fraction becomes available at day 1, the additional weekly-liquid fraction at day 5, and the remaining assets at day 30, each at par. Treat these as a stipulated asset-availability ladder with no investment income. Report the largest selected series ID, blended weighted-average maturity and day-1 available fraction. Carry the vehicle’s complete composition forward and assess the scope of this construction. Use unrounded inputs and state throughout.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "government_lead_series",
+            "government_wam_days",
+            "government_daily_liquidity_pct"
+          ],
+          "claims": [
+            {
+              "id": "nmfp_bridge_facility_state_preservation_t1_interpretation",
+              "description": "The response distinguishes the stipulated availability ladder from a forecast of actual fund liquidation proceeds or investor redemption restrictions.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Stress that treasury vehicle with withdrawals equal to 90 percent of initial assets at day 1 and a further 5 percent at day 5. Start with no external cash or debt. Available cash meets withdrawals, a bridge facility funds any shortfall, and excess available cash immediately repays drawn principal; no assets are sold early. The facility has no initial limit and charges the New York Fed SOFR fixing effective on the report date plus 100 basis points, as a constant simple annual rate on Actual/360. Interest accrues only while principal is outstanding and is paid at day 30, with no interim capitalization or fees. Report peak bridge principal and total interest. Carry the complete funding ledger forward and interpret the funding need.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "government_peak_bridge_million",
+            "government_interest_usd"
+          ],
+          "claims": [
+            {
+              "id": "nmfp_bridge_facility_state_preservation_t2_interpretation",
+              "description": "The response explains that positive bridge borrowing reflects the mismatch between withdrawal dates and the stipulated liquidity ladder, not proof of negative final net assets.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "For a separate Prime alternative, apply the same report eligibility and ranking conventions, additionally requiring each candidate’s weighted-average maturity not to exceed the treasury vehicle’s blended maturity. Select three, allocate the same initial asset amount by their net assets, and evaluate the same availability and withdrawal conventions with an unlimited bridge at the carried rate. Report the eligible Prime series count and the alternative’s peak bridge principal and interest. Explain what about the Prime mix drives how much it must draw on the line, and where the maturity screen fits into that picture.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "prime_eligible_count",
+            "prime_peak_bridge_million",
+            "prime_interest_usd"
+          ],
+          "claims": [
+            {
+              "id": "nmfp_bridge_facility_state_preservation_t3_interpretation",
+              "description": "The response attributes the Prime alternative's bridge requirement to the day-1 and day-5 liquid-asset fractions of its selected mix, treating weighted-average maturity as a separate characteristic of the portfolio.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "The bank offers a committed principal limit equal to the treasury vehicle’s peak bridge requirement plus USD250,000. Evaluate this line for the Prime alternative. Whenever its cash and remaining line capacity cannot meet a withdrawal, it may sell the minimum necessary amount of its day-30 assets at a 2-percent discount to par; those assets no longer pay at day 30. Other conventions and the interest rate remain. Report the par amount sold early and Prime cash remaining at day 30 after all withdrawals, principal repayment and interest. Explain how selling assets at a discount changes the Prime outcome once the line is capped, and how that cost differs from what the borrowing costs.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "prime_forced_sale_million",
+            "prime_day30_cash_usd"
+          ],
+          "claims": [
+            {
+              "id": "nmfp_bridge_facility_state_preservation_t4_interpretation",
+              "description": "The response connects forced sales and their haircut loss to the constrained Prime financing outcome, distinguishing the sale cost from bridge interest.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Complete the treasury vehicle’s facility budget using the proposed committed limit. The bank also charges 25 basis points per year on unused principal capacity over days 0 through 30, on Actual/360; the fee is paid at day 30 without interim interest. Report total financing cost including interest and commitment fee, and the maximum nonnegative annual commitment-fee rate consistent with a USD10,000 total financing-cost budget. Use the treasury vehicle’s withdrawal and asset-availability case. Explain how the charge on capacity left untouched differs from what is paid on money actually drawn, and how each bears on the USD10,000 ceiling.",
+          "validator": "validate_turn_5",
+          "stores": [
+            "government_all_in_cost_usd",
+            "government_max_commitment_fee_bp"
+          ],
+          "claims": [
+            {
+              "id": "nmfp_bridge_facility_state_preservation_t5_interpretation",
+              "description": "The response distinguishes the commitment fee charged on unused line capacity from the interest charged on drawn principal when assessing the budget headroom.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Governed frozen data and explicitly stipulated financial contracts.",
+    "facts": [
+      "The response distinguishes the stipulated availability ladder from a forecast of actual fund liquidation proceeds or investor redemption restrictions.",
+      "The response explains that positive bridge borrowing reflects the mismatch between withdrawal dates and the stipulated liquidity ladder, not proof of negative final net assets.",
+      "The response explains that the maturity-screened Prime alternative still requires more bridge funding, illustrating that weighted-average maturity alone does not determine the staged liquidity gap.",
+      "The response connects forced sales and their haircut loss to the constrained Prime financing outcome, distinguishing the sale cost from bridge interest.",
+      "The response interprets the quoted commitment fee as within the treasury vehicle budget while distinguishing unused-capacity fee exposure from drawn-loan interest exposure."
+    ],
+    "known_overclaims": [
+      "Treating a synthetic underwriting or liquidity scenario as observed performance or a guaranteed outcome."
+    ]
+  }
+}

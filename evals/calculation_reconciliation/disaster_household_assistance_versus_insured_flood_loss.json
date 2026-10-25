@@ -1,0 +1,109 @@
+{
+  "name": "disaster_household_assistance_versus_insured_flood_loss",
+  "module": "evals.calculation_reconciliation.disaster_household_assistance_versus_insured_flood_loss",
+  "task_family": "calculation_reconciliation",
+  "data_sources": [
+    "fema_disasters",
+    "fema_nfip"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Take the designated-area rows of federal disaster declarations whose incident began in calendar 2024, reading the incident begin date rather than the declaration date, with incident type Flood, Hurricane or Tropical Storm. Leave out rows whose county code ends in 000: they name tribal or statewide areas, several of which can share one code within a state. Report how many rows remain, how many distinct disasters and distinct counties they cover, and how many rows are major disaster declarations rather than emergencies. Explain what a single designated-area row records, and why the row count and the county count answer different questions.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "designation_row_count",
+            "disaster_count",
+            "designated_county_count",
+            "major_declaration_row_count"
+          ],
+          "claims": [
+            {
+              "id": "designation_is_county_by_disaster",
+              "mode": "required",
+              "description": "The response treats a designated-area row as one county under one disaster rather than as a disaster or a county on its own, and says a county can appear under several declarations in the same year."
+            }
+          ]
+        },
+        {
+          "query": "Take the county as the unit and restrict county-level work to the major disaster declarations, a county carrying a programme when any of its designations in the window does. Report how many designated-area rows across the whole window carry the individuals and households programme, how many counties carry it, how many carry public assistance without it, and how many counties are designated under more than one of these major disaster declarations. Explain what it means for a county to sit inside a declaration and outside the household programme.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "ihp_declared_row_count",
+            "ihp_county_count",
+            "public_assistance_only_county_count",
+            "multiply_designated_county_count"
+          ],
+          "claims": [
+            {
+              "id": "two_programmes_two_recipients",
+              "mode": "required",
+              "description": "The response separates aid that funds a government from aid that reaches a household, and reads a county carrying public assistance alone as one whose declaration pays to repair public property while leaving households to other sources."
+            }
+          ]
+        },
+        {
+          "query": "Bring in the flood insurance claims. Take claim records with a date of loss in calendar 2024 whose reported county code is a five-digit string not ending in 000, and value each at its signed net building, contents and increased-cost-of-compliance payments added together. Report how many claim records that leaves, their net paid amount, how many counties appear both in that claim set and among the counties designated under a major declaration, and how many of those counties carry the household programme. Explain what recommends the net columns over the gross ones for a total of this kind, and what a negative payment on a claim record would represent.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "claim_record_count",
+            "claim_net_paid_mn",
+            "matched_county_count",
+            "matched_ihp_county_count"
+          ],
+          "claims": [
+            {
+              "id": "net_columns_and_negative_payments",
+              "mode": "required",
+              "description": "The response gives a reason for adding the net rather than the gross amounts, such as their completeness on these records, and reads a negative payment as a reported outcome on a claim rather than as a defect to filter out."
+            }
+          ]
+        },
+        {
+          "query": "Compare the two footprints. Report the net paid amount in the designated counties carrying the household programme, the net paid amount in the designated counties without it, how many counties pay claims without appearing among the counties designated under a major declaration, and the net paid amount in those. Explain what the county counts and the money each say about where insured flood loss sits relative to the declaration system, and what the two programmes are each meant to do.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "ihp_county_paid_mn",
+            "non_ihp_county_paid_mn",
+            "undeclared_county_count",
+            "undeclared_county_paid_mn"
+          ],
+          "claims": [
+            {
+              "id": "counts_and_money_disagree",
+              "mode": "required",
+              "description": "The response reads the county counts and the paid amounts as pointing in different directions, and states that flood insurance pays a policyholder under a contract while household assistance is a grant for needs insurance left unmet."
+            },
+            {
+              "id": "no_unmet_need_measured",
+              "mode": "conditional",
+              "description": "If the response calls a county with a large paid loss and no household designation a gap in the disaster response, it states that the two programmes are triggered by different rules and that neither figure here measures unmet need."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen FEMA disaster declaration designated-area rows and frozen NFIP claim records with a 2024 date of loss. The county-level programme flags, the claim aggregation and the comparison of the two footprints are analytic constructions rather than published FEMA statistics.",
+    "facts": [
+      "1,625 designated-area rows carry a 2024 incident begin date under Flood, Hurricane or Tropical Storm and name a county rather than a tribal or statewide area, belonging to 49 disasters and naming 877 counties; 812 of the rows are major disaster declarations and the remaining 813 are emergency declarations. A row is one county under one disaster, so the same county recurs across disasters and the two counts answer different questions. Keeping the 21 rows whose county code ends in 000 would give 1,646 rows and 883 counties while collapsing distinct tribal areas onto six state-level codes. Reading the window from the declaration date instead would give 1,642 rows, and admitting Severe Storm would give 2,116.",
+      "368 rows carry the individuals and households programme and all of them are major disaster declarations: not one of the 813 emergency rows authorises it. At county level 319 carry the programme, 311 carry public assistance without it, and 149 counties are designated under more than one of these major declarations. The field named individual_assistance_declared is false on every one of the 19,167 rows in the extract and is not the household flag.",
+      "102,009 claim records survive the county-code filter, paying 8798.2578 USD millions net; 382 counties appear both there and among the 630 designated under a major declaration, and 260 of those carry the household programme. The gross payment columns are absent on 5,029 of these records while the net columns are complete, and gross would give 8801.1170; dropping the compliance component would give 8787.3735. 27 records carry a negative net payment and 16,444 a zero, both reported outcomes on a claim.",
+      "The designated counties carrying the household programme paid 8390.4851 USD millions, those without it 160.7216, and the 811 counties paying claims outside any major declaration paid 247.0510. By county the insured loss is mostly outside the declaration system; by money almost none of it is. The two are not substitutes: insurance pays a policyholder under a contract, while household assistance is a grant of last resort for needs insurance did not meet, so a large paid loss without a household designation is what the two rules produce."
+    ],
+    "known_overclaims": [
+      "Screening on the field named individual_assistance_declared, which is false on every row of this extract, in place of the individuals and households programme flag.",
+      "Counting designations without separating major disaster from emergency declarations, which puts counties in the population that cannot receive the programme being measured.",
+      "Treating a county with a large paid flood loss and no household designation as a failure of the disaster response, when insurance and household assistance are triggered by different rules.",
+      "Reading the county counts and the paid amounts as telling the same story about where insured loss sits.",
+      "Adding the gross payment columns, which are absent on a material share of these records where the net columns are complete.",
+      "Filtering out negative or zero net payments, which are reported outcomes on a claim rather than defects.",
+      "Counting a tribal or statewide designation as a county, which both inflates the population and merges distinct tribal areas that share one state-level code."
+    ]
+  }
+}

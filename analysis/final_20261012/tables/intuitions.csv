@@ -1,0 +1,17 @@
+intuition,contrast,value_a,value_b_or_n
+steps,raw 30+ vs <10,0.123377,0.84156
+steps,within-task above vs at/below median,0.819969,0.84195
+n_outputs,1,0.810777,798
+n_outputs,2,0.778254,6300
+n_outputs,3,0.768138,8022
+n_outputs,4,0.82155,8232
+n_outputs,5,0.892045,3696
+n_outputs,6,0.866174,2436
+n_outputs,7,0.86569,6552
+tables,within-case all-used minus some-ignored,0.115765,43
+cue:assumption,raw no-cue minus cue,0.064478,7010
+cue:assumption,within-task no-cue minus cue,0.021157,472
+cue:verified,raw no-cue minus cue,0.043608,5082
+cue:verified,within-task no-cue minus cue,0.013985,522
+cue:uncertain,raw no-cue minus cue,0.015878,2207
+cue:uncertain,within-task no-cue minus cue,0.014167,298

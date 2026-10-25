@@ -1,0 +1,131 @@
+{
+  "name": "bank_year_to_date_flow_derivation",
+  "module": "evals.calculation_reconciliation.bank_year_to_date_flow_derivation",
+  "task_family": "calculation_reconciliation",
+  "data_sources": [
+    "fdic_bankfind",
+    "fdic_sod",
+    "ffiec_call_reports_capital"
+  ],
+  "case_type": "baseline",
+  "difficulty": "hard",
+  "judge_reference": {
+    "source": "FDIC institution financial reports, the FDIC Summary of Deposits branch file used to map certificates to RSSD identifiers, and the FFIEC Call Report capital schedule.",
+    "facts": [
+      "Regulatory bank income statements accumulate within a calendar year and reset at its start, so a figure dated 2024-09-30 covers nine months and a quarter is obtained by subtracting the previous quarter's cumulative figure.",
+      "Across the 163 banks holding more than 10 billion USD at 2024-09-30, the panel's cumulative net interest income divided by its own quarterly income is 1.0000, 2.0047, 2.9517 and 3.9125 at the four 2024 dates, a little under the quarter number because later quarters were larger.",
+      "At the report date the panel reports 435.8897 billion USD cumulative against 147.6760 billion earned in the quarter, and JPMORGAN CHASE BANK NA reports 71.1180 against 24.1350, a multiple of 2.9467.",
+      "A ratio of a flow to a stock inherits the period: net income over assets has a median of 0.7334 percent from the cumulative figure against 0.9779 percent annualized, exactly 0.7500 of it, which is the annualization factor and nothing else.",
+      "Bridging to reported risk-weighted assets leaves 158 banks whose risk-weighted assets are a median 0.7320 of total assets, so the same annualized income returns a median 1.3918 percent against them, 0.4139 points above those banks' return on assets.",
+      "A ratio of one flow to another carries no annualization because the factor cancels above and below, so the efficiency ratio needs none.",
+      "It is still not the same number: on the 156 banks with a positive revenue base on both readings the cumulative efficiency ratio has a median of 58.9811 percent against 57.8794 from the quarter alone, a median absolute gap of 1.7819 points, with 25 differing by more than 5.",
+      "The cumulative reading is a year-to-date average across quarters whose revenue mix differs, not a stale copy of the latest quarter."
+    ],
+    "known_overclaims": [
+      "Reading a cumulative income figure as the income of the quarter it is dated.",
+      "Annualizing a third-quarter cumulative figure by four rather than by four thirds.",
+      "Presenting a return on risk-weighted assets as comparable to a return on total assets without noting the denominator differs.",
+      "Treating the efficiency ratio as unaffected by the reporting convention, when it answers a year-to-date question rather than a quarterly one."
+    ]
+  },
+  "conversations": [
+    {
+      "turns": [
+        {
+          "query": "Bank income statements in the FDIC financial file accumulate within a calendar year. Build a panel from the banks whose total assets exceed 10 billion USD at the 2024-09-30 report date, and follow those same banks through all four 2024 report dates. Report how many banks the panel holds. For each bank and date derive the quarterly figure by subtracting the previous report date's cumulative figure within the same year, treating the first date as needing no subtraction. Define net interest income as total interest income minus total interest expense. At each of the four dates divide the panel's summed cumulative net interest income by its summed quarterly net interest income and report the four multiples. Then report the panel's cumulative net interest income at the 2024-09-30 report date in USD billions. Briefly interpret what the four multiples show about the cumulative reporting convention.",
+          "validator": "validate_cumulative_structure",
+          "stores": [
+            "panel_banks",
+            "first_quarter_multiple",
+            "second_quarter_multiple",
+            "third_quarter_multiple",
+            "fourth_quarter_multiple",
+            "cumulative_income_usd_billions"
+          ],
+          "claims": [
+            {
+              "id": "cumulative_multiple_interpretation",
+              "description": "The response explains that cumulative-to-quarter multiples rise across the year because each cumulative observation contains all quarters elapsed, while departures from exact integer multiples reflect uneven income across quarters.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "At 2024-09-30 report the panel's standalone-quarter net interest income in USD billions. Select its largest bank by assets, lower FDIC certificate on ties; report its name verbatim from FDIC financials, cumulative and quarterly net interest income in USD billions, and their ratio. Interpret the difference between year-to-date and standalone-quarter amounts.",
+          "validator": "validate_quarter_derivation",
+          "stores": [
+            "quarter_income_usd_billions",
+            "leader_name",
+            "leader_cumulative_usd_billions",
+            "leader_quarter_usd_billions",
+            "leader_multiple"
+          ],
+          "claims": [
+            {
+              "id": "cumulative_quarter_scope",
+              "description": "The response distinguishes the first-nine-month cumulative amount from income earned in the third quarter alone.",
+              "mode": "required"
+            },
+            {
+              "id": "period_measure_interchange_boundary",
+              "description": "If the response compares the two figures, it treats them as different period measures rather than interchangeable ones.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "At 2024-09-30, report the median bank-level net-income/assets ratio using reported year-to-date income, then using income multiplied by 4/3; report the first median divided by the second. Match each panel bank's FDIC certificate to RSSD through Summary of Deposits, choosing the RSSD on most branch records (lower ID on ties), then to same-date FFIEC capital. Among banks with positive standardized risk-weighted assets, report the count, median risk-weighted-assets/assets ratio and median annualized net-income/risk-weighted-assets return. Express returns in percent and use linear interpolation for medians. Interpret the period and denominator differences.",
+          "validator": "validate_flow_to_stock",
+          "stores": [
+            "median_return_from_cumulative",
+            "median_return_annualized",
+            "annualization_ratio",
+            "bridged_banks",
+            "median_risk_weight_share",
+            "median_return_on_risk_weighted"
+          ],
+          "claims": [
+            {
+              "id": "period_inheritance",
+              "description": "The response explains that a ratio of a flow to a stock carries the period of the flow, so the unannualized figure is a nine-month return rather than an annual one.",
+              "mode": "required"
+            },
+            {
+              "id": "denominator_scope",
+              "description": "The response explains that returns on total assets and standardized risk-weighted assets use different denominators and therefore are not interchangeable measures of capital performance.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Finally test a ratio with a flow underneath it. Define revenue as net interest income plus total noninterest income, and the efficiency ratio as total noninterest expense divided by revenue, in percent. At the same date compute it two ways for each panel bank, once from cumulative figures and once from the derived quarterly figures, keeping only banks whose revenue is positive on both readings. Report how many banks remain, the median of each ratio, the median absolute difference between the two in percentage points, and how many banks differ by more than 5 percentage points. Take every median and percentile asked for here with linear interpolation. Explain why annualization and period aggregation affect this flow-to-flow ratio differently.",
+          "validator": "validate_flow_to_flow",
+          "stores": [
+            "efficiency_panel",
+            "median_efficiency_from_cumulative",
+            "median_efficiency_from_quarter",
+            "median_efficiency_gap",
+            "banks_gap_above_five"
+          ],
+          "claims": [
+            {
+              "id": "annualization_cancellation",
+              "description": "The response explains that applying the same annualization factor to both flows leaves their ratio unchanged because the factor cancels.",
+              "mode": "required"
+            },
+            {
+              "id": "different_question",
+              "description": "The response states that the cumulative reading is a year-to-date average over quarters whose revenue mix differs, so the two figures answer different questions rather than one being an error.",
+              "mode": "required"
+            },
+            {
+              "id": "instability",
+              "description": "If the response examines the widest gaps, it notes that the ratio becomes unstable where a bank's quarterly revenue base is small.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

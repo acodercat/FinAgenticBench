@@ -1,0 +1,42 @@
+{
+ "added": [
+  [
+   "pension_discount_rate_remeasurement",
+   3,
+   "median_implied_duration_years"
+  ],
+  [
+   "pension_discount_rate_remeasurement",
+   4,
+   "median_start_funded_ratio"
+  ],
+  [
+   "pension_discount_rate_remeasurement",
+   4,
+   "negative_return_improved_count"
+  ]
+ ],
+ "gone": [
+  [
+   "bank_year_to_date_flow_derivation",
+   1,
+   "cumulative_income_usd_billions"
+  ],
+  [
+   "bis_currency_credit_cointegration_branch",
+   4,
+   "no_change_benchmark_rmse_log_points"
+  ],
+  [
+   "nfip_compound_poisson_stoploss_capacity",
+   1,
+   "severity_second_moment_million"
+  ],
+  [
+   "pension_discount_rate_remeasurement",
+   2,
+   "tracking_count"
+  ]
+ ],
+ "changed": []
+}

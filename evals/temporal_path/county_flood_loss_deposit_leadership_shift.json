@@ -1,0 +1,101 @@
+{
+  "name": "county_flood_loss_deposit_leadership_shift",
+  "module": "evals.temporal_path.county_flood_loss_deposit_leadership_shift",
+  "task_family": "temporal_path",
+  "data_sources": ["fema_nfip", "fdic_sod", "fema_disasters"],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [{
+    "id": "main",
+    "turns": [
+      {
+        "query": "Screen NFIP claim records with a date of loss from 2019 through 2024 at county-year grain. Keep records whose reported county code is a five-digit string that does not end in 000. For each loss year and county, sum the signed net building, contents and ICC payments (missing components contribute nothing), count claim records, and sum the represented policy count. Rank county-years by net payment descending, breaking ties by county code then year ascending. Report the county-year count; the leader's county FIPS, state, loss year, net payment, record count and represented policy count; the runner-up's county FIPS and loss year; and the leader margin. Explain what a claim-record aggregate does and does not measure about the county.",
+        "validator": "validate_county_year_screen",
+        "stores": ["county_year_count", "leader_county_fips", "leader_state_usps", "leader_loss_year", "leader_net_payment_usd_millions", "leader_claim_record_count", "leader_represented_policy_count", "runner_up_county_fips", "runner_up_loss_year", "leader_margin_usd_millions"],
+        "claims": [
+          {
+            "id": "county_year_leader_result",
+            "description": "The response identifies the leading county-year and notes that its margin over the runner-up is small relative to the leading amount, so the ranking is sensitive to the payment definition.",
+            "mode": "required"
+          },
+          {
+            "id": "claim_record_grain_boundary",
+            "description": "The response explains that a claim record can represent more than one policy and that signed net payments are the insurer's paid amount after recoveries, not the county's total flood damage.",
+            "mode": "required"
+          }
+        ]
+      },
+      {
+        "query": "For the leading county, take the Summary of Deposits snapshots dated June 30 of the loss year (pre-event) and June 30 of the following year (post-event). Aggregate branch deposits by FDIC certificate at each snapshot, ranking descending with certificate ascending as tie-break. Report both snapshot dates; the bank count and total county branch deposits at each; the leader's certificate, SOD bank name and share of county deposits at each; the pre-event leader's county deposits at the post-event snapshot minus its pre-event county deposits; and the change in total county deposits. Explain what the snapshot timing does and does not establish about the event.",
+        "validator": "validate_deposit_leadership_shift",
+        "stores": ["pre_event_snapshot_date", "post_event_snapshot_date", "pre_event_bank_count", "post_event_bank_count", "pre_event_county_deposits_usd_billions", "post_event_county_deposits_usd_billions", "pre_event_leader_certificate", "pre_event_leader_name", "pre_event_leader_share_pct", "post_event_leader_certificate", "post_event_leader_name", "post_event_leader_share_pct", "pre_event_leader_deposit_change_usd_millions", "county_deposit_change_usd_millions"],
+        "claims": [
+          {
+            "id": "leadership_shift_result",
+            "description": "The response recognizes from the two snapshots that the county deposit leader changed between the pre-event and post-event dates while total county deposits declined.",
+            "mode": "required"
+          },
+          {
+            "id": "snapshot_causality_boundary",
+            "description": "The response explains that two annual snapshots bracket the event but do not isolate it: branch reassignments, acquisitions and unrelated deposit flows also move the June 30 totals, so the shift is not attributed to the flood.",
+            "mode": "required"
+          },
+          {
+            "id": "sod_allocation_boundary",
+            "description": "If the response describes county deposits as money held by county residents, it qualifies that SOD allocates deposits to reported branch locations rather than to depositor residence.",
+            "mode": "conditional"
+          }
+        ]
+      },
+      {
+        "query": "Using FEMA declared-area rows for the leading county whose incident began in the loss year, report the row count, the counts with declaration type DR and EM, and for the earliest-declared DR row (ties by disaster number ascending) the disaster number, declaration date, incident begin date, incident type, and calendar days from incident begin to declaration. Explain how these declaration records relate to the NFIP claims.",
+        "validator": "validate_declaration_lineage",
+        "stores": ["declaration_count", "major_disaster_declaration_count", "emergency_declaration_count", "earliest_major_disaster_number", "earliest_major_disaster_declaration_date", "earliest_major_disaster_incident_begin_date", "earliest_major_disaster_incident_type", "days_from_incident_begin_to_declaration"],
+        "claims": [
+          {
+            "id": "declaration_lineage_result",
+            "description": "The response identifies the earliest major-disaster declaration covering the county and its lag from the incident begin date, and distinguishes it from the emergency declaration issued for the same incident.",
+            "mode": "required"
+          },
+          {
+            "id": "declaration_claim_independence_boundary",
+            "description": "The response explains that FEMA declarations and NFIP claims are separate administrative records with independent populations: declarations are administrative designations, while claims are reported loss records.",
+            "mode": "required"
+          }
+        ]
+      },
+      {
+        "query": "Test the turn-1 ranking. Re-rank county-years by gross building payments instead of signed net payments and report the leading county FIPS, its loss year and its margin over the runner-up. Report the turn-1 leader's rank when county-years are ranked by claim record count. Finally report the turn-1 leader's net payment divided by the pre-event total county branch deposits from turn 2, in percent. Explain what this ratio is and is not.",
+        "validator": "validate_ranking_sensitivity",
+        "stores": ["gross_building_leader_county_fips", "gross_building_leader_loss_year", "gross_building_leader_margin_usd_millions", "claim_record_rank_of_leader", "net_payment_to_pre_event_deposits_pct"],
+        "claims": [
+          {
+            "id": "ranking_robustness_result",
+            "description": "The response concludes that the leader survives the gross-building and record-count re-rankings, while the margin changes materially between payment definitions.",
+            "mode": "required"
+          },
+          {
+            "id": "payment_deposit_ratio_boundary",
+            "description": "The response explains that net payments over county branch deposits is a scale comparison across two unrelated populations, not a loss rate, an exposure measure, or a bank-level impact.",
+            "mode": "required"
+          }
+        ]
+      }
+    ]
+  }],
+  "judge_reference": {
+    "source": "OpenFEMA NFIP claims (loss years 2019-2024), FDIC Summary of Deposits annual snapshots 2019-2025, and OpenFEMA disaster declarations at declared-area grain",
+    "facts": [
+      "7,170 county-years carry claim records. Lee County, FL (12071) in loss year 2022 leads with 3,391.645328 million USD of signed net payments over 28,889 records representing 54,906 policies; Pinellas County, FL (12103) in 2024 is the runner-up, 14.684433 million USD behind.",
+      "At the 2022-06-30 snapshot 32 banks held 23.119311 billion USD of Lee County branch deposits, led by Bank of America, N.A. (certificate 3510, 15.6371 percent); at 2023-06-30, 34 banks held 22.949618 billion USD, led by Wells Fargo Bank, N.A. (certificate 3511, 15.3425 percent). Bank of America's county deposits fell 250.844 million USD and the county total fell 169.693 million USD.",
+      "Four declared-area rows cover Lee County for incidents beginning in 2022: two DR and two EM. The earliest DR is 4673, declared 2022-09-29 for a Hurricane incident that began 2022-09-23, six days later.",
+      "Ranking by gross building payments keeps Lee County 2022 as leader with a 113.620756 million USD margin; by claim record count the leader still ranks first. Net payments equal 14.6702 percent of pre-event county branch deposits."
+    ],
+    "known_overclaims": [
+      "Attributing the change in county deposit leadership to the flood.",
+      "Treating claim records as policies or net payments as total damage.",
+      "Reading net payments over branch deposits as a loss rate or bank exposure.",
+      "Treating the emergency declaration as the major-disaster declaration."
+    ]
+  }
+}

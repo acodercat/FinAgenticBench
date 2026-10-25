@@ -1,0 +1,101 @@
+{
+  "name": "tips_reference_cpi_lag_inflation_recovery",
+  "module": "evals.temporal_path.tips_reference_cpi_lag_inflation_recovery",
+  "task_family": "temporal_path",
+  "data_sources": [
+    "treasury_auctions",
+    "philadelphia_fed_rtdsm"
+  ],
+  "case_type": "trap",
+  "difficulty": "hard",
+  "judge_reference": {
+    "source": "Frozen Treasury auction records for inflation-protected securities through 2025 and the Philadelphia Fed real-time data set. Index levels are solved from published reference CPIs; the 12-month and compounded rates are analytic constructions.",
+    "facts": [
+      "The reference CPI for the first day of a month is the CPI-U, not seasonally adjusted, for the third preceding month, and moves linearly toward the second preceding month's index over the month. The two reference values dated 2025-10-15 and 2025-10-31 solve to a July 2025 index of 323.048 and an August 2025 index of 323.976; October 2024 gives July 2024 as 314.540, so the 12-month rate to July 2025 is 2.70 percent. Reading a reference value dated in July 2025 as the July index gives 321.098 or 321.443 and a 12-month rate of 2.33 or 2.35 percent.",
+      "Compounding the real-time data set's twelve seasonally adjusted annualized monthly changes from August 2024 through July 2025 gives 2.7426 percent from the most recent values and 2.7688 from the first releases; all twelve monthly figures were revised after first release. Seasonal factors are re-estimated and adjusted figures revised, while the unadjusted index is final when published, which is why inflation-protected securities are indexed to the unadjusted series.",
+      "A single reference value ties two neighbouring monthly indexes. With August 2025 at 323.976 from the October 2025 pair, the 2025-11-28 value gives September 2025 as 324.800, and the 2024-12-31 value with October 2024 from the January 2025 pair gives September 2024 as 315.301, so the 12-month rate to September 2025 is 3.01 percent.",
+      "No October 2025 index was published. The 2025-12-31 reference value implies 325.604, which equals the September 2025 index grown for one month at its 12-month rate, 324.800 times the twelfth root of 324.800 over 315.301: the substitute Treasury's rules use when a month's index is not published."
+    ]
+  },
+  "conversations": [
+    {
+      "turns": [
+        {
+          "query": "The Treasury auction records give a reference CPI for each inflation-protected security. Using those records, report the CPI-U index level, not seasonally adjusted, for July 2025 and the 12-month inflation rate to July 2025. Explain how you obtained the index level from the records.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "july_2025_index_level",
+            "july_2025_twelve_month_pct"
+          ],
+          "claims": [
+            {
+              "id": "reference_cpi_lag",
+              "mode": "required",
+              "description": "Explains that the reference CPI for the first day of a month is the index for the third preceding month and moves linearly toward the second preceding month's index over the month, so the July 2025 index is found in reference values dated two to three months later rather than in July."
+            },
+            {
+              "id": "two_dates_solve_two_months",
+              "mode": "optional",
+              "description": "Notes that two reference values dated in the same month can be solved for the two monthly indexes they interpolate between."
+            }
+          ]
+        },
+        {
+          "query": "The Philadelphia Fed real-time data set carries the CPI seasonally adjusted, as annualized monthly changes. Compound its twelve changes from August 2024 through July 2025 into a 12-month rate, converting each to a monthly factor by the twelfth root of one plus the rate, once from the most recent values and once from the first releases. Report both rates and how many of the twelve monthly figures changed after first release. Explain how they compare with the previous turn's rate and why inflation-protected securities are indexed as they are.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "adjusted_most_recent_twelve_month_pct",
+            "adjusted_first_release_twelve_month_pct",
+            "revised_month_count"
+          ],
+          "claims": [
+            {
+              "id": "adjusted_series_is_revised",
+              "mode": "required",
+              "description": "Explains that seasonally adjusted figures are revised as seasonal factors are re-estimated while the unadjusted index is final when published, which is why inflation-protected securities are indexed to the unadjusted index."
+            },
+            {
+              "id": "adjusted_rate_differs",
+              "mode": "optional",
+              "description": "Notes that the compounded seasonally adjusted rate does not exactly equal the unadjusted 12-month rate."
+            }
+          ]
+        },
+        {
+          "query": "Return to the auction records. Report the index level for September 2025 and the 12-month inflation rate to September 2025 on the same basis as the first turn. Explain how you reached each month's level.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "september_2025_index_level",
+            "september_2025_twelve_month_pct"
+          ],
+          "claims": [
+            {
+              "id": "single_value_chains_months",
+              "mode": "required",
+              "description": "Explains that a single reference value ties two neighbouring monthly indexes, so once one of them is known the other follows, and uses such a step to reach a month no pair of same-month values covers."
+            }
+          ]
+        },
+        {
+          "query": "The Bureau of Labor Statistics published no CPI for October 2025. Report the October 2025 index level the auction records imply. Explain where that value comes from.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "october_2025_index_level"
+          ],
+          "claims": [
+            {
+              "id": "missing_index_substitute",
+              "mode": "required",
+              "description": "Explains that the value is not a measured index but a substitute: the September 2025 index grown for one month at its 12-month rate, that is September 2025 times the twelfth root of September 2025 over September 2024."
+            },
+            {
+              "id": "substitute_carried_into_accruals",
+              "mode": "optional",
+              "description": "Notes that inflation accruals on the securities over the affected days rest on this substitute rather than on a published index."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+study,model,mode,tier,task_accuracy,ci_lo,ci_hi,all_three,at_least_one,turn_accuracy,mean_tokens_per_case,mean_steps_per_case
+deepseek-v4-pro-0813-thinking-20261006,DeepSeek V4 Pro,T,strong,0.840376,0.805947,0.873239,141,208,0.932789,444041,22.1
+gemini-3.8-flash-thinking-20261007,Gemini 3.8 Flash,T,strong,0.832551,0.785603,0.876369,164,189,0.940559,999413,41.8
+gpt-6-luna-thinking-20261006,GPT-6 Luna,T,strong,0.821596,0.782473,0.85759,135,199,0.909868,128902,15.2
+claude-sonnet-5-thinking-20261007,Claude Sonnet 5.5,T,strong,0.798122,0.752739,0.838811,141,194,0.893939,304050,26.5
+claude-sonnet-5-nonthinking-20261007,Claude Sonnet 5.5,N,mid,0.72144,0.672926,0.769953,119,186,0.854312,375454,29.9
+qwen3.8-flash-thinking-20261006,Qwen3.8 Flash,T,mid,0.70892,0.661972,0.752739,100,193,0.862082,880146,32.5
+glm-5.3-thinking-high-20261007,GLM-5.3,T,mid,0.701095,0.654147,0.748044,101,195,0.850427,160885,17.5
+deepseek-v4-flash-thinking-20261006,DeepSeek V4 Flash,T,mid,0.627543,0.577465,0.676056,87,178,0.803807,192082,23.3
+qwen3.8-27b-thinking-20261008,Qwen3.8-27B,T,mid,0.622848,0.56964,0.674491,91,172,0.799145,400449,22.5
+deepseek-v4-pro-0813-nonthinking-20261006,DeepSeek V4 Pro,N,weak,0.591549,0.536776,0.647887,89,161,0.777001,247031,24.4
+deepseek-v4-flash-nonthinking-20261006,DeepSeek V4 Flash,N,weak,0.588419,0.535211,0.640063,84,161,0.76418,520492,30.8
+gpt-6-luna-nonthinking-20261006,GPT-6 Luna,N,weak,0.588419,0.536776,0.636933,81,167,0.763403,103722,16.5
+qwen3.8-27b-nonthinking-20261008,Qwen3.8-27B,N,weak,0.478873,0.422535,0.535211,66,136,0.658508,509507,31.3
+qwen3.8-flash-nonthinking-20261006,Qwen3.8 Flash,N,weak,0.475743,0.422535,0.530516,53,143,0.671717,1022326,44.7

@@ -1,0 +1,67 @@
+{
+  "name": "walmart_fy2025_revenue",
+  "module": "evals.retrieval.walmart_fy2025_revenue",
+  "task_family": "retrieval",
+  "data_sources": [
+    "sec_companyfacts",
+    "sec_submissions"
+  ],
+  "difficulty": "easy",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "From the SEC submissions table, select Walmart's original, non-amended Form 10-K filed on 2025-03-14. Require exactly one match and report its accession, report-date fiscal period end, and acceptance timestamp. Explain what the filing's fiscal-2025 label refers to and how it relates to the calendar year.",
+          "validator": "validate_filing_selection",
+          "stores": [
+            "filing_accession",
+            "fiscal_period_end",
+            "acceptance_datetime"
+          ],
+          "claims": [
+            {
+              "id": "filing_and_fiscal_year_boundary",
+              "description": "The response states that it selected the unique original, non-amended filing and that fiscal 2025 is anchored to the filing's report date rather than calendar-year end.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Using the accession and fiscal period end from turn 1, select Walmart's single USD total-revenues fact for fiscal period FY in CompanyFacts. Report the fact's start date and value in USD billions. Explain what kind of measure this value is, over what period it applies, and what it should not be read as.",
+          "validator": "validate_annual_revenue",
+          "stores": [
+            "revenue_period_start",
+            "revenue_usd_billions"
+          ],
+          "claims": [
+            {
+              "id": "annual_revenue_scope",
+              "description": "The response identifies the value as annual total revenues from the turn-1 filing over the reported start and end dates.",
+              "mode": "required"
+            },
+            {
+              "id": "revenue_measure_boundary",
+              "description": "The response states that revenue is a duration flow and is not a period-end balance, profit, cash receipts or calendar-2025-only revenue.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "https://www.sec.gov/Archives/edgar/data/104169/000010416925000021/wmt-20250131.htm",
+    "facts": [
+      "The submissions table contains exactly one original non-amended Walmart 10-K filed on 2025-03-14: accession 0000104169-25-000021, report date 2025-01-31, accepted 2025-03-14T20:40:52.",
+      "That filing carries a single FY USD total-revenues fact of 680.985 billion USD for 2024-02-01 through 2025-01-31.",
+      "Walmart's fiscal-year label is not a calendar-year end; the period ended 2025-01-31.",
+      "Revenue is an annual duration flow and is not a period-end balance, profit, or cash receipts."
+    ],
+    "known_overclaims": [
+      "Treating fiscal 2025 as the twelve months ended 2025-12-31.",
+      "Describing revenue as earnings, profit or cash generated."
+    ]
+  }
+}

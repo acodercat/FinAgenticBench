@@ -1,0 +1,56 @@
+{
+  "name": "bank_sold_asset_recourse_cap_path",
+  "module": "evals.scenario_analysis.bank_sold_asset_recourse_cap_path",
+  "task_family": "scenario_analysis",
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "data_sources": ["ffiec_call_reports_recourse", "fdic_bankfind"],
+  "conversations": [{
+    "id": "main",
+    "turns": [
+      {
+        "query": "In the retrospective September 30, 2025 FFIEC 031 consolidated RC-S and same-date FDIC filings, keep banks with positive sold principal and remaining contractual exposure in both the 1–4 family residential and all-other columns, plus positive FDIC cash and equity. Rank combined exposure over cash, descending, breaking ties by RSSD ascending. Report the cohort count, leading RSSD and ratio. Interpret what the ratio screens.",
+        "validator": "validate_turn_1",
+        "stores": ["rcs_bank_count", "rcs_selected_rssd", "rcs_exposure_cash_pct"],
+        "claims": [
+          {"id": "rcs_t1_exposure_screen", "mode": "required", "description": "The response identifies the numerator as remaining contractual credit exposure and treats the ratio as a contingent exposure-to-cash screen rather than a realized loss rate."}
+        ]
+      },
+      {
+        "query": "For that bank, report sold unpaid principal and remaining maximum contractual exposure separately for the two columns. Explain how the two measures differ economically.",
+        "validator": "validate_turn_2",
+        "stores": ["rcs_residential_face_m", "rcs_other_face_m", "rcs_residential_cap_m", "rcs_other_cap_m"],
+        "claims": [
+          {"id": "rcs_t2_sold_face", "mode": "required", "description": "The response distinguishes unpaid principal of assets already sold from a current bank loan asset."},
+          {"id": "rcs_t2_max_not_loss", "mode": "required", "description": "The response distinguishes remaining maximum contractual recourse exposure from expected or realized loss."}
+        ]
+      },
+      {
+        "query": "Now assume a 10% unpaid-principal loss in each sold pool and a payment equal to the lesser of that pool's loss and its own remaining contractual exposure. Assume no prior recourse liability, tax, recovery or other change. Report total payment and ending FDIC cash and book equity. Explain the financial effect.",
+        "validator": "validate_turn_3",
+        "stores": ["rcs_ten_pct_payment_m", "rcs_ten_pct_cash_m", "rcs_ten_pct_equity_m"],
+        "claims": [
+          {"id": "rcs_t3_paid_claim", "mode": "required", "description": "The response explains that a stipulated paid recourse claim reduces bank cash and book equity under the stated no-prior-liability assumption."}
+        ]
+      },
+      {
+        "query": "Recompute the same counterfactual from the original filing balances, holding the residential loss at 10% but raising the all-other loss to 40%. Keep each pool's own cap and all other assumptions. Report revised total payment, ending cash and book equity. Explain how the binding cap changes.",
+        "validator": "validate_turn_4",
+        "stores": ["rcs_forty_pct_payment_m", "rcs_forty_pct_cash_m", "rcs_forty_pct_equity_m"],
+        "claims": [
+          {"id": "rcs_t4_cap_switch", "mode": "required", "description": "The response identifies that the all-other pool's contractual cap binds in the revised stress while the residential cap remains binding."},
+          {"id": "rcs_t4_counterfactual", "mode": "conditional", "description": "If the response treats the computed payment as a real forecast or historical payment, it states that the loss rates and payment rule are hypothetical rather than observed contractual outcomes."}
+        ]
+      }
+    ]
+  }],
+  "judge_reference": {
+    "source": "Frozen September 2025 FFIEC 031 consolidated RC-S items 11–12 with same-archive POR certificate bridge, joined to FDIC BankFind 2025-09-30 cash and equity. The payment rule is stipulated, not a reported loss forecast.",
+    "facts": [
+      "Item 11 is unpaid principal on assets sold with recourse but not securitized by the reporting bank; item 12 is maximum remaining contractual exposure, not expected loss.",
+      "The selected bank is RSSD 280110. In the 10% loss case, residential exposure caps payment; at 40% all-other loss, that pool's cap also binds.",
+      "Paid recourse under the no-prior-liability assumption reduces cash and book equity. Each scenario starts from opening balances."
+    ],
+    "known_overclaims": ["Treating sold principal as on-balance-sheet loans or a certain loss; presenting the hypothetical payment rule as actual contract terms."]
+  }
+}

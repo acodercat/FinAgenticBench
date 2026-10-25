@@ -1,0 +1,126 @@
+{
+  "name": "industry_rate_beta_regime_reversal",
+  "module": "evals.comparison_ranking.industry_rate_beta_regime_reversal",
+  "task_family": "comparison_ranking",
+  "data_sources": [
+    "ken_french_10_industry_portfolios",
+    "treasury_yield_curve",
+    "ken_french_daily_factors"
+  ],
+  "case_type": "baseline",
+  "difficulty": "hard",
+  "judge_reference": {
+    "source": "Frozen daily industry portfolio returns and market factors with the frozen Treasury constant-maturity curve.",
+    "facts": [
+      "All three sources report on 1,746 days once the yield change is taken, from 2019-01-03 to 2025-12-31.",
+      "The yearly correlation between the total market return and the negated ten-year yield change runs -0.5301, -0.4693, -0.1072, 0.1798, 0.0668, 0.0665 and -0.1396, so the first positive year is 2022. It is -0.3864 across the 750 earlier days and 0.0731 across the 996 later ones.",
+      "Over the whole window utilities carry the lowest single-regressor sensitivity at -0.4645 percent per percentage point, ahead of the next lowest by 0.8644, and energy the highest at 8.2132, ahead of the next by 4.1802. Utilities are the only industry whose sensitivity is negative over the whole window.",
+      "Split at 2022, every one of the ten industries has a lower sensitivity in the later regime. The smallest earlier sensitivity is 8.4159, nine of the ten later sensitivities are negative, and energy falls furthest at -19.2693, ahead of the next largest fall by 2.0140.",
+      "Adding the market return to the regression changes the sign of the yield-change coefficient for six of the ten industries. The ordering survives at a Spearman rank correlation of 0.8303, and the extremes hold: utilities lowest at -2.0250 and energy highest at 6.0011.",
+      "Pinned alternatives: the excess market return returns -0.3866 and 0.0728; forward-filled calendar differencing returns -0.3859 and 0.0732; the two-year yield returns -0.3239 and -0.0051, so the later correlation never turns positive; the five-year returns 0.0438 and the thirty-year 0.0748. The flip year is 2022 under every one of them."
+    ],
+    "known_overclaims": [
+      "Reading the correlation's sign as a property of stocks and bonds rather than of which shocks dominated the window.",
+      "Presenting the single-regressor sensitivity as an equity duration; it is largely each industry's market beta multiplied by the market's own rate sensitivity, which the controlled figure separates.",
+      "Treating the flip year as a break test result; it is the first calendar year whose correlation is positive, and the correlation turns negative again in the last year of the window.",
+      "Reading these sensitivities as a hedge ratio or as tradable, when they are fitted coefficients on overlapping daily data with no standard errors reported.",
+      "Attributing the change to monetary policy, inflation or any particular shock, which these three price series do not identify.",
+      "Extending the finding to the whole curve, when the two-year correlation stays negative in the later regime.",
+      "Explaining an industry's sign by its cash-flow duration, regulation or business model, which three price series cannot establish."
+    ]
+  },
+  "conversations": [
+    {
+      "turns": [
+        {
+          "query": "Keep the days on which the daily factor file, the ten industry portfolio returns and the Treasury constant-maturity curve all report. Work with the ten-year yield and take its change between consecutive kept days rather than across the calendar. Treat the return on a ten-year position as the negative of that change, which a correlation needs no duration to scale. Build the market return as the excess market factor plus the risk-free rate rather than the excess factor alone. Report how many days carry a yield change, the first calendar year in which the correlation between the market return and that ten-year return is positive, the correlation across the days falling before that year, and the correlation across that year together with every day after it.",
+          "validator": "validate_regime_reversal",
+          "stores": [
+            "paired_trading_day_count",
+            "first_positive_correlation_year",
+            "early_regime_correlation",
+            "late_regime_correlation"
+          ],
+          "claims": [
+            {
+              "id": "correlation_sign_is_a_regime",
+              "mode": "required",
+              "description": "Whether holding bonds offsets or compounds an equity position is a property of the period, not a constant, and it reverses inside this stretch."
+            },
+            {
+              "id": "last_year_turns_back",
+              "mode": "conditional",
+              "description": "If the response reads the yearly path, the correlation returns to negative in the final year, so the later regime is not a permanent state."
+            }
+          ]
+        },
+        {
+          "query": "Stay with those days and use the whole window. For each of the ten industry portfolios take the slope of its daily return on the ten-year yield change, fitted on its own with an intercept and no other regressor, so that the figure reads as percent of return per percentage point of yield. Report the source column label of the industry whose slope is lowest, that slope, the source column label of the industry whose slope is highest, and that slope.",
+          "validator": "validate_industry_cross_section",
+          "stores": [
+            "most_negative_rate_beta_industry",
+            "most_negative_rate_beta",
+            "most_positive_rate_beta_industry",
+            "most_positive_rate_beta"
+          ],
+          "claims": [
+            {
+              "id": "utilities_stand_apart",
+              "mode": "required",
+              "description": "One industry alone loses value when the long yield rises across the whole window, and it stays at that extreme once broad equity exposure is held constant."
+            },
+            {
+              "id": "energy_moves_with_yields",
+              "mode": "conditional",
+              "description": "If the response interprets the highest slope, energy prices and long yields both respond to inflation news, which is consistent with the sign without establishing it."
+            }
+          ]
+        },
+        {
+          "query": "Now split the days at the year identified in the first turn and refit each industry's slope separately within each regime, keeping every other convention. Report how many of the ten industries carry a negative slope in the later regime, the source column label of the industry whose slope falls furthest between the two regimes, that fall, and the smallest slope any industry carries in the earlier regime.",
+          "validator": "validate_regime_shift",
+          "stores": [
+            "late_regime_negative_beta_count",
+            "largest_beta_decline_industry",
+            "largest_beta_decline",
+            "early_regime_smallest_beta"
+          ],
+          "claims": [
+            {
+              "id": "the_shift_is_universal",
+              "mode": "required",
+              "description": "Not one of the ten escapes the fall, which points at a market-wide repricing of rate news rather than a rotation between sectors."
+            },
+            {
+              "id": "early_regime_was_uniformly_positive",
+              "mode": "conditional",
+              "description": "If the response compares the regimes, even the least sensitive industry had a large positive slope in the earlier one."
+            }
+          ]
+        },
+        {
+          "query": "Ask what the single-regressor slope was measuring. Over the whole window again, fit each industry's daily return on the ten-year yield change and the market return together with an intercept, and read the yield-change coefficient. Report how many of the ten industries change the sign of that coefficient against their single-regressor slope, the lowest of the ten controlled coefficients, the highest, and the Spearman rank correlation between the ten single-regressor slopes and the ten controlled ones.",
+          "validator": "validate_market_control",
+          "stores": [
+            "sign_change_industry_count",
+            "controlled_most_negative_rate_beta",
+            "controlled_most_positive_rate_beta",
+            "beta_ordering_rank_correlation"
+          ],
+          "claims": [
+            {
+              "id": "univariate_carries_the_market",
+              "mode": "required",
+              "description": "A majority of the ten reverse direction once broad equity exposure is held constant, so the simpler figure was mostly restating how much each sector moves with the whole market."
+            },
+            {
+              "id": "ordering_survives",
+              "mode": "conditional",
+              "description": "If the response compares the two sets, the ranking is largely preserved and the two extreme industries stay at the extremes."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,134 @@
+{
+  "name": "money_fund_gross_versus_net_flow_trigger",
+  "module": "evals.risk_screening.money_fund_gross_versus_net_flow_trigger",
+  "task_family": "risk_screening",
+  "data_sources": [
+    "sec_nmfp_flows",
+    "sec_nmfp_series_filings"
+  ],
+  "case_type": "baseline",
+  "difficulty": "hard",
+  "judge_reference": {
+    "source": "SEC Form N-MFP daily shareholder flow reports at share class level and the money market fund series filings that carry net assets and fund category.",
+    "facts": [
+      "The daily flow file holds 247,400 rows across 1,053 share classes. A series files once per reporting period and an amendment supersedes the filing it corrects, so the population retains the latest filing per series period: 2,419 series-days are covered by both an original N-MFP3 and its N-MFP3/A, and 226 of those pairs report different flows, so retaining both would enter one day twice with two different answers. Summing the classes of the retained filing gives 71,931 series-day observations over 316 series, a median of 2 classes each.",
+      "The asset figure is dated the series report date at the end of the period while the flow is dated inside it, so a fund that shrank is measured against what was left.",
+      "492 series-days report net assets below one million dollars and 17 observations put a day's net flow beyond 100 percent of assets; requiring at least a million leaves 71,439, where the most negative single day still reaches -176.9093 percent.",
+      "On the screened population the median absolute net balance is 0.3033 percent of period-end assets and median gross activity is 1.1841 percent, with a median gross-to-absolute-net ratio of 3.2406 where defined.",
+      "Government funds are the most active with a median 1.5743 percent gross day against 0.8551 for prime.",
+      "Using period-end assets as a retrospective denominator proxy, net redemptions exceed 5 percent on 1,788 series-days while gross activity exceeds 5 percent on 15,783, a factor of 8.8272; these are not actual rule-trigger counts.",
+      "Government funds cross the gross line on 26.1362 percent of their days while prime funds cross the net line on 0.8527 percent of theirs.",
+      "Prime and the two tax-exempt categories, which can contain covered funds, hold 18,895 screened days and 182 of the 1,788 proxy net crossings, 10.1790 percent.",
+      "The file carries no institutional or retail designation, contemporaneous daily net assets, liquidity-cost estimate or fee decision, so category and proxy-crossing counts do not identify funds subject to or charged under the rule.",
+      "The mandatory-fee compliance date was 2024-10-02 while the flow file opens on 2024-06-03; the 1,136 earlier series-days carry 3 proxy net crossings and none in the potentially covered category screen.",
+      "5,193 of the 71,439 screened observations, 7.2691 percent, show exactly zero net flow, and 5,168 of those show no flow at all, so the gross-to-net ratio is computed on the 66,246 where it is defined; ranking the excluded days last instead would move the median from 3.2406 to 3.6515."
+    ],
+    "known_overclaims": [
+      "Treating gross subscriptions plus redemptions as liquidity the portfolio had to raise, rather than two-way transaction activity distinct from the net-redemption rule construct.",
+      "Dividing a daily flow by a period-end asset figure without noting that a shrinking fund is measured against what remained.",
+      "Counting share class rows as if they were fund-level observations.",
+      "Reporting the category counts as the number of funds subject to the fee, when the file does not distinguish institutional from retail share classes.",
+      "Retaining a superseded original filing alongside its amendment, which enters the same series-day twice and, for 226 pairs, with two different flow figures."
+    ]
+  },
+  "conversations": [
+    {
+      "turns": [
+        {
+          "query": "The SEC daily shareholder flow file reports gross subscriptions and gross redemptions for each share class on each day, while net assets and fund category are reported once per series filing. Report how many rows the flow file holds and how many distinct share classes appear. Then join the flows to their series filing on the accession number. A series files once per reporting period and an amendment supersedes the filing it corrects, so where a series period carries more than one filing keep only the latest, and where an original and its amendment carry the same date keep the amendment. Sum the share classes of the retained filing on each flow date and keep observations whose reported net assets are positive. Report how many series-day observations result, how many distinct series they cover, and the median number of share classes per series-day.",
+          "validator": "validate_flow_grain",
+          "stores": [
+            "flow_rows",
+            "share_classes",
+            "series_day_observations",
+            "series_count",
+            "median_classes_per_series_day"
+          ],
+          "claims": [
+            {
+              "id": "grain_reason",
+              "description": "The response keeps the numerator and denominator at series-day grain, summing share-class flows without duplicating the once-per-series net-asset value.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Express each series-day's net flow, subscriptions minus redemptions, as a percentage of the series' reported period-end net assets. Report how many series-days carry net assets below one million dollars, and how many observations show a net flow whose absolute value exceeds 100 percent of assets. Then keep only series-days with net assets of at least one million dollars, report how many remain, and report the most negative net flow among them as a percent of assets. Explain the timing mismatch between a daily flow and the period-end asset denominator and what the remaining extreme implies for interpreting the ratio.",
+          "validator": "validate_denominator_screen",
+          "stores": [
+            "small_asset_days",
+            "beyond_full_assets",
+            "screened_observations",
+            "largest_net_redemption_pct"
+          ],
+          "claims": [
+            {
+              "id": "timing_reason",
+              "description": "The response explains that a daily flow is divided by a period-end asset snapshot rather than the fund's contemporaneous daily asset base, which can distort the ratio in either direction as assets change.",
+              "mode": "required"
+            },
+            {
+              "id": "residual_distortion",
+              "description": "The response notes that an absolute ratio above 100 percent can remain after the analytic asset screen, confirming that this is a denominator proxy rather than a reconstructed regulatory daily ratio.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "On the screened observations, define gross activity as subscriptions plus redemptions and express it as a percentage of net assets alongside the net figure. Report the median absolute net flow and the median gross activity, both in percent, and, over the observations whose net flow is not exactly zero, the median of gross activity divided by absolute net. Then report the median gross activity for series whose fund category is Government and for those whose category is Prime, each in percent. Explain how gross activity and net funding balance differ, including the zero-net denominator boundary.",
+          "validator": "validate_flow_distribution",
+          "stores": [
+            "median_absolute_net_pct",
+            "median_gross_pct",
+            "median_gross_to_net_ratio",
+            "government_median_gross_pct",
+            "prime_median_gross_pct"
+          ],
+          "claims": [
+            {
+              "id": "gross_meaning",
+              "description": "The response interprets subscriptions plus redemptions as two-way transaction activity and subscriptions minus redemptions as the net cash-flow balance, and notes that the gross-to-absolute-net ratio is undefined at zero net flow.",
+              "mode": "required"
+            },
+            {
+              "id": "gross_liquidity_equation_boundary",
+              "description": "If the response describes gross activity as liquidity the portfolio had to raise, it states that gross activity measures two-way turnover instead.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Under Rule 2a-7, institutional prime and institutional tax-exempt money market funds generally enter the mandatory liquidity-fee calculation when total daily net redemptions exceed 5 percent of that day's net assets, unless the estimated fee is de minimis; the mandatory-fee compliance date was 2024-10-02. Use all screened dates here only as a retrospective proxy, because the table supplies period-end rather than daily net assets and no liquidity-cost estimate. Report how many series-days have proxy net redemptions beyond 5 percent, how many have gross activity beyond 5 percent, and the second divided by the first. Report the percentage of Government series-days whose gross activity exceeds 5 percent and the percentage of Prime series-days whose proxy net redemptions exceed 5 percent. Finally, treating Prime, Other Tax Exempt and Single State only as categories that could contain covered funds, report how many screened series-days they hold, how many proxy net crossings they account for, and that count as a percentage of all proxy net crossings. Explain why none of these counts is a count of actual mandatory fees or funds subject to them.",
+          "validator": "validate_trigger_reach",
+          "stores": [
+            "net_redemption_proxy_crossings",
+            "gross_activity_over_5pct",
+            "gross_to_net_proxy_crossing_ratio",
+            "government_gross_share_pct",
+            "prime_net_redemption_proxy_share_pct",
+            "potentially_covered_category_days",
+            "potentially_covered_category_proxy_crossings",
+            "potentially_covered_share_of_proxy_crossings_pct"
+          ],
+          "claims": [
+            {
+              "id": "coverage_proxy_boundary",
+              "description": "The response treats Prime and the two tax-exempt categories as a potentially covered category screen, not proof that a series is institutional or that a proxy crossing generated a fee.",
+              "mode": "required"
+            },
+            {
+              "id": "measure_mismatch",
+              "description": "The response states that gross-activity and proxy net-redemption crossings measure different constructs, so their count ratio is descriptive and not evidence that the legal net-redemption threshold misses the same event.",
+              "mode": "required"
+            },
+            {
+              "id": "designation_limit",
+              "description": "The response notes that institutional/retail status, contemporaneous daily net assets, liquidity costs, and actual fee decisions are unobserved, and that dates before the compliance date are included only in the retrospective proxy.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

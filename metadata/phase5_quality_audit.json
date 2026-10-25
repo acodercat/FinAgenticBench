@@ -1,0 +1,210 @@
+{
+  "audit_date": "2026-08-13",
+  "benchmark_cutoff": "2025-12-31",
+  "dataset_families": 8,
+  "raw_files": 35,
+  "raw_bytes": 236402530,
+  "datasets": {
+    "bls_qcew": {
+      "files": 2,
+      "bytes": 137554101,
+      "formats": {
+        ".zip": 2
+      },
+      "semantics": {
+        "2024": {
+          "rows": 3664909,
+          "distinct_areas": 4451
+        },
+        "2025": {
+          "rows": 3088320,
+          "distinct_areas": 4451
+        }
+      }
+    },
+    "noaa_storm_events": {
+      "files": 7,
+      "bytes": 27651371,
+      "formats": {
+        ".pdf": 1,
+        ".gz": 6
+      },
+      "semantics": {
+        "2024": {
+          "details": 69801,
+          "locations": 41574,
+          "fatalities": 1141,
+          "orphan_event_ids": {
+            "locations": 0,
+            "fatalities": 0
+          }
+        },
+        "2025": {
+          "details": 72360,
+          "locations": 51745,
+          "fatalities": 895,
+          "orphan_event_ids": {
+            "locations": 0,
+            "fatalities": 1
+          }
+        }
+      }
+    },
+    "ofr_market_stress": {
+      "files": 5,
+      "bytes": 3292053,
+      "formats": {
+        ".xlsx": 1,
+        ".csv": 1,
+        ".json": 3
+      },
+      "semantics": {
+        "fsi_rows": 6733,
+        "fsi_min_date": "2000-01-03",
+        "fsi_max_date": "2026-08-10",
+        "repo_series": 164,
+        "repo_min_date": "2024-01-02",
+        "repo_max_date": "2025-12-31",
+        "mmf_series": 42,
+        "mmf_min_date": "2024-01-31",
+        "mmf_max_date": "2025-12-31"
+      }
+    },
+    "epa_ghgrp": {
+      "files": 3,
+      "bytes": 36646607,
+      "formats": {
+        ".zip": 1,
+        ".xlsb": 1,
+        ".xlsx": 1
+      },
+      "semantics": {
+        "summary_workbook_years": [
+          2010,
+          2011,
+          2012,
+          2013,
+          2014,
+          2015,
+          2016,
+          2017,
+          2018,
+          2019,
+          2020,
+          2021,
+          2022,
+          2023
+        ],
+        "supplemental_workbooks": [
+          "ghgp_data_by_year_2023.xlsx"
+        ],
+        "power_crosswalk_sheets": [
+          "README",
+          "ORIS Crosswalk"
+        ],
+        "latest_observation_year": 2023
+      }
+    },
+    "census_international_trade": {
+      "files": 4,
+      "bytes": 5536547,
+      "formats": {
+        ".xlsx": 4
+      },
+      "semantics": {
+        "sheets": {
+          "country_enduse_exports_2016_2025.xlsx": [
+            "EnduseExp"
+          ],
+          "country_enduse_imports_2016_2025.xlsx": [
+            "EnduseImp"
+          ],
+          "monthly_principal_enduse_exports.xlsx": [
+            "Exhibit 12"
+          ],
+          "monthly_principal_enduse_imports.xlsx": [
+            "Exhibit 12A"
+          ]
+        }
+      }
+    },
+    "census_geo_crosswalk": {
+      "files": 2,
+      "bytes": 6962966,
+      "formats": {
+        ".zip": 1,
+        ".txt": 1
+      },
+      "semantics": {
+        "county_rows": 3222,
+        "zcta_county_mapped_rows": 46960,
+        "distinct_zctas": 33791
+      }
+    },
+    "ffiec_y9c": {
+      "files": 9,
+      "bytes": 8619641,
+      "formats": {
+        ".zip": 8,
+        ".xlsx": 1
+      },
+      "semantics": {
+        "20240331": {
+          "rows": 454,
+          "columns": 2224
+        },
+        "20240630": {
+          "rows": 3830,
+          "columns": 2224
+        },
+        "20240930": {
+          "rows": 446,
+          "columns": 2224
+        },
+        "20241231": {
+          "rows": 3806,
+          "columns": 2224
+        },
+        "20250331": {
+          "rows": 462,
+          "columns": 2224
+        },
+        "20250630": {
+          "rows": 3754,
+          "columns": 2224
+        },
+        "20250930": {
+          "rows": 454,
+          "columns": 2224
+        },
+        "20251231": {
+          "rows": 3694,
+          "columns": 2224
+        }
+      }
+    },
+    "ffiec_nic_structure": {
+      "files": 3,
+      "bytes": 10139244,
+      "formats": {
+        ".zip": 3
+      },
+      "semantics": {
+        "active_institutions": 61914,
+        "attributes_with_lei": 8671,
+        "relationship_rows": 288518,
+        "current_relationship_rows": 35922,
+        "transformation_rows": 59138,
+        "transformation_date_min": "1936-02-02",
+        "transformation_date_max": "2026-08-03"
+      }
+    }
+  },
+  "warnings": [
+    "2025 annual QCEW and Census trade totals, 2025Q4 Y-9C, and current NOAA/NIC artifacts are retrospective or revised after the benchmark cutoff.",
+    "EPA GHGRP's latest cutoff-compatible observation year is 2023 and must be treated as lagged structural evidence.",
+    "Current NIC structures support identifier discovery and linkage, not 2025-12-31 point-in-time ownership claims.",
+    "The official NOAA 2025 extraction contains one fatality EVENT_ID (1229449) absent from the same extraction's details table; raw data are retained and the row must be excluded from event-detail joins or handled explicitly."
+  ],
+  "errors": []
+}

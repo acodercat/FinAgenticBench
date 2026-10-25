@@ -1,0 +1,105 @@
+{
+  "name": "treasury_bill_repo_carry_advance_limit",
+  "module": "evals.scenario_analysis.treasury_bill_repo_carry_advance_limit",
+  "task_family": "scenario_analysis",
+  "data_sources": [
+    "treasury_auctions",
+    "nyfed_reference_rates"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Identify the original 26-week Treasury bill auctioned June 2, 2025 and issued June 5, excluding reopenings. Report its CUSIP, issue date, maturity date, published high accepted price per USD100 par and published high bank-discount rate. Explain what the auction price and quoted discount rate measure.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "bill_cusip",
+            "issue_date",
+            "maturity_date",
+            "auction_price_per100",
+            "bank_discount_rate_pct"
+          ],
+          "claims": [
+            {
+              "id": "discount_quote_scope",
+              "description": "The response distinguishes the bank-discount rate quoted on par from an investor's yield on the cash purchase price.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Carry that bill into a hypothetical purchase of USD10 million par at its published high price, with no fees. Hold to maturity and redeem at par. Report purchase cash and the simple annualized investment yield on cash paid, using actual issue-to-maturity days and a 365-day year. Explain what the gap between what is paid now and what comes back at maturity is pinned down by, under this hold-to-maturity assumption.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "purchase_cash_usd",
+            "investment_yield_pct"
+          ],
+          "claims": [
+            {
+              "id": "fixed_bill_payoff",
+              "description": "The response explains that the bill's positive redemption discount is fixed by purchase price and par redemption under the stipulated hold-to-maturity scenario.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Finance 90% of that purchase cash with one hypothetical repo advance from issue date through the day before maturity; repay the advance and interest from maturity proceeds. Accrue simple interest for each calendar day from issue date through the day before maturity at the latest SOFR fixing already published by that day's 9 a.m. New York reset plus a constant 25 basis points, ACT/360; each effective-date fixing becomes available on the next SOFR publication day and carries across nonpublication days. Do not round daily interest. Report total repo interest and the constant repo spread over this realized SOFR path that would make the bill's redemption discount exactly cover financing interest at the same advance. Cash carry means the bill's redemption discount less the repo interest, with no charge for the unfinanced part. Compare the financing spread actually charged against the break-even one you solved for, and say what the buyer could have known in June.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "repo_interest_usd",
+            "break_even_spread_bp"
+          ],
+          "claims": [
+            {
+              "id": "funded_carry",
+              "description": "The response concludes that the stipulated 25-basis-point financing spread lies below the break-even spread and leaves positive cash carry before other costs and risks.",
+              "mode": "required"
+            },
+            {
+              "id": "ex_ante_overclaim",
+              "description": "If the response presents the realized future SOFR path as known to the buyer at the June auction, it qualifies that claim as a retrospective calculation.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Return to the issue-date funding decision. Keep the bill, purchase price, repo spread, day count and realized SOFR path, but add 100 basis points to the rate used on every accrual day from September 1 through the day before maturity. Reprice interest on the original 90% advance, then find the largest issue-date repo advance, as a percentage of purchase cash between zero and 100 that would leave nonnegative hold-to-maturity cash carry under this stressed path. Report stressed interest and that maximum advance percentage. Discuss how the permissible financing changes relative to the original plan.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "stressed_repo_interest_usd",
+            "maximum_advance_pct"
+          ],
+          "claims": [
+            {
+              "id": "stressed_advance_decision",
+              "description": "The response concludes that the original 90% advance turns the fixed-discount bill's cash carry negative under the rate shock and exceeds the maximum nonnegative-carry advance.",
+              "mode": "required"
+            },
+            {
+              "id": "profit_scope",
+              "description": "If the response calls the cash-carry calculation a guaranteed trade profit, it recognizes omitted repo haircuts, margining, transaction costs and execution risk.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen U.S. Treasury original 26-week bill auction of June 2, 2025, and frozen New York Fed SOFR fixings under a hypothetical repo financing contract.",
+    "facts": [
+      "CUSIP 912797QS9 issued 2025-06-05 matures 2025-12-04; price 97.901944 per USD100 and high bank-discount rate 4.15%.",
+      "USD10 million par costs USD9,790,194.40 and redeems at USD10 million after 182 days. Simple ACT/365 investment yield on cash paid is 4.2978%, a different basis from the bank-discount rate.",
+      "The 90% financed purchase incurs about USD200,185.00 of repo interest at realized published SOFR plus 25 basis points, leaving about USD9,620.60 of fixed-discount cash carry. The constant break-even spread is 46.5973 basis points.",
+      "Adding 100 basis points from September 1 raises interest to about USD223,191.96 and makes the original advance's cash carry negative. Maximum stressed nonnegative-carry advance is 84.6021% of purchase cash."
+    ],
+    "known_overclaims": [
+      "Equating the bill's bank-discount quote with the ACT/365 yield on the investor's cash price.",
+      "Using an SOFR effective-date observation at a 9 a.m. reset before its following publication day.",
+      "Treating a retrospective financing cash-carry calculation as a guaranteed tradable profit or known future rate path."
+    ]
+  }
+}

@@ -1,0 +1,111 @@
+{
+  "name": "equity_awards_convertible_antidilution_sequence",
+  "module": "evals.calculation_reconciliation.equity_awards_convertible_antidilution_sequence",
+  "task_family": "calculation_reconciliation",
+  "data_sources": [
+    "sec_financial_statements",
+    "sec_insider"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Build a hypothetical IAS 33 EPS exercise for calendar 2025. In Allison Transmission's original 2024 10-K, accession 0000950170-25-019379, annual net income is profit attributable wholly to ordinary shareholders and basic weighted-average shares are the opening ordinary share base. Separately take Charter Communications (CIK 1091667) original Form 4 transactions dated in 2024 with code A, title Stock Options, underlying Class A Common Stock, and positive numeric exercise price and underlying shares; each distinct accession and derivative-transaction row is a template, keeping separate grants to separate owners. Report the template row count and opening basic EPS. Carry full precision between turns.",
+          "stores": [
+            "award_row_count",
+            "opening_basic_eps"
+          ],
+          "validator": "validate_turn_1",
+          "claims": []
+        },
+        {
+          "query": "Use those templates to create fully vested, cash-exercise USD options outstanding throughout 2025, each covering 500 times its reported underlying shares at its reported USD strike. The hypothetical annual average share price is 125% of the unweighted median template strike. There are no unrendered services, additional exercise proceeds, tax effects or other share-based payment adjustments. Report incremental option shares in millions and option-only diluted EPS in USD per share. Explain the relationship between option coverage and the EPS denominator.",
+          "stores": [
+            "incremental_option_shares_mn",
+            "option_only_diluted_eps"
+          ],
+          "validator": "validate_turn_2",
+          "claims": [
+            {
+              "id": "option_increment",
+              "description": "The answer explains how hypothetical exercise proceeds affect incremental option shares rather than equating the full option coverage with additional denominator shares.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Add three hypothetical voluntary convertible debts outstanding all of 2025: A, USD 4 billion face at 5% annual interest, converting into 30 million shares; B, USD 4 billion at 8% into 30 million; C, USD 2 billion at 12% into 15 million. Interest is expensed at the stated rate with a 25% tax benefit; there are no discounts, fees, other conversion effects or conversions, and the opening profit, all from continuing operations, already includes full-year interest on all three. Apply IAS 33 to the options and debts together. Report included convertible IDs in inclusion order, diluted EPS and diluted weighted-average shares. Explain how the instrument selection relates to diluted EPS.",
+          "stores": [
+            "included_convertibles",
+            "profitable_diluted_eps",
+            "profitable_diluted_shares_mn"
+          ],
+          "validator": "validate_turn_3",
+          "claims": [
+            {
+              "id": "sequence",
+              "description": "The answer explains that incremental earnings per share and sequential dilution determine which separate convertible instruments enter the combined diluted calculation.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Replace the profitability scenario with continuing-operations loss equal to 20% of the original annual net-income template and discontinued-operations profit equal to 40% of that template. Both are after tax and attributable to ordinary shareholders; the continuing result includes full-year interest on all three debts. Keep the ordinary share base and all tool terms unchanged; no actual conversion or exercise occurs. Report the included potential-instrument set, continuing-operations diluted EPS and total diluted EPS in USD per share. Explain how the two profit components relate to instrument selection.",
+          "stores": [
+            "loss_included_potential",
+            "loss_continuing_diluted_eps",
+            "loss_total_diluted_eps"
+          ],
+          "validator": "validate_turn_4",
+          "claims": [
+            {
+              "id": "control_number",
+              "description": "The answer explains the role of continuing operations in selecting potential instruments despite the total profit from the two components.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Execute B's actual conversion at the start of July 1, 2025 in that loss scenario. Its interest stops accruing that day and the 30 million shares participate from that day through December 31 inclusive. Use exact calendar-day weighting in the 365-day year for both B interest and shares. A, C and all options remain outstanding throughout the year; no other profit or share change occurs. Report basic weighted-average shares in millions, total basic EPS, continuing-operations diluted EPS and the remaining potential-instrument set. Explain the relationship between actual conversion and potential-share treatment.",
+          "stores": [
+            "converted_basic_shares_mn",
+            "converted_basic_total_eps",
+            "converted_continuing_diluted_eps",
+            "converted_potential_set"
+          ],
+          "validator": "validate_turn_5",
+          "claims": [
+            {
+              "id": "actual_vs_potential",
+              "description": "The answer distinguishes time-weighted actual B shares in basic EPS from the separate anti-dilution test for remaining potential shares.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen governed dataset_new tables; explicitly hypothetical financial contracts in the conversation.",
+    "facts": [
+      "award_row_count: 3",
+      "opening_basic_eps: 8.4023",
+      "incremental_option_shares_mn: 2.7943",
+      "option_only_diluted_eps: 8.1408",
+      "included_convertibles: A",
+      "profitable_diluted_eps: 7.3543",
+      "profitable_diluted_shares_mn: 119.7943",
+      "loss_included_potential: NONE",
+      "loss_continuing_diluted_eps: -1.6805",
+      "loss_total_diluted_eps: 1.6805",
+      "converted_basic_shares_mn: 102.1233",
+      "converted_basic_total_eps: 2.6163",
+      "converted_continuing_diluted_eps: -0.2469",
+      "converted_potential_set: NONE"
+    ],
+    "known_overclaims": []
+  }
+}

@@ -1,0 +1,95 @@
+{
+  "name": "sofr_vasicek_jamshidian_bond_option",
+  "module": "evals.scenario_analysis.sofr_vasicek_jamshidian_bond_option",
+  "task_family": "scenario_analysis",
+  "data_sources": [
+    "nyfed_reference_rates",
+    "treasury_yield_curve"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Treat New York Fed SOFR observations from 2021-01-01 through 2024-12-31 as a short-rate proxy and estimate the constant-parameter Vasicek model under the physical measure by exact Gaussian transition maximum likelihood, conditional on the first observation. Each consecutive published observation is one interval of 1/252 model-year. Require positive mean-reversion speed and diffusion volatility, with an unrestricted long-run level. Report transition count, mean-reversion speed, long-run level and diffusion volatility. Carry the fitted dynamics and final observed short rate forward and discuss their financial scope. Use unrounded state throughout.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "transition_count",
+            "physical_kappa_per_year",
+            "physical_theta_pct",
+            "diffusion_pct_per_sqrt_year"
+          ],
+          "claims": [
+            {
+              "id": "sofr_vasicek_jamshidian_bond_option_t1_interpretation",
+              "description": "The response treats the fitted long-run level as a model estimate over a policy-cycle sample rather than a promised future SOFR level.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Retain the carried mean-reversion speed, diffusion volatility and current short rate for risk-neutral Vasicek pricing. Calibrate only the risk-neutral long-run level so that a hypothetical five-year regular semiannual bond prices at par on 2024-12-31; its annual coupon is that date's Treasury five-year constant-maturity par quote. Use 100 principal, ten half-year payments and zero accrued interest. Report the fitted risk-neutral long-run level and five-year discount factor. Carry the pricing model forward and interpret the calibration relative to the physical estimate.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "risk_neutral_theta_pct",
+            "five_year_discount_factor"
+          ],
+          "claims": [
+            {
+              "id": "sofr_vasicek_jamshidian_bond_option_t2_interpretation",
+              "description": "The response distinguishes the lower calibrated pricing-measure level from the physical drift estimate and identifies the fit as a one-instrument calibration.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Using the carried pricing model, value a one-year European call and put with strike 100 on a deferred-coupon bond paying 1.5 at each half-year from model-time 1.5 through 5, plus 100 principal at time 5. Use Jamshidian decomposition and report the common critical short rate at expiry, call value and put value. Carry the exercise boundary and contract forward and interpret the option values.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "critical_short_rate_pct",
+            "coupon_bond_call_per100",
+            "coupon_bond_put_per100"
+          ],
+          "claims": [
+            {
+              "id": "sofr_vasicek_jamshidian_bond_option_t3_interpretation",
+              "description": "The response uses the relative option values and critical rate to explain that the call requires a substantial rate decline under this fitted model.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "For the carried call exercise event, report its physical-measure probability, risk-neutral-measure probability, and the present value of a cash-or-nothing claim paying 100 at year one exactly when that call finishes strictly in the money. Also report the expected year-one short rate conditional on exercise under the risk-neutral measure. Retain all carried model parameters and compare the probability and state-price interpretations.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "physical_exercise_probability",
+            "risk_neutral_exercise_probability",
+            "exercise_digital_value_per100",
+            "conditional_exercise_short_rate_pct"
+          ],
+          "claims": [
+            {
+              "id": "sofr_vasicek_jamshidian_bond_option_t4_interpretation",
+              "description": "The response distinguishes physical likelihood, risk-neutral likelihood and discounted state price, recognizing the dependence between exercise and discounting.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen dataset_new and the stated named-model contract.",
+    "facts": [
+      "The response treats the fitted long-run level as a model estimate over a policy-cycle sample rather than a promised future SOFR level.",
+      "The response distinguishes the lower calibrated pricing-measure level from the physical drift estimate and identifies the fit as a one-instrument calibration.",
+      "The response uses the relative option values and critical rate to explain that the call requires a substantial rate decline under this fitted model.",
+      "The response distinguishes physical likelihood, risk-neutral likelihood and discounted state price, recognizing the dependence between exercise and discounting."
+    ],
+    "known_overclaims": [
+      "Treating a fitted historical or hypothetical model as a guarantee of future performance."
+    ]
+  }
+}

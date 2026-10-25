@@ -1,0 +1,95 @@
+{
+  "name": "treasury_kyle_public_disclosure",
+  "module": "evals.scenario_analysis.treasury_kyle_public_disclosure",
+  "task_family": "scenario_analysis",
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "data_sources": [
+    "treasury_yield_curve",
+    "cftc_cot"
+  ],
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Calibrate a hypothetical three-asset information-trading market from 2024 observations. In asset order two-, five- and ten-year, use Treasury par yields and CFTC futures-only leveraged-money positions for contract codes 042601, 044601 and 043602. Keep common complete report dates within 2024, and form consecutive changes only within that retained window. Fundamental-value innovations are signed first-order fractional-par price changes with fixed modified durations 2, 4.5 and 8; a yield increase lowers value. Noise-order innovations are changes in leveraged-money long-minus-short contracts, with a stipulated common USD 100,000 face amount per contract, expressed in USD millions of face. Estimate both full demeaned sample covariance matrices with the n-minus-one denominator and no annualization. Stipulate that these matrices are respectively the fundamental-value covariance and independent noise-order covariance of a Gaussian auction, with prior fundamental mean one in fractional-par units for every asset and zero mean noise orders. Report increment count, the two- and ten-year fundamental standard deviations, and the ten-year noise-order standard deviation. Carry both full covariances forward and assess the scope of this synthetic calibration. Use unrounded inputs and state throughout.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "increment_count",
+            "two_year_fundamental_sd_bp",
+            "ten_year_fundamental_sd_bp",
+            "ten_year_noise_sd_billion"
+          ],
+          "claims": [
+            {
+              "id": "treasury_kyle_public_disclosure_t1_interpretation",
+              "description": "The response distinguishes the stipulated fundamental/noise calibration from observed fundamental values or actual trading flows; changes in CFTC position stocks are a proxy under the hypothetical model.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Find the single-auction multivariate Kyle linear equilibrium for the carried market, with one risk-neutral trader who knows all terminal fundamentals exactly and a competitive market maker setting conditional-expectation prices from total signed order flow. The noise orders are independent of fundamentals, positions are unrestricted, and there are no inventory costs or other cash flows. Select the symmetric positive-definite price-impact equilibrium. Report the impact on the two-year price of five-year order flow, the ten-year own-price impact, and the trader's ex-ante expected profit. Carry the complete equilibrium and expected profit forward, and interpret the cross-asset pricing response.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "two_year_from_five_year_impact",
+            "ten_year_own_impact",
+            "expected_insider_profit_million"
+          ],
+          "claims": [
+            {
+              "id": "treasury_kyle_public_disclosure_t2_interpretation",
+              "description": "The response interprets the nonzero cross-impact as joint inference about correlated fundamentals under the fitted market, rather than an independently imposed transaction-cost schedule.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Before the auction, disclose a public Gaussian measurement of the full fundamental-deviation vector. Its additive measurement error is independent of fundamentals and noise orders; its covariance is a positive scalar multiple of the diagonal of the original fundamental covariance, with zero off-diagonal entries. Find that scalar so the ensuing Kyle equilibrium's ex-ante expected informed-trader profit is 60 percent of the carried original profit. Keep the noise-order covariance unchanged and condition all participants on the public information. Report the error-covariance multiplier, the conditional ten-year fundamental standard deviation, and the new two-year-price impact of five-year flow. Carry the complete disclosure model, conditional covariance and equilibrium forward, and interpret the financial effect of disclosure.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "disclosure_error_multiplier",
+            "disclosed_ten_year_sd_bp",
+            "disclosed_cross_impact"
+          ],
+          "claims": [
+            {
+              "id": "treasury_kyle_public_disclosure_t3_interpretation",
+              "description": "The response connects reduced conditional uncertainty and informed-trader profit to public disclosure while retaining the endogenous recomputed price-impact equilibrium.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Under the carried disclosure model, the realized public measurement of fundamental deviations is 10, minus 5 and 8 basis points of par in the stated asset order. Subsequently observed total signed auction order flow is 1, minus 0.5 and 0.75 USD billions of face. Positive orders are purchases. Report the market maker's two-year and ten-year prices, and the conditional probability that the ten-year terminal fundamental is below par, using both public information and auction flow. Explain what the ten-year price and the downside probability together say, and what each still leaves open about where the bond finally lands.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "posterior_two_year_price_per100",
+            "posterior_ten_year_price_per100",
+            "ten_year_below_par_probability"
+          ],
+          "claims": [
+            {
+              "id": "treasury_kyle_public_disclosure_t4_interpretation",
+              "description": "The response distinguishes the posterior mean price above par from certainty about the terminal value, using the nonzero conditional downside probability.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Governed frozen dataset_new and the specified hypothetical named-model contract.",
+    "facts": [
+      "The response distinguishes the stipulated fundamental/noise calibration from observed fundamental values or actual trading flows; changes in CFTC position stocks are a proxy under the hypothetical model.",
+      "The response interprets the nonzero cross-impact as joint inference about correlated fundamentals under the fitted market, rather than an independently imposed transaction-cost schedule.",
+      "The response connects reduced conditional uncertainty and informed-trader profit to public disclosure while retaining the endogenous recomputed price-impact equilibrium.",
+      "The response distinguishes the posterior mean price above par from certainty about the terminal value, using the nonzero conditional downside probability."
+    ],
+    "known_overclaims": [
+      "Treating calibrated hypothetical fundamentals, pricing measures or synthetic trades as observed market facts or guaranteed future outcomes."
+    ]
+  }
+}

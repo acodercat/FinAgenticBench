@@ -1,0 +1,36 @@
+same model, 2 runs agree (thinking)          coverage 92.5% [91.1%,93.7%] | P(correct|agree) 98.26% [97.55%,98.81%] | n 90019
+2 vendors agree (1 run each, thinking)       coverage 90.3% [88.3%,92.0%] | P(correct|agree) 99.19% [98.66%,99.58%] | n 99343
+3 vendors agree                              coverage 88.8% [86.3%,90.9%] | P(correct|agree) 99.74% [99.39%,99.95%] | n 76200
+3 runs identical (thinking)                  coverage 89.6% [87.8%,91.2%] | P(correct|agree) 98.89% [98.32%,99.33%] | n 29721
+cross-vendor minus same-model P(correct|agree): +0.93% [+0.65%, +1.27%]
+
+per pair of thinking configurations (different vendors): P(correct|agree) cross vs own-runs mean
+  Claude Sonnet 5.5  x DeepSeek V4 Flash  cross 98.41% | own 96.89% | agreeing slots 3331
+  Claude Sonnet 5.5  x DeepSeek V4 Pro    cross 99.63% | own 98.37% | agreeing slots 3533
+  Claude Sonnet 5.5  x Gemini 3.8 Flash   cross 99.58% | own 98.24% | agreeing slots 3546
+  Claude Sonnet 5.5  x GLM-5.3            cross 99.00% | own 97.81% | agreeing slots 3415
+  Claude Sonnet 5.5  x GPT-6 Luna         cross 99.18% | own 97.93% | agreeing slots 3529
+  Claude Sonnet 5.5  x Qwen3.8-27B        cross 98.10% | own 97.63% | agreeing slots 3422
+  Claude Sonnet 5.5  x Qwen3.8 Flash      cross 99.33% | own 98.00% | agreeing slots 3441
+  DeepSeek V4 Flash  x Gemini 3.8 Flash   cross 99.26% | own 97.82% | agreeing slots 3363
+  DeepSeek V4 Flash  x GLM-5.3            cross 98.55% | own 97.39% | agreeing slots 3302
+  DeepSeek V4 Flash  x GPT-6 Luna         cross 98.36% | own 97.51% | agreeing slots 3423
+  DeepSeek V4 Flash  x Qwen3.8-27B        cross 99.07% | own 97.21% | agreeing slots 3214
+  DeepSeek V4 Flash  x Qwen3.8 Flash      cross 98.73% | own 97.58% | agreeing slots 3317
+  DeepSeek V4 Pro    x Gemini 3.8 Flash   cross 99.67% | own 99.30% | agreeing slots 3643
+  DeepSeek V4 Pro    x GLM-5.3            cross 99.74% | own 98.87% | agreeing slots 3483
+  DeepSeek V4 Pro    x GPT-6 Luna         cross 99.20% | own 98.99% | agreeing slots 3641
+  DeepSeek V4 Pro    x Qwen3.8-27B        cross 99.91% | own 98.69% | agreeing slots 3388
+  DeepSeek V4 Pro    x Qwen3.8 Flash      cross 99.32% | own 99.06% | agreeing slots 3553
+  Gemini 3.8 Flash   x GLM-5.3            cross 99.57% | own 98.74% | agreeing slots 3478
+  Gemini 3.8 Flash   x GPT-6 Luna         cross 99.45% | own 98.86% | agreeing slots 3615
+  Gemini 3.8 Flash   x Qwen3.8-27B        cross 99.68% | own 98.56% | agreeing slots 3387
+  Gemini 3.8 Flash   x Qwen3.8 Flash      cross 99.29% | own 98.93% | agreeing slots 3531
+  GLM-5.3            x GPT-6 Luna         cross 98.91% | own 98.43% | agreeing slots 3496
+  GLM-5.3            x Qwen3.8-27B        cross 99.24% | own 98.13% | agreeing slots 3293
+  GLM-5.3            x Qwen3.8 Flash      cross 99.18% | own 98.50% | agreeing slots 3402
+  GPT-6 Luna         x Qwen3.8-27B        cross 99.24% | own 98.25% | agreeing slots 3417
+  GPT-6 Luna         x Qwen3.8 Flash      cross 99.15% | own 98.62% | agreeing slots 3515
+pairs where cross > own: 26/26
+-> analysis/final_20261012/tables/agreement.csv
+-> analysis/final_20261012/tables/agreement_pairs.csv

@@ -1,0 +1,112 @@
+{
+  "name": "z1_corporate_equity_issuance_versus_market_value",
+  "task_family": "calculation_reconciliation",
+  "data_sources": [
+    "fed_z1_vintages",
+    "ken_french_daily_factors"
+  ],
+  "case_type": "trap",
+  "module": "evals.calculation_reconciliation.z1_corporate_equity_issuance_versus_market_value",
+  "difficulty": "hard",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Work in the newest release of the Financial Accounts only. Corporate equities on the nonfinancial corporate business balance sheet appear under quarterly series codes sharing the digits 103064103, one beginning LM, one FA, one FU and one FR. Report how many quarter-over-quarter changes the instrument supports, its market value at the final quarter end, the net issuance the sector transacted summed across those quarters, and how many of those quarters carry a negative net issuance. Explain what a negative net issuance says about what the sector was doing.",
+          "validator": "validate_issuance_window",
+          "stores": [
+            "covered_quarter_count",
+            "closing_market_value_usd_millions",
+            "summed_net_issuance_usd_millions",
+            "net_retirement_quarter_count"
+          ],
+          "claims": [
+            {
+              "id": "negative_issuance_meaning",
+              "mode": "required",
+              "description": "The response states that a negative net issuance means the sector retired more equity than it placed, through repurchases and cash acquisitions, so it was returning capital to shareholders rather than raising it."
+            },
+            {
+              "id": "quarterly_flow_selection",
+              "mode": "conditional",
+              "description": "If the response reports a transacted amount, it uses the series that reconciles a single quarter rather than the one the accounts publish at an annual rate."
+            }
+          ]
+        },
+        {
+          "query": "For each of those quarters the change in market value separates into what the sector transacted and the revaluation of what it already held. Report how many quarters satisfy that separation to within one million dollars, the largest absolute residual across them, how many carry a transacted amount and a market-value change of opposite sign, and how many carry a revaluation larger in absolute size than the transacted amount. Explain what the sign disagreement means for reading a balance-sheet change as sector activity.",
+          "validator": "validate_decomposition_identity",
+          "stores": [
+            "identity_closing_quarter_count",
+            "maximum_absolute_residual_usd_millions",
+            "opposite_sign_quarter_count",
+            "revaluation_exceeds_issuance_quarter_count"
+          ],
+          "claims": [
+            {
+              "id": "stock_change_is_not_activity",
+              "mode": "required",
+              "description": "The response states that the holding can grow in the same quarter the sector is a net seller, so a change in a balance-sheet level measures price movement as much as it measures what anyone did."
+            }
+          ]
+        },
+        {
+          "query": "Bring in the daily research factor file. For each of those quarters compound the value-weighted market return including the risk-free rate across that quarter's trading days. Express each quarter's revaluation as a percent of the market value the quarter opened with and set the two series side by side. Report how many quarters match, the correlation across them, the median absolute difference in percentage points, and how many agree in sign. Explain what the closeness establishes and what it leaves open.",
+          "validator": "validate_revaluation_against_market",
+          "stores": [
+            "matched_quarter_count",
+            "revaluation_market_return_correlation",
+            "median_absolute_gap_percentage_points",
+            "sign_agreement_quarter_count"
+          ],
+          "claims": [
+            {
+              "id": "revaluation_is_the_market",
+              "mode": "required",
+              "description": "The response states that the revaluation leg moves with the broad equity market, which shows the separation is isolating price movement rather than dumping an unexplained remainder into one term."
+            },
+            {
+              "id": "independent_confirmation_boundary",
+              "mode": "conditional",
+              "description": "If the response reads the agreement as one source validating the other, it acknowledges that both are built on the same underlying share prices."
+            }
+          ]
+        },
+        {
+          "query": "Return to those series codes. For the final quarter report the figure carried by the code beginning FA and that figure divided by the one carried by the code beginning FU. Then report the quarter end with the largest absolute revaluation, breaking a tie by the earlier quarter, and that revaluation. Explain what the ratio tells you about the two flow series and which of them answers a question about a single quarter.",
+          "validator": "validate_annual_rate_and_extreme",
+          "stores": [
+            "annual_rate_to_quarterly_ratio",
+            "latest_quarter_annual_rate_usd_millions",
+            "largest_revaluation_quarter_end",
+            "largest_revaluation_usd_millions"
+          ],
+          "claims": [
+            {
+              "id": "annual_rate_semantics",
+              "mode": "required",
+              "description": "The response states that the annual-rate figure scales one quarter of activity to a yearly pace rather than accumulating four quarters of it, so adding that series across a window counts the same transactions four times over.",
+              "overlap_waiver": "The query names the ratio and asks which series answers a quarterly question. The claim earns its content by saying what the annual-rate series actually contains and what accumulating it would double count, neither of which the query supplies."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen Federal Reserve Financial Accounts release vintages and the daily Fama-French research factors; every figure recomputed from those tables.",
+    "facts": [
+      "The newest release supports 41 quarter-over-quarter changes, ending at a market value of 3,239,336.0000 million USD. Across them the sector's net issuance sums to -1,050,755.0000 million and is negative in 33 quarters: the sector retired equity throughout while the market value grew. Summing the annual-rate series instead returns -4,203,020.0000 million and reading the change in market value as the transacted amount returns +1,689,557.0000 million, which carries the opposite sign.",
+      "The decomposition holds in all 41 quarters with a largest absolute residual of 0.0000 million. Net issuance and the market-value change carry opposite signs in 21 of them, and the revaluation is the larger term in 37.",
+      "All 41 quarters match a compounded market return. The revaluation expressed against the opening market value correlates 0.9936 with that return, differs from it by a median 0.5186 percentage points and agrees in sign in 39 quarters. The revaluation leg is the market, not a plug.",
+      "For the final quarter the annual-rate series reads -336,868.0000 million, exactly 4.0000 times the quarterly figure. The largest absolute revaluation falls on 2022-06-30 at -484,583.0000 million."
+    ],
+    "known_overclaims": [
+      "Summing the annual-rate flow series to answer a question about quarterly transactions.",
+      "Reading the change in a market-value holding as the amount the sector bought or sold.",
+      "Describing the revaluation leg as a residual or balancing item rather than a measured holding gain.",
+      "Treating the agreement between the revaluation leg and the market return as one source independently confirming the other."
+    ]
+  }
+}

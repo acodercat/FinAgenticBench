@@ -1,0 +1,58 @@
+{
+  "name": "money_fund_liquidity_stock_flow_path",
+  "module": "evals.temporal_path.money_fund_liquidity_stock_flow_path",
+  "task_family": "temporal_path",
+  "difficulty": "medium",
+  "case_type": "baseline",
+  "data_sources": ["sec_nmfp_series_filings", "sec_nmfp_flows", "sec_nmfp_liquidity"],
+  "conversations": [{
+    "id": "main",
+    "turns": [
+      {
+        "query": "Use MUNICASH (S000001480)'s original September 2025 N-MFP3 filing, accepted by 2025-12-31. Report its accession, fund category and series net assets. Carry the filing forward.",
+        "validator": "validate_turn_1",
+        "stores": ["liquidity_path_accession", "liquidity_path_category", "liquidity_path_net_assets_m"],
+        "claims": []
+      },
+      {
+        "query": "In that filing, find the positive net-redemption date with the highest net redemptions divided by the preceding reported day's daily liquid assets; break ties by earlier date. Report both dates, the selected day's gross subscriptions and redemptions, and prior-day daily liquid assets. What does the ratio compare?",
+        "validator": "validate_turn_2",
+        "stores": ["liquidity_path_peak_date", "liquidity_path_prior_date", "liquidity_path_peak_subscriptions_m", "liquidity_path_peak_redemptions_m", "liquidity_path_prior_daily_m"],
+        "claims": [{"id": "liquidity_path_cross_date_ratio", "mode": "required", "description": "The response interprets the selected ratio as a current-day series net-redemption flow compared with the preceding reported day's daily liquid-asset stock, rather than a realized liquidation or funding shortfall."}]
+      },
+      {
+        "query": "For the selected date, report daily and weekly liquid assets in dollars and as reported percentages. What does their relationship mean, and how does the daily-liquidity rule apply to this fund category?",
+        "validator": "validate_turn_3",
+        "stores": ["liquidity_path_peak_daily_m", "liquidity_path_peak_weekly_m", "liquidity_path_peak_daily_pct", "liquidity_path_peak_weekly_pct"],
+        "claims": [
+          {"id": "liquidity_path_nested_pools", "mode": "required", "description": "The response explains that weekly liquid assets include daily liquid assets, so the two reported amounts are not additive pools."},
+          {"id": "liquidity_path_tax_exempt_rule", "mode": "required", "description": "The response identifies the fund's Other Tax Exempt category as outside Rule 2a-7's 25 percent daily-liquid-asset acquisition minimum."},
+          {"id": "liquidity_path_false_breach", "mode": "conditional", "description": "If the response calls the reported daily-liquid-asset percentage a regulatory breach, it corrects that conclusion using the fund-category exception and the acquisition-test scope."}
+        ]
+      },
+      {
+        "query": "On the next reported date, report net redemptions and daily and weekly liquid assets. Compare the three-day path. Can the flow alone explain the changes in liquid assets?",
+        "validator": "validate_turn_4",
+        "stores": ["liquidity_path_next_date", "liquidity_path_next_net_redemption_m", "liquidity_path_next_daily_m", "liquidity_path_next_weekly_m"],
+        "claims": [
+          {"id": "liquidity_path_stock_flow_nonidentity", "mode": "required", "description": "The response compares daily-liquid-asset changes over both consecutive date intervals with the corresponding net redemptions, notes the selected-to-next change in weekly liquid assets, and concludes that shareholder flows do not mechanically equal changes in the reported liquid-asset stocks."},
+          {"id": "liquidity_path_causal_boundary", "mode": "conditional", "description": "If the response attributes the liquid-asset path to specific security sales, maturities, purchases, or settlement decisions, it notes that the three aggregate tables do not identify those portfolio actions."}
+        ]
+      }
+    ]
+  }],
+  "judge_reference": {
+    "source": "Frozen original September 2025 SEC Form N-MFP3 series, class-flow, and daily-liquidity rows for MUNICASH S000001480; filing accepted 2025-10-06.",
+    "facts": [
+      "The original accession is 0002071691-25-002432, category Other Tax Exempt, with USD 3,557.19336919 million period-end net assets. It has one share-class flow row and one liquidity row on each of 21 dates.",
+      "The largest positive net-redemption-to-previous-daily-liquid-assets ratio occurs 2025-09-11: gross subscriptions USD 21.65193341 million, redemptions USD 268.80969187 million, prior 2025-09-10 daily liquid assets USD 468.52108343 million. The ratio is 52.7528 percent; the next highest date is 2025-09-04 at 38.7308 percent.",
+      "On September 11 reported daily and weekly liquid assets are USD 441.47906190 million and USD 3,374.99397766 million, with reported fractions 13.08 and 100.00 percent. Weekly liquid assets include daily liquid assets. Tax-exempt funds are outside the 25 percent daily liquid asset acquisition minimum.",
+      "On September 12 net redemptions are USD 19.56971202 million; daily and weekly liquid assets are USD 418.57576272 million and USD 3,351.77544506 million. September 11 net redemptions of USD 247.15775846 million are not the September 10-to-11 daily-liquidity decline of USD 27.04202153 million. These fields do not identify portfolio transactions or a cash-use identity."
+    ],
+    "known_overclaims": [
+      "Adding daily and weekly liquid assets as disjoint buffers.",
+      "Treating the tax-exempt fund's 13.08 percent daily liquid asset fraction as a violation of the 25 percent acquisition minimum.",
+      "Treating net redemptions as the realized change in daily liquid assets or proof of failed settlement or forced asset sales."
+    ]
+  }
+}

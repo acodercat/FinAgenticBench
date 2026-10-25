@@ -1,0 +1,107 @@
+{
+  "name": "treasury_auction_bid_dispersion_stop_allotment",
+  "module": "evals.comparison_ranking.treasury_auction_bid_dispersion_stop_allotment",
+  "task_family": "comparison_ranking",
+  "data_sources": [
+    "treasury_auctions",
+    "treasury_yield_curve"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Take Treasury Note and Bond auctions held from 2024-01-01 through 2025-12-31, excluding floating-rate notes and inflation-indexed securities, and keep those publishing a low, median and high accepted yield, an allotment percentage at the high, and a bid-to-cover ratio. An auction's stop is its high accepted yield. Report the auction count, the number of distinct original security terms, the median gap from the median accepted yield to the stop, the median allotment at the stop, and the Pearson correlation between that allotment and the bid-to-cover ratio. Take every median in this task with linear interpolation. Explain what each demand figure counts, and what their association implies about reading either alone.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "auction_count",
+            "distinct_original_terms",
+            "median_dispersion_bp",
+            "median_stop_allotment_pct",
+            "allotment_cover_correlation"
+          ],
+          "claims": [
+            {
+              "id": "two_demand_measures",
+              "mode": "required",
+              "description": "The response separates how much was bid from where the accepted bids sat, and reads the computed association as evidence that the two headline figures carry different information."
+            }
+          ]
+        },
+        {
+          "query": "Group the retained auctions by original security term, which is the term of the security when first issued rather than the term remaining at a reopening. Report the term whose median gap to the stop is widest and that median, then the term whose median allotment at the stop is lowest and that median, taking each term's median with linear interpolation and breaking any tie in either ranking by the shorter original term. Explain what a wide gap and a low allotment each say about the bids an auction drew, and whether the two rankings point at the same maturity.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "widest_dispersion_term",
+            "widest_dispersion_median_bp",
+            "lowest_allotment_term",
+            "lowest_allotment_median_pct"
+          ],
+          "claims": [
+            {
+              "id": "term_structure_of_demand",
+              "mode": "required",
+              "description": "The response interprets the two rankings it computed as describing bid spread and crowding at the margin, and states whether the two land on the same maturity and why that would or would not follow."
+            }
+          ]
+        },
+        {
+          "query": "Place each retained auction against the secondary market: match its original security term to the par yield of the same tenor on the latest curve date on or before the auction date, and take the stop less that yield. Report the median across all retained auctions, then the original term whose median is largest and that median, breaking a tie by the shorter term. Explain what a positive or negative difference represents for a bidder, and what the term-by-term pattern suggests about where that effect concentrated.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "median_concession_bp",
+            "widest_concession_term",
+            "widest_concession_median_bp"
+          ],
+          "claims": [
+            {
+              "id": "concession_meaning",
+              "mode": "required",
+              "description": "The response explains the computed difference as the clearing level set against a contemporaneous market quote, and reads its distribution across maturities from the figures it reported."
+            }
+          ]
+        },
+        {
+          "query": "Return to individual auctions. Identify the single auction whose gap to the stop is widest, breaking a tie by the earlier auction date and then by the lower CUSIP. Report its CUSIP, its auction date, its allotment at the stop, and its stop less the matching par yield. Explain what this auction's three figures together do and do not establish about how it was received.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "widest_auction_cusip",
+            "widest_auction_date",
+            "widest_auction_allotment_pct",
+            "widest_auction_concession_bp"
+          ],
+          "claims": [
+            {
+              "id": "single_auction_reading",
+              "mode": "required",
+              "description": "Notes that the auction with the widest gap allotted close to the median share at its stop and cleared only slightly above the matching par yield, below the median difference, so its wide bid spread alone is no evidence of weak reception."
+            },
+            {
+              "id": "demand_causality_boundary",
+              "mode": "conditional",
+              "description": "If the response calls this auction weak, failed or poorly received, it states that these published fields record the bid distribution and the clearing level without any measure of dealer inventory, secondary trading or subsequent performance."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen Treasury auction results for 2024-01-01 through 2025-12-31 and frozen Treasury par yield curve observations. The gap to the stop, the par-yield comparison and the term rankings are analytic constructions rather than published Treasury statistics.",
+    "facts": [
+      "216 Note or Bond auctions fall in the window; excluding 24 floating-rate and 24 inflation-indexed auctions leaves 168, and all 168 publish every demand field with low, median and high yields correctly ordered. They span exactly 7 original terms, 2, 3, 5, 7, 10, 20 and 30 years, each with 23 to 25 auctions. The median gap to the stop is 5.5000 basis points, the median allotment at the stop is 53.1300%, and the two correlate at 0.1091, so bid-to-cover and allotment are close to independent readings.",
+      "The 30-year leads both rankings: the widest median gap at 6.3500 basis points and the lowest median allotment at 35.8650%, against 6.0000 for the five-year gap and 47.5000% for the three-year allotment. Wide bid spread and heavy crowding at the margin are consistent at the long end, where a given yield move carries the most price risk.",
+      "Stop yields sit 1.5000 basis points above the matching par yield at the median, ranging from -8.7000 to 9.5000. The two-year shows the largest median difference at 3.5000 basis points, ahead of the three-year at 2.6000.",
+      "Two auctions share the widest single gap at 9.5000 basis points, so the earlier date decides: the ten-year of 2024-04-10, CUSIP 91282CJZ5, which allotted 54.1000% at its stop and cleared 1.0000 basis point above the matching par yield. The other is 91282CMM0 of 2025-04-09. Both are reopenings carrying a security term of \"9-Year 10-Month\", so grouping on the term at auction rather than the original term would file them away from the ten-year. Inflation-indexed auctions must be excluded before any of this: the 2024-12-19 five-year TIPS stopped at 2.121%, which against a nominal five-year par yield near 4.4% would read as a 231 basis point concession."
+    ],
+    "known_overclaims": [
+      "Reading bid-to-cover as a complete measure of auction demand when the allotment at the stop and the bid spread carry separate information.",
+      "Keeping inflation-indexed or floating-rate auctions in a nominal yield comparison, whose real yields and discount margins are not on the same scale.",
+      "Grouping by the term at auction rather than the original term, which splits reopenings of one security across several labels.",
+      "Calling a wide gap or a low allotment a failed auction, when neither field records whether the issue traded well afterwards.",
+      "Treating the difference between a stop yield and a published par yield as a dealer profit or a transaction cost."
+    ]
+  }
+}

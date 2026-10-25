@@ -1,0 +1,142 @@
+{
+  "name": "flood_parametric_basis_risk_frozen_contract",
+  "module": "evals.scenario_analysis.flood_parametric_basis_risk_frozen_contract",
+  "task_family": "scenario_analysis",
+  "data_sources": [
+    "fema_nfip",
+    "noaa_storm_events"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Design a hypothetical five-county Louisiana flood-index book using 2019–2022 as training and 2023–2024 as an untouched validation period. In the NFIP physical-claims table, assign claims by loss-date month and five-digit county FIPS; reference payment is the signed sum of net building, contents and ICC amounts, with a missing component contributing zero. In NOAA Storm Events, use County geography, Flood and Flash Flood event types, event-begin month and reported property damage summed by county-month. A month with no qualifying event has a reported-zero index; any month containing a qualifying event with missing damage is unavailable in both sources. Eligible counties have at least three training months with positive reported NOAA damage. Among eligible counties, select five by descending training NFIP reference total, ties by ascending FIPS. For each selected county, set its trigger at the median of its positive training county-month index values; a county-month triggers when its index is at or above that trigger. Report the five ranked FIPS tokens, the count of available training county-months and the total positive reference payment in untriggered training county-months, in USD millions. Carry the complete selected monthly panel and frozen validation support forward. Explain what the observed index/reference divergence measures and what can be inferred from pairing these two measurements by county-month.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "county_1_fips",
+            "county_2_fips",
+            "county_3_fips",
+            "county_4_fips",
+            "county_5_fips",
+            "train_county_months",
+            "train_no_trigger_reference_mn"
+          ],
+          "claims": [
+            {
+              "id": "index_reference_scope",
+              "description": "The response explains that a reported county-month property-damage index and signed NFIP insured payments measure different scopes and are paired only statistically by county-month.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Using only the carried training panel and those carried county triggers, choose one fixed nonnegative payment per selected county, paid at most once in a triggered county-month. Cap each payment at the linear-interpolated 90th percentile of that county's strictly positive training monthly NFIP reference payments. An untriggered county-month pays zero. Minimize the mean squared difference between payment and reference taken over all available training county-months, weighting 2 where the payment is at or below the reference and 1 where it exceeds the reference. Hypothetical loaded premium is 1.2 times the sum of triggered contract payments divided by the 48 training calendar months; it cannot exceed 15% of total training reference payments divided by those same 48 book months. Use full precision in the optimization. Report the five fixed payments in carried FIPS order, the loaded premium in USD millions per book month and the training weighted mean squared error in squared USD millions per county-month. Explain how the shared premium budget makes the five county payments compete, and which counties it holds below their own caps.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "initial_county_1_benefit_mn",
+            "initial_county_2_benefit_mn",
+            "initial_county_3_benefit_mn",
+            "initial_county_4_benefit_mn",
+            "initial_county_5_benefit_mn",
+            "initial_premium_mn_per_book_month",
+            "initial_train_weighted_mse"
+          ],
+          "claims": [
+            {
+              "id": "premium_allocation",
+              "description": "The response interprets the selected benefit allocation under a common premium budget using the computed optimization result.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Freeze the unrounded selected counties, thresholds and five payments from turn 2. Apply that contract once per county-month on the carried 2023–2024 validation panel. Report the aggregate positive NFIP-reference shortfall, aggregate positive contract payment above the NFIP reference, and the FIPS and month of the single county-month with the largest positive shortfall. Break equal largest shortfalls by ascending FIPS and then ascending month. Amounts are USD millions. Explain what the held-out shortfall and overpayment say about the contract's basis risk, and why neither establishes that a storm caused a given claim.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "validation_negative_basis_mn",
+            "validation_overpay_mn",
+            "worst_gap_county_fips",
+            "worst_gap_month"
+          ],
+          "claims": [
+            {
+              "id": "held_out_basis_result",
+              "description": "The response interprets the computed held-out shortfall and excess-payment quantities without claiming an event-to-claim causal link.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "For the exact maximum-shortfall county-month dynamically identified in turn 3, report its signed NFIP reference payment, NOAA reported property-damage index and frozen contract payment, each in USD millions. Explain whether its gap arose from a missing reported index trigger or from the training allocation under the fixed contract. Discuss what the source values can establish about this gap.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "worst_gap_reference_mn",
+            "worst_gap_index_mn",
+            "worst_gap_contract_mn"
+          ],
+          "claims": [
+            {
+              "id": "worst_gap_mechanism",
+              "description": "The response identifies the gap mechanism from that dynamically selected county-month's source values and fixed contract, while keeping source scopes separate.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "As a separate proposed design, remove from training every selected county's row for the calendar month with the highest combined five-county signed NFIP reference total; ties use earliest month. Keep the original five counties, all data definitions and 2023–2024 validation support fixed. Reestimate positive-index median triggers, positive-reference 90th-percentile caps, five fixed payments and the 15% loaded-premium budget from the remaining 47 training book months using the same asymmetric squared-error decision. The original turn-2 contract remains the comparator. Report the deleted month, revised five payments in the carried FIPS order, revised validation aggregate positive reference shortfall, revised validation weighted mean squared county-month basis error, and exactly ORIGINAL or REVISED for the lower validation weighted error. Use unrounded policies for validation. Explain how removing one high-loss month across all five counties moves the fitted payments, the trade-off it strikes between held-out shortfall and overpayment, and the scope of conclusions this validation comparison supports.",
+          "validator": "validate_turn_5",
+          "stores": [
+            "deleted_train_month",
+            "revised_county_1_benefit_mn",
+            "revised_county_2_benefit_mn",
+            "revised_county_3_benefit_mn",
+            "revised_county_4_benefit_mn",
+            "revised_county_5_benefit_mn",
+            "revised_validation_negative_basis_mn",
+            "revised_validation_weighted_mse",
+            "validation_mse_winner"
+          ],
+          "claims": [
+            {
+              "id": "regional_shock_sensitivity",
+              "description": "The response interprets how deleting one entire high-reference regional month changes the independently proposed contract and its held-out basis-risk trade-off.",
+              "mode": "required"
+            },
+            {
+              "id": "validation_selection_scope",
+              "description": "The response explains that selecting the winning contract using these validation observations makes its reported performance selection-dependent, with an independent final performance assessment requiring separate evaluation data.",
+              "mode": "required"
+            },
+            {
+              "id": "no_actual_insurance_inference",
+              "description": "If the response describes a real policy price, real insured exposure, or complete economic loss, it qualifies that claim as outside this hypothetical index contract.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen FEMA NFIP physical-claims runtime and NOAA Storm Events County flood-damage runtime, 2019–2024, with a hypothetical asymmetric squared-error benefit contract.",
+    "facts": [
+      "Training-only eligible Louisiana FIPS rank is 22019, 22033, 22051, 22103, 22089. The full selected panel has 240 training and 120 validation county-months. NOAA and NFIP are paired statistically, not event matched.",
+      "The initial five benefits in USD millions are approximately 13.687424, 1.118406, 0, 0, 9.798423, with loaded premium 1.600358 per training book month and weighted training MSE 290.010311 squared USD millions.",
+      "Frozen validation positive reference shortfall is USD65.099026m. The largest shortfall is 22051 in 2024-09: reported index USD39.6m, NFIP reference USD53.299702m, and contract benefit zero because training optimization set that county's payment to zero despite a trigger.",
+      "Deleting all five counties' 2021-05 training rows and refitting gives benefits approximately 1.267273, 0.505777, 0.438594, 1.624093, 12.765867 USDm. Its validation positive shortfall is USD60.516352m and weighted MSE 46.902981, below original validation MSE 47.790011 but with about USD9.512291m overpayment.",
+      "NOAA reported property damage is not the exact insured exposure; NFIP signed net paid claims by loss date are not full economic damage or payment-month cash.",
+      "T3 evaluates an originally frozen training-only contract on held-out observations. T5 uses those same observations to select ORIGINAL or REVISED; the selected winner's reported validation performance is selection-dependent comparison evidence, not an independent final evaluation."
+    ],
+    "known_overclaims": [
+      "Using holdout damage to select counties, thresholds or premiums.",
+      "Calling NFIP net payments total economic losses or payment-month cash.",
+      "Matching individual NOAA events to NFIP claims without linkage.",
+      "Deleting only one county's record for the highest-loss training month.",
+      "Treating no NOAA event record as proof that no flood occurred.",
+      "Treating the contract selected using 2023–2024 validation results as independently tested on that same validation period."
+    ]
+  }
+}

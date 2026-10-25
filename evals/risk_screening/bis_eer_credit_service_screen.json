@@ -1,0 +1,94 @@
+{
+  "name": "bis_eer_credit_service_screen",
+  "module": "evals.risk_screening.bis_eer_credit_service_screen",
+  "task_family": "risk_screening",
+  "data_sources": ["bis_credit_gap", "bis_debt_service", "bis_effective_exchange_rates"],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [{
+    "id": "main",
+    "turns": [
+      {
+        "query": "Build a common-economy retrospective screen using 2025-Q4 BIS all-lender private-nonfinancial-sector actual credit-to-GDP and actual-minus-trend credit gap, reported household, non-financial-corporate and private-nonfinancial-sector debt-service ratios, and broad nominal and real effective-exchange-rate indexes for 2024-12 and 2025-12. Retain economies with actual credit-to-GDP of at least 100%, reported private-sector DSR of at least 15%, and a negative percentage change in the real EER. Rank the retained economies by nominal EER percentage change from most negative upward, breaking a tie by display economy name ascending. Report the common count, retained count, selected economy and the runner-up change minus the selected change. Explain which hurdles an economy had to clear before it could top this ordering, and how far that standing carries outside the filtered group.",
+        "validator": "validate_joint_screen",
+        "stores": ["joint_economy_count", "screened_economy_count", "selected_economy", "nominal_eer_leader_margin_pp"],
+        "claims": [{
+          "id": "joint_screen_result",
+          "description": "The response explains that the selected economy is the nominal-EER-decline leader only inside the joint high-credit, high-reported-DSR and negative-real-EER screen, not necessarily the leader of any unrestricted credit or DSR ranking.",
+          "mode": "required"
+        }]
+      },
+      {
+        "query": "For the economy selected above, report its 2025-Q4 actual credit-to-GDP ratio and actual-minus-trend credit gap. Within the fixed common population from the prior turn, also report its descending ranks on actual credit and on the credit gap, breaking ties by display economy name ascending. Explain how this economy's two placements sit against each other, and what the second measure does and does not say about borrowing too much.",
+        "validator": "validate_credit_position",
+        "stores": ["selected_actual_credit_to_gdp_pct", "selected_credit_gap_pp", "selected_actual_credit_rank", "selected_credit_gap_rank"],
+        "claims": [
+          {
+            "id": "credit_level_gap_result",
+            "description": "The response recognizes from the computed ranks that the selected economy leads the common population on its positive actual-minus-trend gap even though it is not near the top of the actual credit-level ranking.",
+            "mode": "required"
+          },
+          {
+            "id": "credit_gap_boundary",
+            "description": "If the response calls the credit gap an amount of excess credit or a forecast of deleveraging, it qualifies that statement because the measure is a percentage-point deviation of the ratio from an estimated long-run trend.",
+            "mode": "conditional"
+          }
+        ]
+      },
+      {
+        "query": "Carry the selected economy into a DSR structure check. Report household, non-financial-corporate and reported private-nonfinancial-sector DSRs in 2024-Q4 and 2025-Q4 and each signed change. Separately calculate the arithmetic mean of the two 2025-Q4 sector DSRs and compare the reported private-sector DSR with it. Explain what the comparison says about constructing the private-sector aggregate.",
+        "validator": "validate_dsr_structure",
+        "stores": ["selected_household_dsr_2024_q4_pct", "selected_household_dsr_2025_q4_pct", "selected_household_dsr_change_pp", "selected_corporate_dsr_2024_q4_pct", "selected_corporate_dsr_2025_q4_pct", "selected_corporate_dsr_change_pp", "selected_private_dsr_2024_q4_pct", "selected_private_dsr_2025_q4_pct", "selected_private_dsr_change_pp", "selected_sector_mean_dsr_2025_q4_pct"],
+        "claims": [
+          {
+            "id": "reported_aggregate_structure_result",
+            "description": "The response uses the private-sector and sector-mean DSR values to explain that the reported private-sector DSR is not the unweighted arithmetic mean of the household and corporate DSR series.",
+            "mode": "required"
+          },
+          {
+            "id": "sector_weight_boundary",
+            "description": "If the response infers exact household and corporate weights in the published aggregate, it qualifies that inference because these three reported ratios alone do not identify the aggregation weights or full construction.",
+            "mode": "conditional"
+          }
+        ]
+      },
+      {
+        "query": "Finally, report the selected economy's broad nominal and real EER index levels for 2024-12 and 2025-12 and each percentage change. Within the original common population, rank nominal and real percentage changes separately from most negative upward with display economy name ascending as tie-break. Compare the two index paths and their placements, say what kind of number these indexes are, and whether they explain the earlier borrowing figures.",
+        "validator": "validate_eer_path",
+        "stores": ["selected_nominal_eer_2024_12", "selected_nominal_eer_2025_12", "selected_nominal_eer_change_pct", "selected_real_eer_2024_12", "selected_real_eer_2025_12", "selected_real_eer_change_pct", "selected_nominal_eer_decline_rank", "selected_real_eer_decline_rank"],
+        "claims": [
+          {
+            "id": "nominal_real_eer_result",
+            "description": "The response identifies from the computed changes that both broad indexes fall, with the nominal decline slightly larger than the real decline, while their common-population ranks differ.",
+            "mode": "required"
+          },
+          {
+            "id": "effective_rate_measure_boundary",
+            "description": "The response explains that the broad EER values are trade-weighted indexes rather than bilateral spot rates, currency-conversion factors or direct measures of borrower repayment cash flows.",
+            "mode": "required"
+          },
+          {
+            "id": "cross_measure_causality_boundary",
+            "description": "If the response attributes the credit or DSR position to the EER change, it qualifies that claim because the aligned retrospective aggregates do not identify causality.",
+            "mode": "conditional"
+          }
+        ]
+      }
+    ]
+  }],
+  "judge_reference": {
+    "source": "Frozen BIS credit-gap, debt-service-ratio and broad effective-exchange-rate tables",
+    "facts": [
+      "The common population has 17 economies and the screen retains three; Japan leads the retained nominal-EER decline ranking by about 0.0062 percentage point over Korea.",
+      "Japan's actual private credit ratio is 175.059967% of GDP, its gap is +6.7837 points and its implied trend is 168.276267% of GDP.",
+      "Japan's 2025-Q4 household, corporate and reported private DSRs are 7.5%, 32.6% and 15.5%; the two-sector arithmetic mean is 20.05%.",
+      "Japan's broad nominal EER changes from 74.84 to 70.53 and its broad real EER from 72.40 to 68.46."
+    ],
+    "known_overclaims": [
+      "Treating the credit gap as a dollar amount or forecast.",
+      "Treating the reported private DSR as an unweighted sector mean.",
+      "Inferring sector aggregation weights from the three ratios alone.",
+      "Treating a broad EER index as a bilateral spot rate or causal driver of credit conditions."
+    ]
+  }
+}

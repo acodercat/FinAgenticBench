@@ -1,0 +1,92 @@
+{
+  "name": "reg_cf_amendment_reg_d_market_context",
+  "module": "evals.temporal_path.reg_cf_amendment_reg_d_market_context",
+  "task_family": "temporal_path",
+  "data_sources": ["sec_form_c", "sec_form_d"],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [{
+    "id": "main",
+    "turns": [
+      {
+        "query": "Across SEC Regulation Crowdfunding filings made in 2025, build file-number lineages that contain at least one original Form C and at least one Form C/A. Select the earliest original Form C by filing date then accession, and the latest Form C/A by filing date then accession. Retain lineages with a reported maximum offering amount at both endpoints, rank by latest minus original maximum offering descending, and break a tie by earlier latest-amendment filing date then file number ascending. Report the eligible lineage count; selected file number and original issuer name; both endpoint accessions, filing dates and maximum amounts; and the selected increase's margin over the runner-up's. Explain what moved between the two endpoint filings, and say whether the later one starts a separate raise or revises the first.",
+        "validator": "validate_reg_cf_lineage",
+        "stores": ["eligible_reg_cf_lineage_count", "largest_increase_file_number", "largest_increase_issuer_name", "original_form_c_accession", "original_form_c_filing_date", "original_maximum_offering_usd_millions", "latest_form_c_a_accession", "latest_form_c_a_filing_date", "latest_maximum_offering_usd_millions", "maximum_increase_leader_margin_usd_millions"],
+        "claims": [{
+          "id": "amendment_lineage_result",
+          "description": "The response identifies a substantial increase in the selected lineage's maximum offering while recognizing the latest endpoint as an amendment of the same file-number offering.",
+          "mode": "required"
+        }]
+      },
+      {
+        "query": "For the latest amendment selected above, report target offering, deadline, current employees, most-recent-fiscal-year assets, cash and equivalents, short-term plus long-term debt, revenue and net income. Also report maximum offering divided by assets, maximum offering divided by cash, and debt divided by assets. Explain the scale of the amended maximum relative to the reported issuer snapshot.",
+        "validator": "validate_latest_amendment_financials",
+        "stores": ["latest_amendment_target_offering_usd_millions", "latest_amendment_deadline_date", "latest_amendment_current_employees", "latest_amendment_assets_usd_millions", "latest_amendment_cash_usd_millions", "latest_amendment_debt_usd_millions", "latest_amendment_revenue_usd_millions", "latest_amendment_net_income_usd_millions", "latest_maximum_offering_to_assets_pct", "latest_maximum_offering_to_cash_pct", "latest_debt_to_assets_pct"],
+        "claims": [
+          {
+            "id": "offering_assets_scale_result",
+            "description": "The response recognizes from the computed ratio that the amended maximum is many times the issuer's reported assets.",
+            "mode": "required"
+          },
+          {
+            "id": "offering_cash_scale_result",
+            "description": "The response recognizes from the computed ratio that the amended maximum is many times the issuer's reported cash and equivalents.",
+            "mode": "required"
+          },
+          {
+            "id": "debt_assets_scale_result",
+            "description": "The response recognizes from the computed ratio that reported debt exceeds reported assets.",
+            "mode": "required"
+          },
+          {
+            "id": "maximum_offering_funding_boundary",
+            "description": "If the response treats the maximum offering amount as cash raised, committed financing or proceeds received, it qualifies that claim because it is an offering ceiling rather than an observed funding outcome.",
+            "mode": "conditional"
+          }
+        ]
+      },
+      {
+        "query": "Use the selected latest-amendment filing date as the end of a thirty-calendar-day inclusive market-context window (the window starts 29 calendar days before that date and includes both endpoints). In Form D, retain initial filings in that window. Report the window start, initial filing count, count with total offering reported as Indefinite, and count with a finite positive total offering. For the finite-positive cohort report aggregate offering, aggregate amount sold, sold divided by offering, median and 75th-percentile offering. Aggregate finite offering by reported industry group and report the largest group, its count and amount, breaking an amount tie by industry name ascending.",
+        "validator": "validate_form_d_window",
+        "stores": ["form_d_window_start_date", "initial_form_d_filing_count", "indefinite_initial_form_d_filing_count", "finite_positive_initial_form_d_count", "finite_initial_form_d_offering_usd_billions", "finite_initial_form_d_sold_usd_billions", "finite_initial_form_d_sold_to_offering_pct", "finite_initial_form_d_median_offering_usd_millions", "finite_initial_form_d_q75_offering_usd_millions", "form_d_offering_leader_industry", "form_d_offering_leader_industry_count", "form_d_offering_leader_industry_usd_billions"],
+        "claims": [{
+          "id": "form_d_distribution_result",
+          "description": "The response identifies from the computed aggregation that pooled investment funds dominate the finite Form D offering dollars in the selected window.",
+          "mode": "required"
+        }]
+      },
+      {
+        "query": "Place the selected Form C/A maximum into the finite-positive initial Form D offering distribution from the prior turn. Define its inclusive empirical percentile as the count of Form D offerings less than or equal to the selected maximum divided by the finite count. Report that count and percentile, and selected maximum divided by the Form D median. Interpret what this scale comparison does and does not establish about the two filing populations.",
+        "validator": "validate_cross_exemption_scale",
+        "stores": ["form_d_offerings_at_or_below_selected_maximum_count", "selected_maximum_form_d_inclusive_percentile_pct", "selected_maximum_to_form_d_median_ratio"],
+        "claims": [
+          {
+            "id": "cross_exemption_scale_result",
+            "description": "The response uses the computed percentile and median ratio to place the selected crowdfunding maximum modestly above the contemporaneous finite Form D median rather than describing it as an extreme Form D-scale offering.",
+            "mode": "required"
+          },
+          {
+            "id": "exemption_population_boundary",
+            "description": "If the response treats Form C and Form D offerings as one accounting population or infers relative fundraising success from the scale comparison, it qualifies that claim because the filings arise under different exemptions, issuer populations and reporting constructs.",
+            "mode": "conditional"
+          }
+        ]
+      }
+    ]
+  }],
+  "judge_reference": {
+    "source": "Frozen 2025 SEC Form C and Form D filing tables",
+    "facts": [
+      "There are 399 eligible Form C lineages. Epilog Imaging Systems file 020-35641 increases from 0.99999984 million USD on 2025-03-06 to 4.78753803 million on 2025-11-20, a 3.78753819 million increase and 0.02253669 million margin.",
+      "The latest amendment reports 0.340692 million USD assets, 0.021221 million cash, 0.491745 million debt, 0.000668 million revenue and -0.443048 million net income. The maximum is 1,405.2393% of assets.",
+      "The 2025-10-22 through 2025-11-20 window has 3,057 initial Form D filings, including 900 Indefinite and 2,157 finite positive offerings. Finite offerings total 61.617822334 billion USD and have a 3.0 million median.",
+      "The selected maximum is at the 58.5999 inclusive percentile and 1.5958 times the Form D median."
+    ],
+    "known_overclaims": [
+      "Treating a maximum offering as observed proceeds.",
+      "Treating offering-to-assets as a valuation or probability of success.",
+      "Treating total Form D offering as amount raised.",
+      "Treating Regulation Crowdfunding and Regulation D populations as directly interchangeable."
+    ]
+  }
+}

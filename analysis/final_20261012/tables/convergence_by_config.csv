@@ -1,0 +1,19 @@
+study,model,mode,tier,task_accuracy,wrong_equals_crowd,n_wrong,identical_given_2plus_wrong,n_slots_2plus,identical_given_3_wrong,n_slots_3
+deepseek-v4-pro-0813-thinking-20261006,DeepSeek V4 Pro,T,strong,0.840376,0.539568,278,0.775862,58,0.230769,13
+gemini-3.8-flash-thinking-20261007,Gemini 3.8 Flash,T,strong,0.832551,0.678832,137,0.934783,46,0.92,25
+gpt-6-luna-thinking-20261006,GPT-6 Luna,T,strong,0.821596,0.578804,368,0.769231,78,0.711864,59
+claude-sonnet-5-thinking-20261007,Claude Sonnet 5.5,T,strong,0.798122,0.654221,616,0.802469,162,0.793478,92
+claude-sonnet-5-nonthinking-20261007,Claude Sonnet 5.5,N,mid,0.72144,0.538365,795,0.701245,241,0.610526,95
+qwen3.8-flash-thinking-20261006,Qwen3.8 Flash,T,mid,0.70892,0.400657,609,0.451613,155,0.519231,52
+glm-5.3-thinking-high-20261007,GLM-5.3,T,mid,0.701095,0.463636,880,0.445833,240,0.433962,53
+deepseek-v4-flash-thinking-20261006,DeepSeek V4 Flash,T,mid,0.627543,0.538238,1033,0.633588,262,0.595041,121
+qwen3.8-27b-thinking-20261008,Qwen3.8-27B,T,mid,0.622848,0.296231,1141,0.361905,315,0.228571,140
+deepseek-v4-pro-0813-nonthinking-20261006,DeepSeek V4 Pro,N,weak,0.591549,0.346185,1219,0.4273,337,0.411111,180
+deepseek-v4-flash-nonthinking-20261006,DeepSeek V4 Flash,N,weak,0.588419,0.400444,1351,0.397878,377,0.439815,216
+gpt-6-luna-nonthinking-20261006,GPT-6 Luna,N,weak,0.588419,0.259464,1268,0.40407,344,0.211382,123
+qwen3.8-27b-nonthinking-20261008,Qwen3.8-27B,N,weak,0.478873,0.222039,1815,0.222222,513,0.256303,238
+qwen3.8-flash-nonthinking-20261006,Qwen3.8 Flash,N,weak,0.475743,0.215046,1409,0.258454,414,0.169492,118
+SPEARMAN_WITH_ACCURACY,,,,,0.920879,,0.934066,,0.63956,
+TIER:strong,,,strong,,0.61401,1399,,,,
+TIER:mid,,,mid,,0.442799,4458,,,,
+TIER:weak,,,weak,,0.282923,7062,,,,

@@ -1,0 +1,14 @@
+judge,group,cc_pass_rate,n_turns,auc_mean_coverage_pv_pass,config_rank_corr_cc_pv
+DeepSeek V4 Flash,PV pass,0.953501,28732,0.526301,0.217582
+DeepSeek V4 Flash,"PV wrong value, other",0.921199,2868,0.526301,0.217582
+DeepSeek V4 Flash,"PV wrong value, shared",0.900502,2392,0.526301,0.217582
+DeepSeek V4 Flash,PV unanswered or other failure,0.810769,650,0.526301,0.217582
+GPT-6 Luna,PV pass,0.78349,28673,0.517507,0.27033
+GPT-6 Luna,"PV wrong value, other",0.77108,2870,0.517507,0.27033
+GPT-6 Luna,"PV wrong value, shared",0.732105,2389,0.517507,0.27033
+GPT-6 Luna,PV unanswered or other failure,0.654434,654,0.517507,0.27033
+GLM-5.3 Flash,PV pass,0.864688,28741,0.532936,0.235165
+GLM-5.3 Flash,"PV wrong value, other",0.820021,2867,0.532936,0.235165
+GLM-5.3 Flash,"PV wrong value, shared",0.800419,2385,0.532936,0.235165
+GLM-5.3 Flash,PV unanswered or other failure,0.74159,654,0.532936,0.235165
+all three,turn-level agreement,0.793654,34539,,

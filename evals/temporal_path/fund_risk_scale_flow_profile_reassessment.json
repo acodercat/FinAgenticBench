@@ -1,0 +1,128 @@
+{
+  "name": "fund_risk_scale_flow_profile_reassessment",
+  "module": "evals.temporal_path.fund_risk_scale_flow_profile_reassessment",
+  "task_family": "temporal_path",
+  "difficulty": "medium",
+  "case_type": "baseline",
+  "data_sources": [
+    "sec_nport",
+    "treasury_yield_curve"
+  ],
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Compare SEC N-PORT series at June 30 and September 30, 2025. For each series and report date, select the latest original NPORT-P filing filed by December 31, 2025, breaking same-filing-date ties by accession descending. Do not substitute an earlier filing if the selected one is ineligible. Require a reported series ID, exactly one USD interest-rate-risk record per selected filing, all five finite reported maturity-bucket DV01 values, positive total USD DV01 at both dates, at least USD 1 billion of June net assets and positive finite September net assets; June net assets must also be finite. Rank positive declines in total USD DV01 from June to September descending, breaking ties by series ID ascending, and retain the first five series. Report the eligible paired-series count before restricting to declines, the ordered five-series list and their aggregate DV01 decline. Explain which exposure this ranking tracks between the two dates, and whether a drop in it shows a fund became safer per dollar invested.",
+          "stores": [
+            "eligible_pairs",
+            "decliner_series",
+            "cohort_dv01_decline"
+          ],
+          "validator": "validate_cohort",
+          "claims": [
+            {
+              "id": "dollar_risk_scope",
+              "mode": "required",
+              "description": "The response interprets the ranking as a change in aggregate reported USD interest-rate dollar sensitivity over the specified endpoints, rather than a ranking of all investment risks."
+            },
+            {
+              "id": "risk_reduction_overclaim",
+              "mode": "conditional",
+              "description": "If the response concludes that a decline in total DV01 proves lower risk per invested dollar or a managerial de-risking action, it recognizes that size and risk intensity have not yet been separated."
+            }
+          ]
+        },
+        {
+          "query": "Within that five-series cohort, compare June and September total USD DV01 per unit of net assets. Select the series with the largest September-minus-June change in this normalized sensitivity, breaking ties by series ID ascending. Report its series ID, both normalized sensitivities per USD 1 million of net assets, and its September-minus-June percentage change in total USD DV01 relative to June. Interpret how the normalized comparison relates to the original decline screen.",
+          "stores": [
+            "selected_series",
+            "june_unit_dv01",
+            "september_unit_dv01",
+            "selected_dv01_change_pct"
+          ],
+          "validator": "validate_intensity",
+          "claims": [
+            {
+              "id": "scale_intensity_divergence",
+              "mode": "required",
+              "description": "The response explains that total USD DV01 and DV01 per unit of net assets measure different financial objects, so a fund can decline on one while rising on the other."
+            },
+            {
+              "id": "manager_action_inference",
+              "mode": "conditional",
+              "description": "If the response attributes the change in sensitivity to active portfolio trades or intentional risk-taking, it recognizes that two endpoint risk disclosures alone do not identify the cause of that change."
+            }
+          ]
+        },
+        {
+          "query": "For the selected series and those same filings, examine the change in net assets alongside the three monthly share-transaction disclosures in the September report. Include shares issued through reinvested distributions in net reported share transactions. Report September net assets, the quarter's net reported share-transaction amount and the portion of net-asset change not accounted for by those transactions. Explain what the leftover piece of the balance change represents once subscriptions and redemptions are set aside, and what it cannot be read as.",
+          "stores": [
+            "september_nav_usd",
+            "net_share_transactions_usd",
+            "nav_bridge_remainder_usd"
+          ],
+          "validator": "validate_share_bridge",
+          "claims": [
+            {
+              "id": "remainder_scope",
+              "mode": "required",
+              "description": "The response identifies the remainder as net-asset change not accounted for by the reported share transactions and explains why it is not an identified total investment return, cash-flow measure or alpha."
+            }
+          ]
+        },
+        {
+          "query": "Use that fund's September net assets as a common capital base for a fixed-exposure scenario. Compare its September USD maturity-bucket DV01 profile with its June profile scaled proportionally to that capital base, preserving the June bucket composition. Apply the June 30 to September 30, 2025 changes in Treasury par yields at 3 months, 1 year, 5 years, 10 years and 30 years to the matching buckets. Use a first-order scenario convention in which positive DV01 earns a positive value change for a one-basis-point decline in the matched yield. Report each profile's signed scenario value change at the common capital base. Also identify the tenor with the largest absolute contribution to the September-profile-minus-June-profile value-change difference and report its signed contribution; break ties by the stated tenor order. Interpret how this comparison relates to the earlier total-dollar and normalized sensitivity comparisons, and discuss the scope of using the reported endpoint profiles.",
+          "stores": [
+            "june_profile_value_change_usd",
+            "september_profile_value_change_usd",
+            "largest_profile_difference_tenor",
+            "largest_profile_difference_usd"
+          ],
+          "validator": "validate_profile_scenario",
+          "claims": [
+            {
+              "id": "common_capital_profile",
+              "mode": "required",
+              "description": "The response explains why the selected fund can have a larger positive scenario value change at common capital despite its decline in total dollar DV01: normalization removes the capital-size difference, while the nonparallel curve move also weights the maturity composition. It connects this result to the earlier increase in sensitivity per unit of net assets."
+            },
+            {
+              "id": "endpoint_scenario_scope",
+              "mode": "required",
+              "description": "The response explains that endpoint risk disclosures do not supply the within-quarter exposure path, so this scenario cannot identify realized quarterly investment performance; merely calling the exercise retrospective or first-order is insufficient."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen SEC N-PORT fund reports and USD risk disclosures; Treasury par yields at the two stated dates.",
+    "facts": [
+      "eligible_pairs: 263",
+      "decliner_series: ['S000004071', 'S000002334', 'S000021221', 'S000020634', 'S000077474']",
+      "cohort_dv01_decline: 3003448.0912",
+      "selected_series: S000020634",
+      "june_unit_dv01: 432.751112819629",
+      "september_unit_dv01: 461.8360497927633",
+      "selected_dv01_change_pct: -13.647290458101583",
+      "september_nav_usd: 6918877176.79",
+      "net_share_transactions_usd: -1795876844.48",
+      "nav_bridge_remainder_usd: 163904014.3",
+      "june_profile_value_change_usd: 22456653.60335163",
+      "september_profile_value_change_usd: 23851171.30896",
+      "largest_profile_difference_tenor: 10Y",
+      "largest_profile_difference_usd: 530781.5662969352",
+      "The selected fund NAV falls 19.085504%, faster than its aggregate DV01, allowing its normalized sensitivity to increase.",
+      "The NAV bridge is incomplete as an investment-performance attribution. Share transaction totals have reporting conventions and no within-quarter timing path is available here.",
+      "The June risk profile is rescaled to September NAV before the common yield change is applied. Comparing unscaled June dollar exposures changes the financial object.",
+      "The first-order scenario uses Treasury changes [-39.0, -28.0, -5.0, -8.0, -5.0] bp in maturity order; it omits changing exposures within the quarter and non-rate sources of value change."
+    ],
+    "known_overclaims": [
+      "Total risk decline proves lower per-dollar risk.",
+      "The bridge remainder equals total return or alpha.",
+      "Endpoint sensitivity changes identify manager trades.",
+      "The Treasury-based scenario reproduces actual fund returns."
+    ]
+  }
+}

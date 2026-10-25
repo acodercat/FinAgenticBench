@@ -1,0 +1,19 @@
+study                                       prev pass   prev wrong   prev unans
+Gemini 3.8 Flash thinking                       98.4%        58.5%        78.9%
+DeepSeek V4 Pro thinking                        96.0%        45.8%        42.9%
+GPT-6 Luna thinking                             95.0%        26.9%        59.5%
+Claude Sonnet 5.5 thinking                      94.8%        29.3%        33.3%
+Claude Sonnet 5.5 non-thinking                  91.9%        28.8%        40.0%
+Qwen3.8 Flash thinking                          91.6%        27.6%        58.1%
+GLM-5.3 thinking                                91.3%        30.1%        93.3%
+DeepSeek V4 Flash thinking                      89.1%        23.0%        55.2%
+Qwen3.8-27B thinking                            88.6%        24.6%        65.1%
+DeepSeek V4 Pro non-thinking                    87.3%        25.9%        60.5%
+DeepSeek V4 Flash non-thinking                  87.2%        26.4%        54.5%
+GPT-6 Luna non-thinking                         86.2%        22.0%        46.5%
+Qwen3.8-27B non-thinking                        83.2%        16.9%        20.3%
+Qwen3.8 Flash non-thinking                      80.7%        20.8%        19.7%
+pooled: {'prev pass': '90.6% (n=22521)', 'prev wrong_value': '25.3% (n=3678)', 'prev unanswered': '42.5% (n=891)'}
+within-task: 321 (case,turn) slots; next-turn pass is +65.5% higher after a correct turn than after a wrong one; 93% of slots agree in sign
+failed runs 2941; first failure at turn: {1: 1098, 2: 703, 3: 558, 4: 467, 5: 104, 6: 11}; later turns all recover in 810/2415
+-> analysis/final_20261012/tables/propagation.csv

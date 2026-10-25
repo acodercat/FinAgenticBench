@@ -1,0 +1,57 @@
+{
+  "name": "money_market_tax_equivalent_yield_switch",
+  "module": "evals.comparison_ranking.money_market_tax_equivalent_yield_switch",
+  "task_family": "comparison_ranking",
+  "difficulty": "medium",
+  "case_type": "baseline",
+  "data_sources": ["sec_nmfp_series_filings", "sec_nmfp_class_yields"],
+  "conversations": [{
+    "id": "main",
+    "turns": [
+      {
+        "query": "For 2025-04-30 N-MFP reports public by 2025-12-31, keep the latest filing per series by filing date, then accession. Retain same-day classes with positive assets and positive net yield no greater than gross yield. In Government and Other Tax Exempt, count the retained classes and series; carry them forward.",
+        "validator": "validate_turn_1",
+        "stores": ["tax_yield_government_classes", "tax_yield_government_series", "tax_yield_exempt_classes", "tax_yield_exempt_series"],
+        "claims": []
+      },
+      {
+        "query": "For each carried category, report total class assets and the class-asset-weighted seven-day net yield. Explain whose yield the asset weighting produces, and how it relates to the yield of an average class in the category.",
+        "validator": "validate_turn_2",
+        "stores": ["tax_yield_government_assets_b", "tax_yield_government_net_pct", "tax_yield_exempt_assets_b", "tax_yield_exempt_net_pct"],
+        "claims": [
+          {"id": "tax_yield_weighting_meaning", "mode": "required", "description": "The response interprets the asset-weighted yield as the observed yield for an average invested dollar across retained classes, which need not equal the yield of an average class or any one investor."}
+        ]
+      },
+      {
+        "query": "In a federal-only scenario, treat Government yield as fully taxable and Other Tax Exempt yield as fully exempt. Which category has the higher after-tax yield at 22% and 24% marginal rates? Favor Government on an exact tie, and interpret the comparison.",
+        "validator": "validate_turn_3",
+        "stores": ["tax_yield_choice_22", "tax_yield_choice_24"],
+        "claims": [
+          {"id": "tax_yield_rate_switch", "mode": "required", "description": "The response interprets the observed category choice as changing between the two hypothetical tax rates because only the stipulated taxable yield is reduced by the investor tax rate."}
+        ]
+      },
+      {
+        "query": "Lower only the carried Government category net yield by 25 basis points, holding the class mix and exempt yield fixed. Reassess the higher after-tax category at both rates, favoring Government on a tie. Discuss what this category-average sensitivity can and cannot settle for an individual investor deciding ahead.",
+        "validator": "validate_turn_4",
+        "stores": ["tax_yield_shock_choice_22", "tax_yield_shock_choice_24"],
+        "claims": [
+          {"id": "tax_yield_snapshot_boundary", "mode": "required", "description": "The response states at least one material limitation on extending the seven-day category-average sensitivity to an individual investor's forward decision."},
+          {"id": "tax_yield_actual_tax", "mode": "conditional", "description": "If the response infers an investor's actual tax liability, it recognizes that fund category and the stipulated federal treatment do not establish that investor's actual distribution-level tax treatment."},
+          {"id": "tax_yield_future_return", "mode": "conditional", "description": "If the response treats the reported seven-day yield or the stipulated yield cut as a realized or guaranteed future return, it identifies that assertion as unsupported by the snapshot."}
+        ]
+      }
+    ]
+  }],
+  "judge_reference": {
+    "source": "SEC Form N-MFP 2025-04-30 series filing identity/category and same-day share-class gross/net yield and class asset rows; IRS Publication 550 for tax-treatment boundaries.",
+    "facts": [
+      "The latest-filing and positive-asset/positive-yield screen leaves 729 Government class rows across 214 series and 76 Other Tax Exempt class rows across 25 series.",
+      "Retained class assets total USD 5,959.98345264 billion Government and USD 108.25936473 billion Other Tax Exempt. Asset-weighted seven-day net yields are 4.15560163% and 3.20494884%, respectively.",
+      "Under the stipulated treatment, Government wins at 22% and Other Tax Exempt at 24%. With Government net yield lowered 25 basis points, Other Tax Exempt wins at both rates."
+    ],
+    "known_overclaims": [
+      "Treating the N-MFP fund category as proof that every real distribution is fully federally exempt, or ignoring possible state tax and AMT treatment for an actual investor.",
+      "Treating a seven-day yield or the hypothetical yield cut as a realized or guaranteed future investor return."
+    ]
+  }
+}

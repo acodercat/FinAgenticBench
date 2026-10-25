@@ -1,0 +1,133 @@
+{
+  "name": "bond_fund_curve_bucket_exposure_scenario",
+  "module": "evals.scenario_analysis.bond_fund_curve_bucket_exposure_scenario",
+  "task_family": "scenario_analysis",
+  "data_sources": [
+    "sec_nport_interest_rate_risk",
+    "treasury_yield_curve"
+  ],
+  "case_type": "baseline",
+  "difficulty": "hard",
+  "judge_reference": {
+    "source": "SEC N-PORT interest rate risk disclosures at the 2025-06-30 report date, priced against the daily Treasury par yield curve for 2025-06-30 and 2025-12-31.",
+    "facts": [
+      "2,052 filings report in US dollars at the report date and 1,132 of them carry positive total exposure.",
+      "Implied duration is total exposure divided by net assets and by one basis point; its median is 2.6672 years and its ninetieth percentile 7.9217 years.",
+      "The longest implied duration is 27.6627 years, held by PIMCO 25+ Year Zero Coupon U.S. Treasury Index Exchange-Traded Fund, with 100.0000 percent of its exposure at ten years and beyond.",
+      "Between the two dates the three-month yield fell 74.0000 basis points, the one-year fell 48.0000, the five-year and ten-year each fell 6.0000, and the thirty-year rose 6.0000.",
+      "Applying each bucket exposure to its own change gives 8,329.0658 million USD across the population, a median of 612,870.50 per filing and a median of 0.3405 percent of net assets, ranging from -1.2820 to 5.1937 percent.",
+      "The largest fund by net assets, PIMCO Income Fund, carries 4.4291 years of duration with 61.2416 percent of its exposure at the five-year point and gains 0.6571 percent of net assets.",
+      "The second largest, Dodge & Cox Income Fund, carries 6.2583 years but holds 70.0742 percent of its exposure at ten years and beyond, and gains 0.3093 percent.",
+      "The exposure figures are a first-order sensitivity carrying no convexity, so the result approximates a mark rather than reproducing a realized return."
+    ],
+    "known_overclaims": [
+      "Treating the move as a parallel shift, which the five separate bucket changes contradict.",
+      "Ordering the two funds by duration and concluding the longer-duration fund gained more.",
+      "Presenting the estimate as a realized return rather than a first-order approximation that omits convexity, spread, credit and trading.",
+      "Reading the exposure of funds reporting in other currencies as US dollars."
+    ]
+  },
+  "conversations": [
+    {
+      "turns": [
+        {
+          "query": "Using the SEC N-PORT interest rate risk table, take every filing with a report date of 2025-06-30 that reports in USD and has positive net assets. Report how many such filings there are. Among them, keep those whose five bucket sensitivities (three-month, one-year, five-year, ten-year, thirty-year) sum to a positive total, and report how many qualify. For each qualifying filing compute implied duration in years as the total sensitivity divided by net assets and by one basis point (0.0001). Report the median and the ninetieth percentile using linear interpolation. Then identify the filing with the longest implied duration, breaking a tie on the lower accession number, and report its fund name, its duration, and the percentage of its total sensitivity that sits in the ten-year and thirty-year buckets combined. Briefly interpret the cross-sectional duration distribution and the scope of this constructed measure.",
+          "validator": "validate_exposure_cross_section",
+          "stores": [
+            "filing_count",
+            "exposed_filing_count",
+            "median_duration_years",
+            "ninetieth_duration_years",
+            "longest_duration_fund",
+            "longest_duration_years",
+            "longest_duration_long_end_share_pct"
+          ],
+          "claims": [
+            {
+              "id": "duration_interpretation",
+              "description": "The response interprets the median, upper tail and extreme as a filing-level distribution of a DV01-derived measure, and distinguishes that normalized sensitivity from a realized holding-period return.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Now bring in the daily Treasury par yield curve. For each of the five maturity points that match the sensitivity buckets (3 Mo, 1 Yr, 5 Yr, 10 Yr, 30 Yr), compute the change in yield from 2025-06-30 to 2025-12-31 in basis points each. Report the five changes and briefly characterize the shape of the move across maturities.",
+          "validator": "validate_curve_move",
+          "stores": [
+            "three_month_change_bp",
+            "one_year_change_bp",
+            "five_year_change_bp",
+            "ten_year_change_bp",
+            "thirty_year_change_bp"
+          ],
+          "claims": [
+            {
+              "id": "nonparallel_shape",
+              "description": "The response explains that the changes differ materially by maturity and include opposite signs, so the observed move cannot be represented faithfully by one parallel shift.",
+              "mode": "required"
+            },
+            {
+              "id": "shape_reading",
+              "description": "If the response names the shape of the move, it identifies a large front-end decline alongside a long-end rise as a steepening of the curve.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Apply the curve move to the exposures. For each qualifying filing from the first turn, estimate the mark-to-market impact as the negative of the sum over the five buckets of (bucket sensitivity x that bucket's yield change in basis points), so that a falling yield produces a gain. Report the total across all qualifying filings in USD millions, the median impact per filing in USD, and then, expressing each filing's impact as a percentage of its own net assets, report the median, the minimum and the maximum of that percentage. Explain how bucket placement affects the sign of the estimate and state the evidentiary limits of this first-order scenario.",
+          "validator": "validate_scenario_mark",
+          "stores": [
+            "total_estimated_mark_usd_millions",
+            "median_estimated_mark_usd",
+            "median_mark_share_of_assets_pct",
+            "minimum_mark_share_pct",
+            "maximum_mark_share_pct"
+          ],
+          "claims": [
+            {
+              "id": "bucket_sign_interpretation",
+              "description": "The response connects gains and losses to the sign and maturity placement of each filing's bucket sensitivities under the non-parallel move rather than to duration alone.",
+              "mode": "required"
+            },
+            {
+              "id": "first_order_limit",
+              "description": "The response identifies the output as a first-order rate-sensitivity estimate that omits convexity, spread and credit changes, cash flows, and trading over the window.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Finally, take the two qualifying filings with the largest net assets, breaking asset ties on the lower accession number. For each, report the fund name, its implied duration in years, and its estimated impact as a percentage of net assets. For the larger of the two also report the percentage of its total sensitivity that sits in the five-year bucket, and for the second the percentage that sits in the ten-year and thirty-year buckets combined, both. State which has the longer duration and which has the better outcome, defining better as the larger estimated impact as a percentage of net assets. Explain whether duration alone determines their ranking under the observed curve move.",
+          "validator": "validate_duration_versus_placement",
+          "stores": [
+            "largest_fund_name",
+            "largest_fund_duration_years",
+            "largest_fund_five_year_share_pct",
+            "largest_fund_mark_share_pct",
+            "second_fund_name",
+            "second_fund_duration_years",
+            "second_fund_long_end_share_pct",
+            "second_fund_mark_share_pct"
+          ],
+          "claims": [
+            {
+              "id": "placement_interpretation",
+              "description": "The response uses the reported bucket shares and tenor-specific yield moves to explain why the two filings' duration and outcome rankings need not agree.",
+              "mode": "required"
+            },
+            {
+              "id": "duration_insufficient",
+              "description": "The response states that a single duration figure is insufficient to rank outcomes under a non-parallel move because it collapses the maturity distribution of the exposure into one number.",
+              "mode": "required"
+            },
+            {
+              "id": "parallel_counterfactual",
+              "description": "If the response considers a parallel shift, it notes that the longer-duration fund would then have gained more, making the reversal a property of this particular curve move.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,96 @@
+{
+  "name": "industry_kalman_beta_smoothing",
+  "module": "evals.temporal_path.industry_kalman_beta_smoothing",
+  "task_family": "temporal_path",
+  "data_sources": [
+    "ken_french_10_industry_portfolios",
+    "ken_french_daily_factors"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Using the frozen Kenneth French daily value-weighted HiTec portfolio and daily market factors, calibrate an intercept-bearing CAPM on all common dates from 2019-01-01 through 2021-12-31. Use excess returns and homoskedastic OLS, with residual variance based on n minus two. Report observation count, intercept, market beta, residual variance and the estimated sampling variance of beta. Carry the fitted model forward and interpret its exposure estimate. Use unrounded model state throughout.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "calibration_count",
+            "initial_alpha_pp",
+            "initial_beta",
+            "observation_variance_pp2",
+            "initial_beta_variance"
+          ],
+          "claims": [
+            {
+              "id": "industry_kalman_beta_smoothing_t1_interpretation",
+              "description": "The response interprets the fitted beta as above-unit historical market exposure.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "For the common 2022 dates, use a scalar linear-Gaussian dynamic CAPM with random-walk beta, the carried intercept fixed, and mutually independent state and observation errors. Fix observation variance at its carried estimate and beta process variance at 0.0001 per common observation. The initial prior has the carried OLS beta mean and its sampling variance; the first 2022 date includes one state transition. Report the final filtered beta, its posterior variance and the total Gaussian innovation log likelihood. Carry the complete filtering state forward and interpret the change in estimated exposure.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "filtered_beta",
+            "filtered_beta_variance",
+            "filter_log_likelihood"
+          ],
+          "claims": [
+            {
+              "id": "industry_kalman_beta_smoothing_t2_interpretation",
+              "description": "The response relates the higher year-end beta to increased estimated market sensitivity relative to calibration.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Continue the carried filter through the common dates from 2023-01-01 through 2023-01-31, with the model parameters unchanged. Evaluate a daily market hedge of one unit of HiTec excess-return exposure, short the market excess-return factor at each date's one-step predictive beta. Use zero transaction costs and daily rebalancing. Report held-out observation count, mean hedged daily excess return, sample annualized hedge volatility with 252 observations per year, and the final filtered beta. Carry the full updated path forward and interpret the realized hedge risk.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "holdout_count",
+            "hedged_mean_pp",
+            "hedged_volatility_pct",
+            "holdout_terminal_beta"
+          ],
+          "claims": [
+            {
+              "id": "industry_kalman_beta_smoothing_t3_interpretation",
+              "description": "The response identifies material residual hedge volatility despite removal of predicted market exposure.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Apply the Rauch\u2013Tung\u2013Striebel fixed-interval smoother to the carried dynamic model over the complete 2022 through January 2023 observation path. Report the smoothed beta and its variance at the last 2022 observation. Discuss the financial use of the smoothed year-end estimate relative to the hedge evaluated earlier.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "smoothed_yearend_beta",
+            "smoothed_yearend_variance"
+          ],
+          "claims": [
+            {
+              "id": "industry_kalman_beta_smoothing_t4_interpretation",
+              "description": "The response explains that the lower smoothed year-end exposure uses January information and cannot replace the contemporaneous hedge estimate in a tradable backtest.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Governed dataset_new and the uniquely specified quantitative model.",
+    "facts": [
+      "The response interprets the fitted beta as above-unit historical market exposure.",
+      "The response relates the higher year-end beta to increased estimated market sensitivity relative to calibration.",
+      "The response identifies material residual hedge volatility despite removal of predicted market exposure.",
+      "The response explains that the lower smoothed year-end exposure uses January information and cannot replace the contemporaneous hedge estimate in a tradable backtest."
+    ],
+    "known_overclaims": [
+      "Interpreting this conditional historical/scenario model as evidence of future performance."
+    ]
+  }
+}

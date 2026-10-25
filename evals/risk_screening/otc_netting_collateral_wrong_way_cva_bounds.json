@@ -1,0 +1,108 @@
+{
+  "name": "otc_netting_collateral_wrong_way_cva_bounds",
+  "module": "evals.risk_screening.otc_netting_collateral_wrong_way_cva_bounds",
+  "task_family": "risk_screening",
+  "data_sources": [
+    "bis_otc_derivatives",
+    "treasury_yield_curve"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Calibrate a hypothetical USD100 million OTC notional book from BIS outstanding derivatives at 2024-S2: total instruments, total counterparty sectors, total currency/maturity/rating scope, net-net reporting basis. Use the separate interest-rate, foreign-exchange excluding gold, and equity categories. Allocate book notional in proportion to their reported notionals; each category's reference mark scale is its allocated book notional valued at that category's reported gross-market-value-to-notional ratio. Report the three reference mark scales. These public aggregates supply only hypothetical scales. Carry full precision throughout the conversation.",
+          "stores": [
+            "interest_mark_scale_mn",
+            "fx_mark_scale_mn",
+            "equity_mark_scale_mn"
+          ],
+          "validator": "validate_turn_1",
+          "claims": []
+        },
+        {
+          "query": "Use the calibrated scales for six equally likely one-year closeout states. Signed mark multipliers for interest-rate, FX, equity are respectively (-3,1,-2), (-1,2,1), (0,-1,2), (1,-2,-1), (2,1,-3), (4,-3,4). All positions face one counterparty: interest-rate and FX belong to one enforceable netting set and equity to a separate set, with no cross-set offset or collateral transfer. Cash collateral held by the bank, fixed before the scenario, is USD0.2 million and USD0.1 million respectively. There are no haircuts, thresholds, other collateral or settlement flows; surplus collateral has no credit exposure. Report total positive exposure after legal netting and collateral for states 5 and 6. Explain the role of the netting arrangement.",
+          "stores": [
+            "state5_exposure_mn",
+            "state6_exposure_mn"
+          ],
+          "validator": "validate_turn_2",
+          "claims": [
+            {
+              "id": "legal_positive_exposure",
+              "description": "The response explains why positive closeout exposure must respect the separate legal netting sets and cannot use a whole-book signed offset.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "For that six-state exposure book, assume a 25% probability of counterparty default with all default losses settled at exact year 1 and recovery of 40% of positive closeout exposure. In this comparison only, market state and default are independent. Discount using Treasury December 31, 2024 one-year yield as a hypothetical zero rate with nominal semiannual compounding. Report the positive CVA deduction. Explain what this value depends on.",
+          "stores": [
+            "independent_cva_mn"
+          ],
+          "validator": "validate_turn_3",
+          "claims": [
+            {
+              "id": "independence_pricing",
+              "description": "The response relates the independent CVA to discounted expected default loss under the stated marginal probabilities rather than to notional principal or gross market value alone.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Keep the book, settlement terms and both market-state and default marginals fixed, but now allow any joint distribution consistent with those marginals. Report the attainable sharp minimum and maximum CVA. Explain how the interval relates to the earlier independent valuation.",
+          "stores": [
+            "sharp_cva_lower_mn",
+            "sharp_cva_upper_mn"
+          ],
+          "validator": "validate_turn_4",
+          "claims": [
+            {
+              "id": "coupling_changes_loss",
+              "description": "The response explains that the same default marginal supports different CVA through the allocation of default probability across exposure states.",
+              "mode": "required"
+            },
+            {
+              "id": "bounds_not_prediction",
+              "description": "If the response interprets an extremal coupling as the actual or forecast default dependence, it qualifies that inference because only the marginals are specified.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Before market states are realized, add an identical nonnegative amount of cash collateral to each existing netting set; all previous collateral remains. Find the least added amount per set for which the worst CVA over all joint distributions from the preceding turn is at most USD0.10 million. Also report the independent-market-default CVA at that collateral amount. Explain the adequacy of the collateral decision.",
+          "stores": [
+            "minimum_extra_collateral_each_mn",
+            "boundary_independent_cva_mn"
+          ],
+          "validator": "validate_turn_5",
+          "claims": [
+            {
+              "id": "robust_not_independent_budget",
+              "description": "The response explains that the collateral decision protects against the most adverse admissible dependence, while the independent valuation at the boundary is lower than the budget.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen governed dataset_new tables; explicitly hypothetical financial contracts in the conversation.",
+    "facts": [
+      "interest_mark_scale_mn: 1.6800",
+      "fx_mark_scale_mn: 0.7091",
+      "equity_mark_scale_mn: 0.0963",
+      "state5_exposure_mn: 3.8691",
+      "state6_exposure_mn: 4.6779",
+      "independent_cva_mn: 0.2088",
+      "sharp_cva_lower_mn: 0.0000",
+      "sharp_cva_upper_mn: 0.6346",
+      "minimum_extra_collateral_each_mn: 3.5234",
+      "boundary_independent_cva_mn: 0.0291"
+    ],
+    "known_overclaims": []
+  }
+}

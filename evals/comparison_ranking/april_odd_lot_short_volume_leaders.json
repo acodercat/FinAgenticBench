@@ -1,0 +1,102 @@
+{
+  "name": "april_odd_lot_short_volume_leaders",
+  "module": "evals.comparison_ranking.april_odd_lot_short_volume_leaders",
+  "task_family": "comparison_ranking",
+  "data_sources": [
+    "sec_midas_security_exchange",
+    "finra_short_volume"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Using SEC MIDAS individual security-by-exchange observations and FINRA consolidated daily short-volume files for April 2025, determine their common trading dates. For cross-source ticker identity, match a MIDAS dot-form share-class ticker to the FINRA symbol obtained by replacing its period separator with a slash; otherwise require exact ticker-string equality. A ticker enters the comparison only if, on every common date, it has at least one MIDAS observation with both trade and odd-lot volume reported and one FINRA row. Report the common-date count and the eligible-ticker count. Carry that population forward and explain what the two sources each cover.",
+          "validator": "validate_common_population",
+          "stores": [
+            "common_trading_date_count",
+            "full_coverage_common_ticker_count"
+          ],
+          "claims": [
+            {
+              "id": "cross_venue_coverage_boundary",
+              "description": "The response explains that MIDAS volume reflects on-exchange continuous trading and generally excludes off-exchange, opening and closing auction, and off-hours volume, whereas the FINRA file covers publicly disseminated off-exchange activity reported to FINRA facilities; the two totals therefore have distinct scopes and are not a market-wide accounting reconciliation.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Across that full-coverage population, aggregate MIDAS volumes before forming shares and rank tickers by absolute aggregate odd-lot volume, breaking ties alphabetically. Report the ordered top-five cohort, and for the leading ticker its aggregate MIDAS trade volume, odd-lot volume and odd-lot share. Carry the five-ticker cohort forward and explain how the volume level and the share differ as measures.",
+          "validator": "validate_odd_lot_cohort",
+          "stores": [
+            "top_five_midas_odd_lot_volume_tickers",
+            "largest_midas_odd_lot_volume_ticker",
+            "largest_ticker_midas_trade_volume_billion_shares",
+            "largest_ticker_midas_odd_lot_volume_billion_shares",
+            "largest_ticker_midas_odd_lot_share_pct"
+          ],
+          "claims": [
+            {
+              "id": "volume_level_versus_share",
+              "description": "The response treats aggregate odd-lot volume as a level that rises with a ticker's overall activity and the odd-lot share as the scale-free measure of how that activity is composed.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Within that five-ticker cohort, rank by aggregate FINRA short volume divided by aggregate FINRA total volume, breaking ties alphabetically. Report that leader, its MIDAS odd-lot-volume rank, odd-lot volume and share, and its FINRA short, short-exempt and total volumes plus short-volume share. Explain how the two leadership measures relate and the limits of combining their interpretations.",
+          "validator": "validate_short_share_leader",
+          "stores": [
+            "top_five_highest_finra_short_share_ticker",
+            "finra_short_share_leader_midas_odd_lot_rank",
+            "finra_short_share_leader_midas_odd_lot_volume_billion_shares",
+            "finra_short_share_leader_midas_odd_lot_share_pct",
+            "finra_short_share_leader_short_volume_billion_shares",
+            "finra_short_share_leader_short_exempt_volume_billion_shares",
+            "finra_short_share_leader_total_volume_billion_shares",
+            "finra_short_share_leader_short_volume_share_pct"
+          ],
+          "claims": [
+            {
+              "id": "leader_metric_divergence",
+              "description": "The response explains that absolute MIDAS odd-lot volume and within-cohort FINRA short-volume share reward different scale and denominator properties, so their leaders need not be the same ticker.",
+              "mode": "required"
+            },
+            {
+              "id": "short_volume_not_short_interest",
+              "description": "The response identifies FINRA daily short volume as reported transaction volume rather than short interest, an outstanding short position or a direct measure of bearish conviction.",
+              "mode": "required"
+            },
+            {
+              "id": "short_exempt_subset_semantics",
+              "description": "The response explains that FINRA short-exempt volume is the separately reported exempt subset already included in short volume, rather than an additional disjoint volume to add to short volume.",
+              "mode": "required"
+            },
+            {
+              "id": "market_quality_causality_boundary",
+              "description": "If the response infers retail participation, liquidity, execution quality, sentiment or subsequent returns, it states that the descriptive volume measures and same-month alignment do not establish that interpretation or causality.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "SEC MIDAS April 2025 individual security-by-exchange observations and FINRA April 2025 consolidated daily short-volume files",
+    "facts": [
+      "There are 21 common trading dates and 6,516 common tickers with observations on every common date in both sources after applying the pinned dot-to-slash share-class bridge. Raw ticker-string equality alone yields 6,502.",
+      "The top five by aggregate MIDAS odd-lot volume are NVDA, TSLA, SPY, PLTR and AAPL. NVDA leads with 2.493174923 billion MIDAS trade shares, 0.466144230 billion odd-lot shares and an 18.6968 percent odd-lot share.",
+      "PLTR ranks fourth in MIDAS odd-lot volume at 0.194594574 billion shares with a 22.0100 percent odd-lot share, but leads the five-ticker cohort in FINRA short-volume share: 0.738256927 billion ShortVolume, 0.010968187 billion separately reported ShortExemptVolume and 1.237593616 billion TotalVolume, for 59.6526 percent.",
+      "FINRA ShortVolume already includes executed short-sale and short-sale-exempt volume; ShortExemptVolume is its separately reported exempt subset and must not be added again. SEC MIDAS volume generally reflects on-exchange continuous trading, while the FINRA consolidated file reflects publicly disseminated off-exchange activity reported to TRFs and the ADF."
+    ],
+    "known_overclaims": [
+      "Selecting the cohort by MIDAS trade volume or equal-weighted row ratios instead of aggregate odd-lot volume.",
+      "Treating ShortExemptVolume as disjoint from ShortVolume or adding the separately reported subset again to the FINRA numerator.",
+      "Treating FINRA short volume as short interest or combining the two source totals as a market-wide accounting identity.",
+      "Inferring retail behavior, market quality, sentiment or causality from the descriptive volume relationship."
+    ]
+  }
+}

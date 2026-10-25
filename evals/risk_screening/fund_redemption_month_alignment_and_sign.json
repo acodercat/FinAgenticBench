@@ -1,0 +1,130 @@
+{
+  "name": "fund_redemption_month_alignment_and_sign",
+  "module": "evals.risk_screening.fund_redemption_month_alignment_and_sign",
+  "task_family": "risk_screening",
+  "data_sources": [
+    "sec_nport",
+    "ken_french_daily_factors"
+  ],
+  "case_type": "trap",
+  "difficulty": "hard",
+  "judge_reference": {
+    "source": "Frozen Form N-PORT monthly share flow and gain lines with the frozen daily market factor file.",
+    "facts": [
+      "The series-identifier, retention and completeness rules leave 290,709 filings covering 16,698 distinct series. 16,620 filings report no series identifier and are excluded; a column-wise retention would splice one superseded filing into its successor.",
+      "Those filings redeemed 53,220.9308 billion dollars and sold 54,502.1314 billion across every month they report. Adding the redemption column without treating it as an amount returns 35,417.3573 billion instead, low by 33.4522 percent, because 183,280 of the 874,476 redemption observations are negative and they come from 655 registrants.",
+      "The lowest compounded market return among the covered months is -13.1824 percent in the month ending 2020-03-31, ahead of the runner-up month at -9.4141 percent by 3.7683 percentage points.",
+      "11,597 retained filings report a month falling in it and they redeemed 1,552.7608 billion dollars in it. Reading the first reported month as the most recent returns 888.2351 billion instead, low by 42.7964 percent; taking the redemption column as signed returns 660.5342 billion, low by 57.4607 percent; both errors together return 396.2804 billion. Both readings draw on the same 11,597 filings.",
+      "That month takes a median 0.4728 of a filing's three-month redemption total. 2,431 filings redeemed more than a tenth of period-end net assets in it, and 503 of those still sold more than they redeemed across the whole period. The largest single filing redeemed 69.0542 billion dollars, ahead of the runner-up by 88.9458 percent.",
+      "The first reported month's gain rate correlates 0.6696 with the market return two months before the period end, the second 0.7105 one month before, and the third 0.6716 with the period-end month; every other entry of that table lies between -0.1227 and 0.0462.",
+      "Sales less redemptions across the covering filings is -392.7647 billion dollars. The sign-naive path reports a positive net instead.",
+      "4,614 series-period pairs carry more than one filing and 88 of those pairs disagree on a reported redemption, so the retention rule changes the answer.",
+      "Nineteen series report the selected month in two periods at once; counting both would return 1,553.6928 billion dollars instead of 1,552.7608.",
+      "The 16,620 filings without a series identifier are excluded and report a further 198.6938 billion dollars redeemed in the selected month, so the reported total is the series-identified population's rather than the whole file's."
+    ],
+    "known_overclaims": [
+      "Reporting that funds received net inflows in the selected month, which follows only from adding the redemption column without treating it as an amount.",
+      "Treating a negative redemption entry as a reversal or a correction; it is a filer's sign convention, and 4,416 series use both signs at different times.",
+      "Reading the first reported month as the month the period ends in, or the third as the earliest.",
+      "Presenting the tenth-of-net-assets screen as a regulatory threshold; it is a threshold this question chooses.",
+      "Attributing the within-period concentration to any particular fund category, which these lines do not identify.",
+      "Presenting the rank correlations as a causal estimate of market exposure rather than as evidence about which reported month is which.",
+      "Counting a series twice where two of its reporting periods both cover the selected month.",
+      "Presenting the month total as every N-PORT filer's redemptions, when filings without a series identifier are excluded by the stated population rule."
+    ]
+  },
+  "conversations": [
+    {
+      "turns": [
+        {
+          "query": "Form N-PORT reports three months of share sales, share redemptions and investment gains for each filing, together with net assets at the period end. Work only with filings that report a fund series identifier. Keep, for each series and period end, only the filing carrying the latest filing date, taking that filing whole rather than filling its gaps from the one it supersedes, and breaking a tie by the later accession number. Then keep a filing only where all three months of sales, all three of redemptions, both gain components in all three months and net assets are reported, and where net assets are above zero. Report how many filings remain, how many distinct series they cover, the total amount redeemed across every month they report, and the total amount sold across the same months, the last two in billions of dollars.",
+          "validator": "validate_retained_population",
+          "stores": [
+            "retained_filing_count",
+            "distinct_series_count",
+            "total_gross_redeemed_usd_billions",
+            "total_gross_sold_usd_billions"
+          ],
+          "claims": [
+            {
+              "id": "redemption_is_an_amount",
+              "mode": "required",
+              "description": "A redemption is an amount paid out, so the reported figure is read as a magnitude whatever sign the filer chose to give it."
+            },
+            {
+              "id": "retention_rule_bites",
+              "mode": "conditional",
+              "description": "If the response discusses the retention rule, pairs of filings for the same series and period exist and some of them disagree, so keeping both would enter one period twice with two different answers."
+            }
+          ]
+        },
+        {
+          "query": "Compound the daily total market return of the factor file inside each calendar month. Among the calendar months that the retained reporting periods cover, take the one whose compounded return is lowest, breaking a tie by the earlier month. Where a series reports that month in two of its periods, count it once and keep the filing whose period ends earliest. Report the last calendar day of that month, its compounded return in percent, how many retained filings report a month falling in it, and the total amount those filings say was redeemed in that month, in billions of dollars.",
+          "validator": "validate_worst_month_redemptions",
+          "stores": [
+            "lowest_return_month_end_date",
+            "lowest_return_month_return_pct",
+            "filings_covering_that_month",
+            "month_gross_redeemed_usd_billions"
+          ],
+          "claims": [
+            {
+              "id": "month_slot_ordering",
+              "mode": "required",
+              "description": "The three reported months run from the earliest of the period to the one the period ends in, so which reported month falls in a given calendar month depends on each filing's own period end."
+            },
+            {
+              "id": "episode_context",
+              "mode": "conditional",
+              "description": "If the response places the selected month in context, it is a market-wide stress episode rather than a fund-specific one."
+            }
+          ]
+        },
+        {
+          "query": "Stay with the filings covering that month. For each whose three-month redemption total is above zero, express what it redeemed in that month as a share of that total, and report the median share. Then report how many of the filings covering the month redeemed more than a tenth of their period-end net assets in it, how many of that group nevertheless sold more than they redeemed across the whole three-month period, and the largest amount any single filing redeemed in that month, in billions of dollars.",
+          "validator": "validate_within_period_concentration",
+          "stores": [
+            "median_month_share_of_period",
+            "filings_redeeming_over_one_tenth_count",
+            "period_net_inflow_despite_stress_count",
+            "largest_filing_month_redemption_usd_billions"
+          ],
+          "claims": [
+            {
+              "id": "aggregation_hides_stress",
+              "mode": "required",
+              "description": "About half of a period's redemptions land in one month, and a group of filings that paid out more than a tenth of net assets in that month still shows a net inflow across the period, so a reader working at period grain understates the stress."
+            },
+            {
+              "id": "screen_is_chosen",
+              "mode": "conditional",
+              "description": "If the response interprets the screen, a tenth of net assets in one month is a threshold this question chooses rather than a regulatory one."
+            }
+          ]
+        },
+        {
+          "query": "Settle which reported month is which. For every retained filing take each reported month's investment gain as a fraction of period-end net assets and rank-correlate it, by Spearman with tied values taking their average rank, across all retained filings, with the compounded market return of the month ending zero, one, two or three whole months before that filing's period end. Report the offset in months that maximises the first reported month's correlation, that maximised correlation, the third reported month's maximised correlation, and sales less redemptions across the filings covering the selected month, in billions of dollars.",
+          "validator": "validate_month_alignment",
+          "stores": [
+            "first_reported_month_offset",
+            "first_reported_month_rank_correlation",
+            "third_reported_month_rank_correlation",
+            "month_net_share_flow_usd_billions"
+          ],
+          "claims": [
+            {
+              "id": "market_settles_the_ordering",
+              "mode": "required",
+              "description": "Each reported month lines up with one month of the reporting period, which establishes the ordering from the data itself rather than from the form's instructions alone."
+            },
+            {
+              "id": "rank_statistic_choice",
+              "mode": "conditional",
+              "description": "If the response comments on the statistic, a rank correlation is used because a small number of extreme gain observations would otherwise dominate a product-moment one."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

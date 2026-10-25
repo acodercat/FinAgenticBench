@@ -1,0 +1,114 @@
+{
+  "name": "wti_budget_allowance_holdout_liquidity",
+  "module": "evals.scenario_analysis.wti_budget_allowance_holdout_liquidity",
+  "task_family": "scenario_analysis",
+  "data_sources": [
+    "eia_steo_vintages",
+    "eia_bulk_wti_daily"
+  ],
+  "difficulty": "medium",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Construct a retrospective WTI budgeting evaluation. For each STEO forecast, take the target calendar month exactly three months after publication month. Its procurement settlement benchmark is the arithmetic mean of available PET.RWTC.D daily prices in that month, without filling non-trading days. Use available target months in 2024 for calibration and all twelve target months in 2025 for evaluation; retain only forecast-designated entries with both forecast and settlement benchmark available. Report each sample's month count and calibration mean signed error, forecast minus actual. Interpret calibration bias. Carry this split and unrounded inputs forward.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "calibration_month_count",
+            "evaluation_month_count",
+            "calibration_mean_error_usd_barrel"
+          ],
+          "claims": [
+            {
+              "id": "bias_direction",
+              "description": "The response interprets the positive calibration bias as forecasts exceeding actual prices on average.",
+              "mode": "required"
+            },
+            {
+              "id": "real_time_boundary",
+              "description": "If the response calls this a historically implementable real-time backtest, it distinguishes the frozen revised actual-price comparator from contemporaneously available observations.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Plan one million barrels per target month, budgeted at its forecast plus a common allowance chosen from minus ten, minus five, zero, five or ten USD per barrel. Assign planning loss of three dollars per dollar of underbudgeting and one per dollar of overbudgeting. Select the allowance minimizing total calibration loss, with the smaller allowance winning a tie. Report the allowance, its loss and its loss advantage over the next-best candidate. Explain what the winning allowance does to each month's budgeted figure, and why the lopsided penalty weights pushed the choice that way.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "selected_allowance_usd_barrel",
+            "calibration_loss_mn",
+            "calibration_runner_up_margin_mn"
+          ],
+          "claims": [
+            {
+              "id": "budget_calibration",
+              "description": "The response interprets the selected negative allowance as reducing forecast-based budgets under the stated asymmetric calibration criterion.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Freeze that allowance and evaluate the carried 2025 target months without retuning. Keep the monthly purchase volume and loss weights. Report total planning loss for the selected rule and for a zero-allowance comparator, plus the selected rule's number of underbudgeted months. Compare how the frozen rule and the plain comparator fared on the untouched year, and say how far that result should be carried forward.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "held_out_selected_loss_mn",
+            "held_out_zero_loss_mn",
+            "held_out_underbudget_month_count"
+          ],
+          "claims": [
+            {
+              "id": "held_out_deterioration",
+              "description": "The response recognizes that the calibration-selected rule performs worse than the zero-allowance comparator on the held-out year.",
+              "mode": "required"
+            },
+            {
+              "id": "generalization_boundary",
+              "description": "If the response generalizes this result to future performance, it limits that inference to the observed fixed-horizon evaluation sample.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "For January through June of the evaluation year, fund a cash account using that frozen rule. Credit each month's budget at its start and pay for its one million barrels at the paired actual price at month-end. Keep surplus cash in the account; there are no other flows, interest or fees. Report the smallest nonnegative opening reserve that keeps the balance nonnegative throughout, and the earliest binding month-end, if any. Explain how the month-by-month balance path bears on the reserve figure, compared with simply netting the six months of budgets against payments.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "first_half_reserve_mn",
+            "first_binding_month"
+          ],
+          "claims": [
+            {
+              "id": "path_funding",
+              "description": "The response explains that the maximum cumulative funding gap occurs before the half-year ends, so the half-year net deficit understates the opening reserve.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen STEO vintages and revised PET.RWTC.D daily observations; retrospective evaluation",
+    "facts": [
+      "calibration_month_count: 9",
+      "evaluation_month_count: 12",
+      "calibration_mean_error_usd_barrel: 6.212217675281749",
+      "selected_allowance_usd_barrel: -5",
+      "calibration_loss_mn: 74.51562323793674",
+      "calibration_runner_up_margin_mn: 2.728708133971292",
+      "held_out_selected_loss_mn: 235.12739077436675",
+      "held_out_zero_loss_mn: 125.9834382844463",
+      "held_out_underbudget_month_count: 10",
+      "first_half_reserve_mn: 13.514705513784461",
+      "first_binding_month: 2025-03",
+      "The response interprets the positive calibration bias as forecasts exceeding actual prices on average.",
+      "The response interprets the selected negative allowance as reducing forecast-based budgets under the stated asymmetric calibration criterion.",
+      "The response recognizes that the calibration-selected rule performs worse than the zero-allowance comparator on the held-out year.",
+      "The response explains that the maximum cumulative funding gap occurs before the half-year ends, so the half-year net deficit understates the opening reserve."
+    ],
+    "known_overclaims": [
+      "Presenting current-revised actual comparisons as point-in-time executable or the planning loss as cash spending."
+    ]
+  }
+}

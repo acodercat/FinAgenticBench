@@ -1,0 +1,124 @@
+{
+  "name": "industry_style_attribution_state_preservation",
+  "module": "evals.scenario_analysis.industry_style_attribution_state_preservation",
+  "task_family": "scenario_analysis",
+  "data_sources": [
+    "ken_french_10_industry_portfolios",
+    "ken_french_daily_factors",
+    "ofr_market_stress"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Calibrate an original Fama–French three-factor model for the value-weighted HiTec industry portfolio on complete common daily observations from 2015-01-01 through 2019-12-31 with nonpositive OFR Financial Stress Index. Use intercept-bearing homoskedastic OLS on industry excess returns with Mkt-RF, SMB and HML. Report the calibration count, market loading and value loading. Retain the complete fitted model and interpret its conditional exposures. This is a retrospective study using the supplied frozen histories; use unrounded state throughout.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "original_calibration_count",
+            "original_market_beta",
+            "original_value_beta"
+          ],
+          "claims": [
+            {
+              "id": "industry_style_attribution_state_preservation_t1_interpretation",
+              "description": "The response interprets the original market loading above one and negative value loading as conditional historical exposures in the nonpositive-stress sample.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Commit an original factor-neutral program based on that fitted model. At every daily reset it invests its entire prior-day NAV in HiTec and adds zero-initial-value contracts delivering the three factor returns, with signed exposure multiples that neutralize the fitted loadings. There are no transaction costs, collateral flows or other cash flows. Report fitted arithmetic annual alpha and annualized regression residual standard error, using 252 observations per year and a residual-variance denominator of the calibration count minus four. Explain how the fitted excess return stands against the variability the regression leaves unexplained once the factor exposures are offset by the contracts.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "original_arithmetic_alpha_pct",
+            "original_residual_volatility_pct"
+          ],
+          "claims": [
+            {
+              "id": "industry_style_attribution_state_preservation_t2_interpretation",
+              "description": "The response distinguishes positive fitted alpha from the nonzero residual risk remaining after factor neutralization.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Prepare an independent program based instead on a fit to strictly positive OFR FSI dates in the same calibration years, retaining the model specification and factor-contract conventions. Report its market loading and gross factor-contract exposure as a multiple of NAV. Explain what accounts for any difference in gross contract size between this program and the committed one, and whether the initial stake plays a part.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "comparison_market_beta",
+            "comparison_gross_factor_notional"
+          ],
+          "claims": [
+            {
+              "id": "industry_style_attribution_state_preservation_t3_interpretation",
+              "description": "The response relates the comparison’s lower gross factor-contract exposure to its different estimated loadings rather than to a smaller initial investment.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Evaluate that comparison program on dates with complete HiTec returns, three-factor data and OFR FSI observations in common from 2020-01-01 through 2024-12-31, with its fitted exposure multiples fixed and daily resets as specified. Start NAV at USD100 million immediately before the first observation. Report compounded total return and maximum drawdown as a positive loss percentage. For a drawdown tie use the earliest trough and then the earliest preceding peak; the initial NAV is eligible as a peak. Explain how the cumulative result over the window and the largest interim decline fit together, rather than describing either figure on its own.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "comparison_holdout_return_pct",
+            "comparison_max_drawdown_pct"
+          ],
+          "claims": [
+            {
+              "id": "industry_style_attribution_state_preservation_t4_interpretation",
+              "description": "The response recognizes that the comparison’s positive compounded return coexists with an intervening peak-to-trough loss.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Complete the same held-out performance assessment for the original committed program, starting from the same initial capital and using the same drawdown convention. Report its compounded total return and maximum drawdown. Compare the two programs on both the cumulative result and the severity of the worst decline, and say how an investor should weigh those against each other.",
+          "validator": "validate_turn_5",
+          "stores": [
+            "original_holdout_return_pct",
+            "original_max_drawdown_pct"
+          ],
+          "claims": [
+            {
+              "id": "industry_style_attribution_state_preservation_t5_interpretation",
+              "description": "The response weighs the two held-out programs as a trade-off between compounded return and depth of drawdown rather than treating either program as dominant.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Attribute the original program’s maximum-drawdown episode to its traded legs. Include returns after the selected peak through the selected trough, and value each daily leg’s profit or loss using that program’s prior-day NAV. Among the three factor-contract legs, report the factor with the lowest signed cumulative dollar contribution and that signed contribution; break a tie alphabetically by factor token. Interpret this attribution in relation to the episode’s overall loss.",
+          "validator": "validate_turn_6",
+          "stores": [
+            "original_worst_factor",
+            "original_worst_factor_pnl_million"
+          ],
+          "claims": [
+            {
+              "id": "industry_style_attribution_state_preservation_t6_interpretation",
+              "description": "The response interprets the identified market-factor leg as a loss contributor in this episode rather than assuming that a fitted factor hedge must always offset losses.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen governed dataset_new and the explicitly stipulated hypothetical financial contract.",
+    "facts": [
+      "The response interprets the original market loading above one and negative value loading as conditional historical exposures in the nonpositive-stress sample.",
+      "The response distinguishes positive fitted alpha from the nonzero residual risk remaining after factor neutralization.",
+      "The response relates the comparison’s lower gross factor-contract exposure to its different estimated loadings rather than to a smaller initial investment.",
+      "The response recognizes that the comparison’s positive compounded return coexists with an intervening peak-to-trough loss.",
+      "The response notes that the original program has both a lower held-out compounded return and a slightly smaller maximum drawdown than the comparison.",
+      "The response interprets the identified market-factor leg as a loss contributor in this episode rather than assuming that a fitted factor hedge must always offset losses."
+    ],
+    "known_overclaims": [
+      "Treating hypothetical prices, asset bases, funding policies or return proxies as observed executable contracts, statutory requirements or guaranteed forecasts."
+    ]
+  }
+}

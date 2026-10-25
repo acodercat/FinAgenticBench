@@ -1,0 +1,111 @@
+{
+  "name": "private_fund_waterfall_catchup_clawback",
+  "module": "evals.calculation_reconciliation.private_fund_waterfall_catchup_clawback",
+  "task_family": "calculation_reconciliation",
+  "data_sources": [
+    "sec_form_d",
+    "treasury_yield_curve"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Use Seven Hills Capital Fund I LP's original Form D accession 0000895527-24-000002 as a numeric template for a new hypothetical fund. LPs contribute its reported total sold amount on January 1, 2025; reported sales commissions plus finder fees define the expense paid then. Allocate contribution, expense and remaining investment capital across three projects at 40%/35%/25%. Each project exits completely on January 1 of 2027/2028/2030, returning respectively 1.8/1.4/0.4 times its invested capital. There are no other flows, taxes or GP contributions. Report total LP contribution and total investable capital. Carry unrounded state between turns.",
+          "stores": [
+            "lp_contribution_mn",
+            "investable_mn"
+          ],
+          "validator": "validate_turn_1",
+          "claims": []
+        },
+        {
+          "query": "Apply a whole-of-fund waterfall to those exits: first return contributed capital, then pay accumulated preferred return of 8% simple annually, ACT/365, on unreturned contributed capital; unpaid preferred return earns no interest. Next give incremental cash entirely to the GP until its cumulative distributions equal 20% of cumulative distributed profit; preferred return counts as profit and returned capital does not. Thereafter split residual cash 80% LP/20% GP. Fees are included in contributed capital. Report LP and GP cash at the second exit and cumulative terminal GP entitlement. Explain the effect of distribution priority at the second exit.",
+          "stores": [
+            "year3_lp_mn",
+            "year3_gp_mn",
+            "final_whole_gp_mn"
+          ],
+          "validator": "validate_turn_2",
+          "claims": [
+            {
+              "id": "partial_catchup",
+              "description": "The response explains the second exit has satisfied capital and preferred-return priority but its available profit cash only partly completes the GP catch-up.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Now apply the same waterfall separately to each project, using its allocated contribution and the time since its call, with carry paid at its exit. At final settlement the GP's cumulative entitlement is the whole-of-fund waterfall on the same gross project cash history: any prior overpayment returns to LPs at once and any remaining entitlement goes to the GP, who can always repay. Discount on the 2024-12-31 Treasury yields for 1, 2, 3, 6 months and 1, 2, 3, 5, 7, 10, 20, 30 years, read as zero rates compounded semiannually, interpolated linearly in years with flat ends, on ACT/365 with no credit spread. Report carry paid before the final exit, the present value at the initial call of all LP cash including true-up, and the contract with the higher LP present value. Explain how carry timing bears on the comparison.",
+          "stores": [
+            "early_deal_carry_mn",
+            "deal_lp_pv_mn",
+            "lp_preferred_contract"
+          ],
+          "validator": "validate_turn_3",
+          "claims": [
+            {
+              "id": "timing_vs_entitlement",
+              "description": "The response connects early deal carry and final true-up to the LP present-value comparison rather than equating equal terminal entitlements with equal dated LP cash flows.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "On the already-paid deal-by-deal history, compare a final-project outcome of 0.1 times invested capital, leaving the first two exits unchanged. Apply the same terminal whole-fund true-up and full GP repayment assumption. This is a comparison outcome. Report clawback, cumulative terminal GP entitlement and cash LPs receive at the final exit. Explain how historical carry and final entitlement interact.",
+          "stores": [
+            "stress_clawback_mn",
+            "stress_final_gp_mn",
+            "stress_final_lp_cash_mn"
+          ],
+          "validator": "validate_turn_4",
+          "claims": [
+            {
+              "id": "historical_overpayment",
+              "description": "The response explains that previously paid carry remains subject to repayment when the revised whole-fund entitlement is lower.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Return to the original first-two-exit payment history. Protect terminal true-up simultaneously for final-project investment multiples 0.0, 0.4 and 1.2. Withhold a uniform fraction of each early GP carry payment in escrow until final settlement; there is no interest, escrow remains GP property until applied to clawback or released, and the GP has no repayment resources outside escrow. Any further terminal carry is paid only after true-up. Find the smallest sufficient escrow fraction and its binding final-project outcome; break any binding-state tie by the smaller multiple. Under the original 0.4 outcome, report the GP present-value opportunity cost of delayed early-carry receipt under the carried discounting. Explain what determines the escrow requirement.",
+          "stores": [
+            "minimum_early_escrow_pct",
+            "binding_last_multiple",
+            "gp_escrow_pv_cost_mn"
+          ],
+          "validator": "validate_turn_5",
+          "claims": [
+            {
+              "id": "escrow_coverage",
+              "description": "The response relates the minimum withholding fraction to the largest terminal carry overpayment supported by the fixed early-payment history.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen governed dataset_new tables; explicitly hypothetical financial contracts in the conversation.",
+    "facts": [
+      "lp_contribution_mn: 125.0000",
+      "investable_mn: 122.7980",
+      "year3_lp_mn: 59.5123",
+      "year3_gp_mn: 0.6587",
+      "final_whole_gp_mn: 7.1731",
+      "early_deal_carry_mn: 10.9671",
+      "deal_lp_pv_mn: 137.2750",
+      "lp_preferred_contract: WHOLE",
+      "stress_clawback_mn: 7.2384",
+      "stress_final_gp_mn: 3.7287",
+      "stress_final_lp_cash_mn: 10.3084",
+      "minimum_early_escrow_pct: 93.9935",
+      "binding_last_multiple: 0.0",
+      "gp_escrow_pv_cost_mn: 1.0588"
+    ],
+    "known_overclaims": []
+  }
+}

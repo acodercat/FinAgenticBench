@@ -1,0 +1,109 @@
+{
+  "name": "insider_indirect_holdings_outside_transaction_stream",
+  "module": "evals.calculation_reconciliation.insider_indirect_holdings_outside_transaction_stream",
+  "task_family": "calculation_reconciliation",
+  "data_sources": [
+    "sec_insider",
+    "sec_companyfacts"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "From SEC insider submissions select exact Form 4 filings (not amendments or Forms 3/5) with report period 2024-10-01 through 2024-12-31 and exactly one reporting owner. Report filing count, count with a Table I holding row, holding-row count, and row-weighted indirect-ownership shares for holding rows and all selected filings' Table I transaction rows. Interpret what the two row types capture and their indirect shares.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "eligible_filing_count",
+            "filings_with_holding_rows",
+            "holding_row_count",
+            "holding_row_indirect_pct",
+            "transaction_row_indirect_pct"
+          ],
+          "claims": [
+            {
+              "id": "holding_row_scope",
+              "mode": "required",
+              "description": "The response identifies a holding row as a position reported without an accompanying trade, so a picture assembled from the trade stream alone leaves those positions out."
+            },
+            {
+              "id": "indirect_asymmetry",
+              "mode": "required",
+              "description": "The response compares the two computed shares and connects the holding-row side to stock held through trusts, partnerships and retirement plans."
+            }
+          ]
+        },
+        {
+          "query": "For a cross-sectional view, retain one filing per issuer and reporting owner: latest report period, ties by later filing date then higher accession. Carry those filings forward. Report issuer-owner pair count and holding-row count on retained filings. Explain how this retention rule affects interpreting a sum of reported positions across filings.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "issuer_owner_pair_count",
+            "latest_filing_holding_row_count"
+          ],
+          "claims": [
+            {
+              "id": "redisclosure_reason",
+              "mode": "required",
+              "description": "The response explains that the same standing position may be reported again on later filings, so summing all filing rows can count a position repeatedly; retaining one filing per issuer-owner pair limits this filing-frequency distortion while leaving completeness of the owner’s positions unestablished."
+            }
+          ]
+        },
+        {
+          "query": "Using only the retained filings, total the holding-row shares for each issuer and select the issuer whose total is largest, breaking a tie by the lower CIK. Report that issuer's CIK, its holding-row share total, the indirect portion of that total, and how many reporting owners contribute to it. Explain what the number of contributing owners and the size of the indirect portion together indicate about the way this issuer's insiders hold their stock.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "selected_issuer_cik",
+            "selected_holding_shares",
+            "selected_indirect_holding_shares",
+            "selected_owner_count"
+          ],
+          "claims": [
+            {
+              "id": "concentration_result",
+              "mode": "required",
+              "description": "The response relates the selected issuer's computed total to the handful of owners behind it and to the indirect portion it reported."
+            }
+          ]
+        },
+        {
+          "query": "Report the largest single holding row among that issuer's retained filings. Take its cover-page common shares outstanding from XBRL facts, choosing the latest cover date on or before 2024-12-31, ties by later filing date then higher accession. Express T3's holding-row total as a percentage of that count. Explain how the numerator, denominator dates, row types and eligibility rules limit this percentage.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "largest_holding_row_shares",
+            "selected_holdings_to_shares_outstanding_pct"
+          ],
+          "claims": [
+            {
+              "id": "stake_meaning",
+              "mode": "required",
+              "description": "The response states the computed fraction, identifies that the selected cover-page share count is dated 2024-11-15 while the selected holding rows are dated in December, and treats the result as a cross-date ratio rather than a contemporaneous December or year-end ownership percentage."
+            },
+            {
+              "id": "total_ownership_boundary",
+              "mode": "conditional",
+              "description": "If the response presents this fraction as the issuer's whole insider ownership, it states that positions carried on transaction rows and filings outside the eligibility rules fall outside the measurement."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen SEC insider Form 4 Table I rows for periods 2024-10-01 through 2024-12-31, joined to frozen SEC XBRL cover-page share counts. The retention rule, the window and the share-count selection are stipulated analytic conventions, not SEC reporting requirements.",
+    "facts": [
+      "5,196 single-owner Form 4 filings fall in the window; 1,635 carry at least one of 3,250 Table I holding rows. Holding rows are 83.6923% indirect; Table I transaction rows across all 5,196 eligible filings are 15.6661% indirect. The row types therefore show different ownership mixes.",
+      "The window holds 3,393 issuer and reporting-owner pairs, whose retained filings carry 1,742 holding rows. Retention matters because a standing position is repeated: Walmart's Walton trust line reports 3,002,673,393 shares on each of many filings and sums to 138.9 billion shares across 2024 against 8,033,386,215 shares outstanding.",
+      "NVIDIA, CIK 0001045810, leads with 824,225,372.00 holding-row shares from 6 reporting owners, of which 812,629,402.00 is indirect; the runner-up issuer totals 151,818,680. Its largest single holding row is 602,819,280.00 shares held by trust.",
+      "Against 24,490,000,000 cover-page shares outstanding at 2024-11-15, the holding-row total from December 11–18 report periods is 3.3656% of that older count, a cross-date ratio rather than a contemporaneous stake. A transaction row's share balance is a running total, not a trade size, so it cannot be summed; within this window 71.2% of transaction rows share an ownership line with another row on the same filing."
+    ],
+    "known_overclaims": [
+      "Adding holding-row shares across every filing rather than retaining one per issuer-owner pair can repeatedly count a standing trust position when it reappears on later filings.",
+      "Summing the post-transaction balance on transaction rows, which is a running position rather than a trade amount.",
+      "Combining holding rows and transaction rows into a filing-level ownership total, which the reported fields cannot separate into distinct vehicles.",
+      "Reading the cross-date ratio as contemporaneous December or year-end ownership, the issuer's complete insider ownership, or a free float adjustment.",
+      "Treating an indirect ownership marker as beneficial ownership by someone other than the reporting owner."
+    ]
+  }
+}

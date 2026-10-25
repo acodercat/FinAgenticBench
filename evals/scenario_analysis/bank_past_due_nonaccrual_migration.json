@@ -1,0 +1,61 @@
+{
+  "name": "bank_past_due_nonaccrual_migration",
+  "module": "evals.scenario_analysis.bank_past_due_nonaccrual_migration",
+  "task_family": "scenario_analysis",
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "data_sources": ["ffiec_call_reports_past_due", "fdic_bankfind"],
+  "conversations": [{
+    "id": "main",
+    "turns": [
+      {
+        "query": "Use retrospective September 30, 2025 FFIEC 031 filers' consolidated RC-N (RCFD) and same-date FDIC financials. Link RSSD to the FDIC certificate in the FFIEC filing. Keep banks above USD 10 billion in FDIC assets with positive 30–89-day accruing, 90-plus-day accruing, nonaccrual and FDIC net-loan-and-lease balances, plus complete FDIC noncurrent balances. Rank (90-plus accruing plus nonaccrual) over FDIC net loans and leases descending, RSSD ascending for ties. Report count, leading RSSD and top two defined rates; interpret the denominator.",
+        "validator": "validate_turn_1",
+        "stores": ["eligible_bank_count", "selected_rssd_id", "selected_noncurrent_to_net_loans_leases_pct", "runner_up_noncurrent_to_net_loans_pct"],
+        "claims": [
+          {"id": "rcn_t1_denominator", "mode": "required", "description": "The response identifies the requested FDIC net-loans-and-leases denominator as a defined normalization rather than presenting it as the official gross-loan noncurrent ratio."}
+        ]
+      },
+      {
+        "query": "For that bank, report the three opening RC-N loan-and-lease balances: 30–89 days past due and still accruing, 90-plus days past due and still accruing, and nonaccrual. Compare them with FDIC noncurrent loans; explain what the reported amounts measure.",
+        "validator": "validate_turn_2",
+        "stores": ["opening_30_89_m", "opening_90_plus_m", "opening_nonaccrual_m"],
+        "claims": [
+          {"id": "rcn_t2_balance_scope", "mode": "required", "description": "The response treats RC-N entries as full outstanding loan-and-lease balances in distinct states, rather than amounts of missed installments."},
+          {"id": "rcn_t2_noncurrent_bridge", "mode": "required", "description": "The response recognizes that 90-plus accruing and nonaccrual together reconcile to the FDIC noncurrent-loan balance for the selected bank."}
+        ]
+      },
+      {
+        "query": "Hypothetically migrate 20% of the opening 30–89-day balance to 90-plus accruing and 40% of the opening 90-plus balance to nonaccrual, both from their respective opening cohorts. Keep FDIC net loans and leases fixed with no origination, repayment or charge-off. Report the ending 90-plus and nonaccrual balances and their combined rate over that denominator. Explain what moving these balances between reporting buckets does and does not tell you about money the bank has actually lost.",
+        "validator": "validate_turn_3",
+        "stores": ["post_migration_90_plus_m", "post_migration_nonaccrual_m", "post_migration_rate_pct"],
+        "claims": [
+          {"id": "rcn_t3_status_not_loss", "mode": "required", "description": "The response interprets the migration as a change in reported credit status without claiming an observed charge-off or realized credit loss."}
+        ]
+      },
+      {
+        "query": "Next, cure 25% of only the cohort that moved from 30–89 days to 90-plus in the preceding stress, returning it to current status. Leave every other cohort and the FDIC net-loans-and-leases denominator unchanged. Report the cured balance and the resulting defined rate. Compare this cure with a charge-off or collection of overdue interest.",
+        "validator": "validate_turn_4",
+        "stores": ["cured_new_90_plus_m", "post_cure_rate_pct"],
+        "claims": [
+          {"id": "rcn_t4_cure_boundary", "mode": "required", "description": "The response explains that the stated cure reduces noncurrent exposure by returning only the specified newly delinquent cohort to current status."},
+          {"id": "rcn_t4_no_payment_inference", "mode": "required", "description": "The response distinguishes the stipulated status cure from evidence of a principal charge-off or collected overdue interest."}
+        ]
+      }
+    ]
+  }],
+  "judge_reference": {
+    "source": "Frozen FFIEC 2025Q3 consolidated Schedule RC-N with its same-archive POR identity bridge, joined to same-date FDIC BankFind financials; migration and cure rates are explicit hypotheticals.",
+    "facts": [
+      "RC-N 30–89 and 90-plus columns are still accruing; its nonaccrual column is a different reported state. Values are full outstanding loan-and-lease balances.",
+      "FDIC noncurrent loans equal the selected bank's 90-plus accruing plus nonaccrual balances in this frozen snapshot.",
+      "The requested rate uses FDIC net loans as a defined denominator; it is not labeled an official gross-loan ratio.",
+      "A status migration or cure does not, without further facts, establish a charge-off, loss or interest collection."
+    ],
+    "known_overclaims": [
+      "Treating all 90-plus loans as nonaccrual or adding 30–89 loans to noncurrent.",
+      "Moving the same loan through two buckets in one opening-cohort migration or curing all 90-plus balances.",
+      "Calling the FDIC net-loan-normalized stress rate the official gross-loan noncurrent ratio."
+    ]
+  }
+}

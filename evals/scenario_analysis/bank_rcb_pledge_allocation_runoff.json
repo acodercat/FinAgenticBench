@@ -1,0 +1,61 @@
+{
+  "name": "bank_rcb_pledge_allocation_runoff",
+  "module": "evals.scenario_analysis.bank_rcb_pledge_allocation_runoff",
+  "task_family": "scenario_analysis",
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "data_sources": ["ffiec_call_reports_securities", "ffiec_call_reports_balance", "fdic_bankfind"],
+  "conversations": [{
+    "id": "main",
+    "turns": [
+      {
+        "query": "Use the retrospective September 30, 2025 FFIEC RC-B securities totals, FFIEC bank balance-sheet identity bridge and same-date FDIC bank financials. Match bank RSSD to FDIC certificate through the FFIEC balance sheet, without name matching. Keep banks with consolidated RC-B and consolidated balance-sheet reporting, FFIEC balance-sheet total assets strictly above USD 10 billion, complete HTM and AFS cost/fair-value, pledged-security, cash, deposit, security-total and equity fields, positive equity, deposits and HTM fair value, nonnegative cash, securities and pledged book value, and a positive HTM amortized-cost-minus-fair-value gap. Rank that HTM gap divided by FDIC book equity descending, RSSD ID ascending for ties. Report the eligible count, leader's exact RSSD ID and its FFIEC-reported legal name verbatim, and the first two ratios. Explain what this leading ratio says about the bank's held-to-maturity portfolio, and how it differs from money already lost or a supervisory measure.",
+        "validator": "validate_turn_1",
+        "stores": ["eligible_bank_count", "selected_rssd_id", "selected_bank_name", "selected_htm_gap_to_equity_pct", "runner_up_htm_gap_to_equity_pct"],
+        "claims": [
+          {"id": "bank_rcb_t1_boundary", "mode": "required", "description": "The response interprets the HTM cost-to-fair-value shortfall relative to book equity as a disclosed valuation sensitivity, not an already realized loss or a regulatory capital ratio."}
+        ]
+      },
+      {
+        "query": "For that selected bank, separate HTM amortized cost and fair value from AFS amortized cost and fair value. Report each category's positive cost-minus-fair-value gap in USD millions. Reconcile FDIC reported total securities at book value against HTM amortized cost plus AFS fair value, reporting the remaining other-securities book amount. Because the pledge is reported only in aggregate here, give the minimum and maximum amount of unpledged AFS securities at their carrying fair value across every feasible allocation of that pledge among HTM, AFS and the reconciled other category. Explain how the accounting carrying amounts and unknown pledge allocation affect this liquidity range.",
+        "validator": "validate_turn_2",
+        "stores": ["htm_gap_m", "afs_gap_m", "other_securities_book_m", "minimum_unpledged_afs_m", "maximum_unpledged_afs_m"],
+        "claims": [
+          {"id": "bank_rcb_t2_afs_accounting", "mode": "required", "description": "The response recognizes that AFS is carried at fair value while HTM uses amortized cost and that the AFS amortized-cost gap is not a fresh loss to charge again on a fair-value sale."},
+          {"id": "bank_rcb_t2_pledge_identification", "mode": "required", "description": "The response observes from the selected bank's amounts that even pledging all HTM and other securities first would leave some AFS pledged, so the upper bound of free AFS is below all reported AFS fair value."}
+        ]
+      },
+      {
+        "query": "Now model an immediate withdrawal equal to 15 percent of this bank's opening FDIC deposits. Use opening FDIC cash first, with no borrowing, new deposits, taxes or other inflows. Report the withdrawal and the remaining cash shortfall in USD millions. Suppose only unpledged AFS securities can be sold immediately for their carrying fair value, while pledged securities, HTM and the reconciled other category are unavailable in this branch. Classify AFS-only funding as exactly one of `always`, `allocation-dependent` or `never` over all pledge allocations allowed by the previous turn. Discuss what the classification does and does not establish about actual run capacity.",
+        "validator": "validate_turn_3",
+        "stores": ["withdrawal_m", "cash_shortfall_m", "afs_only_feasibility"],
+        "claims": [
+          {"id": "bank_rcb_t3_uncertainty", "mode": "required", "description": "The response connects AFS-only feasibility to the unknown pledged-category allocation, rather than treating either endpoint as the observed bank portfolio."}
+        ]
+      },
+      {
+        "query": "Continue the same withdrawal and cash use. Compare the two extremal pledge allocations, always pledging the reconciled other securities first. In the optimistic endpoint pledge HTM before AFS, and sell available AFS at its carrying fair value; in the pessimistic endpoint pledge AFS before HTM, then sell only unpledged HTM pro rata at the reported aggregate HTM fair-value-to-amortized-cost ratio to meet the remaining cash shortfall. Assume the necessary sales are allowed, settle immediately, ignore taxes, transaction costs and other balance-sheet reactions, and charge only the newly realized HTM sale loss to opening FDIC book equity. Report the positive loss and ending book equity under the pessimistic endpoint in USD millions. Compare the endpoint funding/accounting outcomes and discuss the omitted classification and liquidity constraints.",
+        "validator": "validate_turn_4",
+        "stores": ["pessimistic_sale_loss_m", "pessimistic_ending_book_equity_m"],
+        "claims": [
+          {"id": "bank_rcb_t4_sale_accounting", "mode": "required", "description": "The response explains that the pessimistic HTM sale realizes a portion of the previously unrecognized HTM fair-value gap, while the optimistic AFS sale at carrying fair value leaves opening book equity intact under the stipulated accounting."},
+          {"id": "bank_rcb_t4_scope", "mode": "required", "description": "The response gives a material limitation of the hypothetical immediate HTM sale, such as HTM classification consequences, actual sale liquidity, taxes, or encumbrance terms not resolved by the aggregate RC-B fields."}
+        ]
+      }
+    ]
+  }],
+  "judge_reference": {
+    "source": "Frozen 2025Q3 FFIEC RC-B, FFIEC identity bridge and FDIC BankFind financials; hypothetical pledge-allocation and sale terms are explicit in the queries.",
+    "facts": [
+      "The rank is a disclosed HTM valuation gap over book equity, not a realized capital loss.",
+      "AFS fair value is already its accounting carrying amount; the AFS cost gap must not be charged a second time on sale.",
+      "The pledged amount is aggregate, so AFS funding is partially identified until an allocation is stipulated.",
+      "A hypothetical HTM sale can realize a loss and may have classification implications beyond this stylized equity calculation."
+    ],
+    "known_overclaims": [
+      "Calling aggregate pledged securities an observed AFS or HTM pledge allocation.",
+      "Deducting the entire AFS unrealized shortfall again from book equity on a fair-value sale.",
+      "Treating the scenario as an observed bank run or a regulatory CET1 calculation."
+    ]
+  }
+}

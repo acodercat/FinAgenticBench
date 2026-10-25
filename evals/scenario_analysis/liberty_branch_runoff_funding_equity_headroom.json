@@ -1,0 +1,112 @@
+{
+  "name": "liberty_branch_runoff_funding_equity_headroom",
+  "module": "evals.scenario_analysis.liberty_branch_runoff_funding_equity_headroom",
+  "task_family": "scenario_analysis",
+  "data_sources": [
+    "fdic_sod",
+    "fdic_bankfind",
+    "nyfed_reference_rates"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "For Liberty Bank, FDIC certificate 17943, compare its June 30, 2025 Summary of Deposits branch-office balances with the same-date reported domestic deposits. Report the Connecticut and Massachusetts branch deposit stocks in thousand dollars and, as the single token MATCH or MISMATCH, whether the sum across all its branch offices equals the domestic deposit balance exactly. Discuss what this geographic stock measures for a liquidity scenario.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "ct_branch_deposits_k",
+            "ma_branch_deposits_k",
+            "deposit_reconciliation"
+          ],
+          "claims": [
+            {
+              "id": "deposit_stock_scope",
+              "description": "The response interprets the branch figures as geographic deposit stocks, not immediately available cash.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Carry forward those two state stocks. In a hypothetical October 1, 2025 event, Connecticut balances fall 20% and Massachusetts balances fall 5%; all other deposits remain fixed. Report the total cash outflow in thousand dollars. Explain how large this hypothetical cash drain is next to the bank's total domestic deposits, and how it differs from what the filing itself reports.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "runoff_k"
+          ],
+          "claims": [
+            {
+              "id": "runoff_interpretation",
+              "description": "The response relates the computed withdrawal to the carried domestic-deposit base as a scenario outflow rather than a reported historical withdrawal.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Fund that carried October 1 withdrawal using the June 30, 2025 bank balance sheet as a frozen hypothetical October 1 opening stock. Preserve 100,000 thousand dollars of the reported cash and balances due from depository institutions; use any of that balance above the floor first. Then sell exactly 40% of reported securities at 98% of their book amount, with any remaining payment funded by a new wholesale loan. No transaction costs or other balance-sheet changes occur. Report the realized securities loss and the initial loan, both in thousand dollars. Explain how the cash raised by selling the bonds differs from the amount they were carried at, and what that means for the borrowing.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "securities_loss_k",
+            "initial_borrowing_k"
+          ],
+          "claims": [
+            {
+              "id": "sale_funding_bridge",
+              "description": "The response distinguishes securities book value from sale cash proceeds in the funding bridge.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Keep that loan principal outstanding October 1 through December 31, 2025, inclusive. Charge simple daily interest at the latest effective SOFR fixing dated on or before each day, plus 150 basis points, ACT/360, without intra-period payment or compounding; settle interest after the final fixing is available. Reduce the carried reported bank equity by the sale loss and this expense; freeze all other income, taxes and capital transactions. Report loan interest and year-end scenario equity in thousand dollars. Explain what the December 31 equity figure represents under this hypothetical, and how it differs from the capital measures a supervisor would actually look at.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "year_end_interest_k",
+            "year_end_equity_k"
+          ],
+          "claims": [
+            {
+              "id": "equity_scope",
+              "description": "The response describes year-end equity as a counterfactual accounting-equity balance, not a measured regulatory capital ratio.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Return to the October 1 starting state. Keep Massachusetts runoff at 5%, the cash floor, fixed 40% securities sale, sale price and financing convention unchanged. A board scenario limit requires December 31 equity of at least 1,095,000 thousand dollars. Find the highest Connecticut runoff rate consistent with that limit, then report December 31 equity if Connecticut runoff were 25%. Explain whether a 25 percent withdrawal leaves the bank inside the board's floor, and what standing that floor has compared with a supervisory rule.",
+          "validator": "validate_turn_5",
+          "stores": [
+            "max_ct_runoff_pct",
+            "extra_stress_equity_k"
+          ],
+          "claims": [
+            {
+              "id": "limit_headroom",
+              "description": "The response uses the calculated equity limit to explain whether the 25% Connecticut stress fits within the board scenario headroom.",
+              "mode": "required"
+            },
+            {
+              "id": "regulatory_boundary",
+              "description": "If the response calls the board threshold a regulatory capital requirement, it qualifies that assertion as an assumption rather than an actual rule.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "FDIC Summary of Deposits and BankFind as of June 30, 2025, plus New York Fed effective SOFR fixings for the hypothetical fourth-quarter carry.",
+    "facts": [
+      "The branch state balances reconcile to reported domestic deposits for certificate 17943.",
+      "The scenario uses a fixed securities sale at a discount, then funds any residual withdrawal with debt.",
+      "Only sale loss and accrued borrowing interest reduce scenario accounting equity; the board floor is hypothetical."
+    ],
+    "known_overclaims": [
+      "Calling branch deposits liquid assets or applying the same runoff rate to all deposits.",
+      "Treating the securities book amount as full sale cash or principal borrowed as an immediate equity expense.",
+      "Calling the hypothetical equity floor a statutory capital ratio or claiming actual 2025 bank distress."
+    ]
+  }
+}

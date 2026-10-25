@@ -1,0 +1,95 @@
+{
+  "name": "scf_borch_catastrophe_risk_exchange",
+  "module": "evals.scenario_analysis.scf_borch_catastrophe_risk_exchange",
+  "task_family": "scenario_analysis",
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "data_sources": [
+    "fed_scf",
+    "fema_nfip"
+  ],
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Use 2022 SCF records with positive net worth and reference-person age 35 through 64. Within each of the five implicates, estimate the survey-weighted inverse-CDF 25th, 50th and 75th net-worth percentiles, without interpolation; average each percentile estimate across implicates. Assign these three amounts as initial resources of hypothetical pool members one, two and three, respectively. For Florida NFIP physical claim records with 2024 loss dates, retain complete gross building, contents and ICC payments with a strictly positive combined amount, preserving record multiplicity. Use the equal-record empirical inverse-CDF 25th, 50th, 75th and 95th payment percentiles as four equally likely loss states. Total pool loss in each state is 25 percent of that payment; members initially bear 50, 30 and 20 percent of the pool loss, respectively, deducted from their resources. Report the three resource amounts and the 95th-percentile gross claim payment, in USD thousands. Carry all four contingent endowments and probabilities forward, and assess the financial scope of the calibration. Use unrounded inputs and state throughout.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "member_one_resources_thousand",
+            "member_two_resources_thousand",
+            "member_three_resources_thousand",
+            "gross_claim_p95_thousand"
+          ],
+          "claims": [
+            {
+              "id": "scf_borch_catastrophe_risk_exchange_t1_interpretation",
+              "description": "The response treats the three resource levels and four equally likely loss states as a hypothetical pool calibration, rather than an observed matching of SCF households to NFIP claimants.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Find the competitive complete-markets Arrow–Debreu risk-exchange equilibrium for the carried pool. Members maximize expected CRRA utility of strictly positive terminal wealth, with relative risk-aversion coefficients 0.5, 0.75 and 1 for members one through three. All share the carried physical probabilities and may trade every state-contingent claim. Each member's equilibrium-price budget equals the value of its original contingent endowment; there are no other goods or cash flows. Normalize the price of a claim paying one unit in every state to one. Report the price of a one-unit claim paying only in the largest-loss state, member one's terminal wealth in that state, and member three's terminal wealth in the smallest-loss state; wealth is in USD thousands. Carry all state prices, allocations and supporting Pareto weights forward, and interpret the state-price pattern.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "largest_loss_state_price",
+            "member_one_equilibrium_worst_thousand",
+            "member_three_equilibrium_best_thousand"
+          ],
+          "claims": [
+            {
+              "id": "scf_borch_catastrophe_risk_exchange_t2_interpretation",
+              "description": "The response relates the higher price of the largest-loss state relative to its physical probability to greater marginal valuation when aggregate resources are lower.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Using the complete carried allocation, apply Borch's marginal risk-sharing rule to a local increase in aggregate terminal resources. Hold the supporting equilibrium Pareto weights fixed; do not change endowments and clear a new competitive market for this derivative. Report member one's marginal share in the smallest-loss and largest-loss states, in percent, and its equilibrium certainty-equivalent terminal wealth in USD thousands. Carry the full risk-sharing assessment forward and interpret the state dependence of marginal risk capacity.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "member_one_best_marginal_share_pct",
+            "member_one_worst_marginal_share_pct",
+            "member_one_equilibrium_ce_thousand"
+          ],
+          "claims": [
+            {
+              "id": "scf_borch_catastrophe_risk_exchange_t3_interpretation",
+              "description": "The response connects the different statewise marginal shares to wealth-dependent absolute risk tolerance despite fixed relative risk-aversion coefficients.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "The pool now chooses an allocation centrally under the carried supporting Pareto weights, held fixed. Restrict treaties to a constant quota share of aggregate terminal resources for each member, plus a deterministic side payment. Quota shares must be nonnegative and sum to one; side payments sum to zero and are otherwise unrestricted subject to strictly positive member wealth in every state. Maximize the same Pareto-weighted expected utility under these restrictions, without imposing the former individual market-budget constraints. Report the optimal quota percentages for members one and two, and member one's terminal wealth in the largest-loss state in USD thousands. Compare the restricted treaty with the preceding Borch allocation and marginal risk-sharing assessment.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "restricted_member_one_quota_pct",
+            "restricted_member_two_quota_pct",
+            "restricted_member_one_worst_thousand"
+          ],
+          "claims": [
+            {
+              "id": "scf_borch_catastrophe_risk_exchange_t4_interpretation",
+              "description": "The response relates constant treaty quotas to the state-varying marginal risk shares and explains why the optimal proportional treaty departs from the unrestricted Borch allocation.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Governed frozen dataset_new and the specified named-model contract.",
+    "facts": [
+      "The response treats the three resource levels and four equally likely loss states as a hypothetical pool calibration, rather than an observed matching of SCF households to NFIP claimants.",
+      "The response relates the higher price of the largest-loss state relative to its physical probability to greater marginal valuation when aggregate resources are lower.",
+      "The response connects the different statewise marginal shares to wealth-dependent absolute risk tolerance despite fixed relative risk-aversion coefficients.",
+      "The response relates constant treaty quotas to the state-varying marginal risk shares and explains why the optimal proportional treaty does not reproduce the unrestricted Borch allocation."
+    ],
+    "known_overclaims": [
+      "Treating hypothetical or descriptive financial-model outputs as causal estimates, observed transactions or guaranteed coverage."
+    ]
+  }
+}

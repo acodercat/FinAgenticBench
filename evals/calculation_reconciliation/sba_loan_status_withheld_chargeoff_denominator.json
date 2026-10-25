@@ -1,0 +1,128 @@
+{
+  "name": "sba_loan_status_withheld_chargeoff_denominator",
+  "module": "evals.calculation_reconciliation.sba_loan_status_withheld_chargeoff_denominator",
+  "task_family": "calculation_reconciliation",
+  "data_sources": [
+    "sba_7a",
+    "fdic_bankfind"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "The public 7(a) loan file records each approval's outcome under one of five source-native status codes, one marking an outcome the agency does not disclose. Read the codes as stored, not as tidied spellings, and take every row as it stands: the file has no unique loan identifier, so identical-looking rows are separate records. Report how many rows the file holds and how many are recorded as cancelled, as committed, and as charged off. Explain what separates an undisclosed outcome from a cancelled approval when either is about to be dropped from a loss rate.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "loan_row_count",
+            "cancelled_count",
+            "committed_not_disbursed_count",
+            "charged_off_count"
+          ],
+          "claims": [
+            {
+              "id": "undisclosed_is_not_absent",
+              "mode": "required",
+              "description": "The response distinguishes an outcome the agency withholds from an approval that never became a loan, and states that the two call for different treatment when a loss rate is computed."
+            }
+          ]
+        },
+        {
+          "query": "A loan that was never disbursed cannot be charged off. Using the first disbursement date rather than the status code, report how many loans the file records as disbursed. Then report charge-offs as a percentage of every row in the file, as a percentage of the disbursed loans, and as a percentage of only those disbursed loans whose outcome the agency discloses. Explain what population each of the three denominators describes, and why all three can be published without any one of them being an error.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "disbursed_loan_count",
+            "chargeoff_pct_all_rows",
+            "chargeoff_pct_disbursed",
+            "chargeoff_pct_disclosed_only"
+          ],
+          "claims": [
+            {
+              "id": "denominator_moves_the_figure",
+              "mode": "required",
+              "description": "The response identifies the population each of the three denominators describes, and states that the choice of denominator rather than the charge-off count is what moves the figure."
+            }
+          ]
+        },
+        {
+          "query": "Ask whether the undisclosed outcomes are a random part of the disbursed file. Report how many disbursed loans carry the undisclosed status, that status's share of the disbursed loans approved in the earliest approval fiscal year the file covers and its share in the latest, and the median approval amount of the undisclosed group as a multiple of the median of the disclosed group. Explain what those figures together say about reading the disclosed rate from the previous turn as the programme's loss experience.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "status_withheld_count",
+            "withheld_pct_earliest_fy",
+            "withheld_pct_latest_fy",
+            "withheld_to_disclosed_median_ratio"
+          ],
+          "claims": [
+            {
+              "id": "withholding_is_selective",
+              "mode": "required",
+              "description": "The response reads the fiscal-year pattern and the size difference it computed as evidence that the undisclosed outcomes are not a random part of the file, and treats the disclosed rate as describing the disclosed rows rather than the programme."
+            }
+          ]
+        },
+        {
+          "query": "State what the file will support. For the disbursed loans, the percentage you computed is the lowest charge-off percentage consistent with the record; report the highest. Then report how many rows contradict their own dated events, counting a charged-off row without a charge-off date and a row with a paid-in-full date under any other status; how many rows are paid in full with no disbursement date; and how many rows repeat an earlier row in every column, each repeat counted once. Explain what the interval's width means for quoting a loss rate, and what to do with contradicted rows when the file leaves open which field is wrong.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "chargeoff_upper_bound_pct",
+            "status_date_inconsistency_count",
+            "paid_in_full_without_disbursement_count",
+            "exact_duplicate_row_count"
+          ],
+          "claims": [
+            {
+              "id": "interval_is_uninformative",
+              "mode": "required",
+              "description": "The response reads the interval as too wide to support a portfolio loss rate from this file, and says the contradicted rows belong in the report and out of the computation rather than reassigned to whichever field looks right."
+            },
+            {
+              "id": "denominator_stated_with_the_rate",
+              "mode": "conditional",
+              "description": "If the response quotes any single figure as the programme's loss rate, it states which loans that denominator covers and that the outcome is undisclosed for most of the disbursed file."
+            }
+          ]
+        },
+        {
+          "query": "The loan file names each lender and carries a deposit-insurance certificate for some of them. Take the disbursed loans and split them on whether a lender certificate is present. Report how many carry none, the withheld percentage in that group and in the group that carries one, and how many disbursed loans name a certificate for which the bank file holds no row at its 2025-12-31 report date. Explain what a lender carrying no certificate is likely to be, and what the last count says about matching two agencies' files on an identifier only one of them assigns.",
+          "validator": "validate_turn_5",
+          "stores": [
+            "lender_without_certificate_count",
+            "withheld_pct_uninsured_lender",
+            "withheld_pct_insured_lender",
+            "unmatched_certificate_loan_count"
+          ],
+          "claims": [
+            {
+              "id": "lender_type_and_identifier_drift",
+              "mode": "required",
+              "description": "The response reads a loan whose lender carries no deposit-insurance certificate as one made outside the insured banking system, and treats a certificate the bank file omits at that date as an identifier whose institution has since changed rather than as a defective loan record."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen privacy-reduced SBA 7(a) public loan records for approval fiscal years 2020 through 2025 from the 2026-06-30 snapshot. The disbursement-based population, the three rates and the interval are analytic constructions rather than published agency statistics.",
+    "facts": [
+      "The file holds 347,514 rows under five status codes, one of which carries interior spaces. 44,921 are cancelled, 8,681 committed and 6,893 charged off; 68,118 are paid in full and 218,901 carry the code marking an outcome the agency does not disclose. An undisclosed outcome is a loan that exists and may have failed, whereas a cancelled approval never became a loan, so dropping the two has opposite effects on a loss rate.",
+      "293,909 rows carry a first disbursement date. The status code and the disbursement date agree without being the same test: none of the 44,921 cancelled and none of the 8,681 committed rows record a disbursement, while every charged-off and every undisclosed row does. Charge-offs are 1.9835% of every row, 2.3453% of the disbursed loans and 9.1897% of the disbursed loans whose outcome is disclosed. The charge-off count is the same 6,893 in all three; only the population named changes.",
+      "The withholding is not random in either direction that matters. Among disbursed loans it covers 37.2223% of fiscal 2020 approvals and rises through every year to 96.3493% of fiscal 2025, and the undisclosed group's median approval is 1.3933 times the disclosed group's. The disclosed rate is therefore weighted towards the earliest and smallest loans in the file rather than towards the programme.",
+      "The disbursed file supports an interval rather than a rate: at least 2.3453% and at most 76.8245% if every undisclosed outcome were a charge-off. Six rows contradict their dated events, five charged off with no charge-off date and one carrying a paid-in-full date under another status, three rows are paid in full with no disbursement date, and 513 rows repeat a row already present across every column. The extract has no unique loan identifier and its own documentation preserves exact-looking rows, so the repeats are counted rather than collapsed.",
+      "262,324 of the 293,909 disbursed loans name a deposit-insurance certificate and 31,585 name none; the withheld share is 78.7304% among the latter against 73.9673% among the former, so the withholding tracks the kind of lender alongside the vintage and the size. The loans name 1,823 distinct certificates, one of which the bank file has no row for at 2025-12-31, covering 5 loans. A 7(a) lender need not be an insured bank, and an insured bank that merges stops reporting under its own certificate."
+    ],
+    "known_overclaims": [
+      "Quoting a charge-off rate from this file as the programme's loss rate, when the outcome is undisclosed for most of the disbursed loans.",
+      "Treating the undisclosed status as a performing loan, which is what dividing charge-offs by every row amounts to.",
+      "Treating the undisclosed rows as missing at random, when their share rises with every approval fiscal year and their approvals are the larger ones.",
+      "Dropping cancelled and undisclosed rows under one rule, when one never became a loan and the other is a loan whose outcome is not published.",
+      "Deduplicating the exactly repeated rows, which the extract preserves deliberately and cannot distinguish from separate loans without a unique identifier.",
+      "Reassigning a row whose status contradicts its dated events to whichever of the two fields looks more plausible, when the file records nothing about which is wrong.",
+      "Reading a loan whose lender carries no deposit-insurance certificate as a missing value, when 7(a) lending is open to institutions outside the insured banking system.",
+      "Treating a certificate the bank file omits at one snapshot date as a bad identifier, when an insured institution that merges stops reporting under its own certificate."
+    ]
+  }
+}

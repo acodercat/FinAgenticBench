@@ -1,0 +1,147 @@
+{
+  "name": "cblr_election_leverage_capital_comparability",
+  "module": "evals.comparison_ranking.cblr_election_leverage_capital_comparability",
+  "task_family": "comparison_ranking",
+  "data_sources": [
+    "ffiec_call_reports_capital",
+    "ffiec_nic_institutions",
+    "fdic_bankfind"
+  ],
+  "difficulty": "medium",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Build the 2025-09-30 mid-size bank population. Take every 2025-09-30 FFIEC Call Report capital row, map its RSSD ID to an FDIC certificate through the current NIC institution identifiers, and keep only banks that also have a 2025-09-30 BankFind row (one-to-one on certificate). Band by BankFind total assets in thousand USD: keep banks with total assets at least 1,000,000 and strictly below 10,000,000. Split the band by the Call Report community bank leverage ratio (CBLR) election flag, treating a missing flag as no election. Report the linked bank count, the band count, the elector and non-elector counts, and electors as a percent of the band. Explain what the linked population covers and what the election means for comparing capital across the band.",
+          "validator": "validate_band_population",
+          "stores": [
+            "linked_bank_count",
+            "band_bank_count",
+            "cblr_elector_count",
+            "non_elector_count",
+            "cblr_elector_share_pct"
+          ],
+          "claims": [
+            {
+              "id": "cblr_ratio_availability_result",
+              "description": "The response explains that the tier-1 leverage ratio is the regulatory capital ratio reported across both groups in this snapshot, while the selected CBLR electors do not report standardized risk-weighted assets or CET1 ratios.",
+              "mode": "required"
+            },
+            {
+              "id": "bridge_population_boundary",
+              "description": "The response states that the population is the intersection of Call Report filers, NIC-bridged certificates and BankFind rows at one date, not every FDIC-insured institution.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Compare the two groups on the Call Report tier-1 leverage ratio in percent. Report the median for electors and for non-electors. Report how many electors have a ratio strictly below 9 percent; identify the elector with the lowest ratio (ties by certificate ascending) by FDIC certificate, BankFind name, NIC primary federal regulator and ratio; and report how many non-electors are strictly below 9 percent. Take every median and percentile asked for here with linear interpolation. Explain what a below-9-percent elector can and cannot establish under the framework from a single snapshot.",
+          "validator": "validate_leverage_comparison",
+          "stores": [
+            "cblr_median_tier1_leverage_pct",
+            "non_elector_median_tier1_leverage_pct",
+            "cblr_below_threshold_count",
+            "cblr_below_threshold_certificate",
+            "cblr_below_threshold_name",
+            "cblr_below_threshold_primary_regulator",
+            "cblr_below_threshold_leverage_pct",
+            "non_elector_below_threshold_count"
+          ],
+          "claims": [
+            {
+              "id": "cblr_grace_period_boundary",
+              "description": "The response notes that the framework can provide a grace period when the ratio is no more than 9 percent but remains above its lower boundary.",
+              "mode": "required"
+            },
+            {
+              "id": "cblr_status_inference_boundary",
+              "description": "If the response states a bank's compliance or eligibility status, it notes that prior-quarter history and the other qualifying criteria are absent from the declared tables.",
+              "mode": "conditional"
+            },
+            {
+              "id": "median_not_mean_boundary",
+              "description": "If the response quotes group means, it distinguishes them from the requested medians rather than presenting them as the comparison.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Turn to the standardized-approach CET1 ratio. Report how many non-electors and how many electors report a CET1 ratio. For non-electors with a ratio, report the median in percent and identify the bank with the lowest ratio (ties by certificate ascending): certificate, BankFind name, reported ratio, its capital reporting basis (domestic or consolidated schedule), its standardized risk-weighted assets in USD billions and CET1 capital in USD millions, and CET1 capital divided by RWA in percent. Take every median and percentile asked for here with linear interpolation. Explain what the CET1 comparison does and does not establish across the two groups.",
+          "validator": "validate_cet1_scope",
+          "stores": [
+            "non_elector_cet1_reported_count",
+            "cblr_cet1_reported_count",
+            "non_elector_median_cet1_ratio_pct",
+            "lowest_cet1_certificate",
+            "lowest_cet1_name",
+            "lowest_cet1_ratio_pct",
+            "lowest_cet1_reporting_basis",
+            "lowest_cet1_standardized_rwa_usd_billions",
+            "lowest_cet1_capital_usd_millions",
+            "lowest_cet1_recomputed_ratio_pct"
+          ],
+          "claims": [
+            {
+              "id": "missing_not_zero_boundary",
+              "description": "The response explains that electors' missing CET1 ratios mean the measure is not filed under the CBLR framework, not that their capital is zero or unknown to supervisors, so they must be excluded rather than imputed.",
+              "mode": "required"
+            },
+            {
+              "id": "reporting_basis_boundary",
+              "description": "If the response compares CET1 ratios across banks, it notes that the ratio's reporting basis (domestic versus consolidated schedule) is recorded per bank and does not change the ratio's definition.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Contrast the regulatory ratio with book equity. For every band bank compute BankFind book equity divided by total assets in percent. Report the median for electors and for non-electors and compare each with its group's median tier-1 leverage ratio from turn 2. Report how many band banks have a book-equity ratio below their tier-1 leverage ratio. Identify the bank with the most negative book-minus-leverage divergence (ties by certificate ascending): certificate, BankFind name, book-equity ratio and tier-1 leverage ratio. Take every median and percentile asked for here with linear interpolation. Explain what the gap between book equity and regulatory tier-1 capital does and does not establish.",
+          "validator": "validate_book_equity_divergence",
+          "stores": [
+            "cblr_median_book_equity_to_assets_pct",
+            "non_elector_median_book_equity_to_assets_pct",
+            "book_below_leverage_bank_count",
+            "largest_negative_divergence_certificate",
+            "largest_negative_divergence_name",
+            "largest_negative_divergence_book_equity_to_assets_pct",
+            "largest_negative_divergence_tier1_leverage_pct"
+          ],
+          "claims": [
+            {
+              "id": "capital_measure_boundary",
+              "description": "The response distinguishes book equity from regulatory tier-1 capital.",
+              "mode": "required",
+              "overlap_waiver": "The query names both measures and asks what their gap does and does not establish. Which regulatory adjustments separate book equity from tier-1 capital is absent from it and must come from the response."
+            },
+            {
+              "id": "divergence_cause_boundary",
+              "description": "If the response explains a bank's divergence between the two measures, it states that the declared tables identify neither AOCI treatment nor any other specific cause.",
+              "mode": "conditional"
+            },
+            {
+              "id": "denominator_boundary",
+              "description": "If the response compares the two ratios numerically, it notes that book equity is divided by total assets while tier-1 capital is divided by average total assets for leverage, so part of any gap is the denominator.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "FFIEC Call Report capital and balance-sheet schedules, current NIC institution identifiers, and FDIC BankFind financials at 2025-09-30",
+    "facts": [
+      "4,265 Call Report capital rows link to a BankFind row; 859 banks sit in the $1B-to-under-$10B band, of which 173 (20.1397 percent) elect the CBLR framework and 686 do not.",
+      "Median tier-1 leverage is 11.3685 percent for electors and 10.1835 percent for non-electors, a 1.1850-point gap. One elector, Fidelity Co-operative Bank (certificate 26451), reports 8.5627 percent; 127 non-electors are below 9 percent.",
+      "All 686 non-electors and none of the 173 electors report a standardized CET1 ratio. The non-elector median is 13.4048 percent; BayFirst National Bank (certificate 34997) is lowest at 8.4428 percent on the domestic basis, reproducing from 88.737 million USD CET1 capital over 1.051040 billion USD standardized RWA.",
+      "Median book equity to assets is 11.0315 percent for electors and 10.0264 percent for non-electors, 0.3370 and 0.1571 points below the leverage medians; 582 of 859 band banks have book equity below their tier-1 leverage ratio. Union County Savings Bank (certificate 12013) has -0.6192 percent book equity to assets against an 8.5433 percent leverage ratio, a -9.1625-point divergence."
+    ],
+    "known_overclaims": [
+      "Treating a CBLR elector's missing CET1 ratio as a zero or as weak capital.",
+      "Calling the elector below 9 percent non-compliant without the framework's grace-period context.",
+      "Calling a bank with negative book equity insolvent when its regulatory capital ratios are above the minimums.",
+      "Reading the median gap as a causal effect of electing the framework."
+    ]
+  }
+}

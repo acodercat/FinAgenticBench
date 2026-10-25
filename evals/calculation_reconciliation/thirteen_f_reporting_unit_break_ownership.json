@@ -1,0 +1,146 @@
+{
+  "name": "thirteen_f_reporting_unit_break_ownership",
+  "module": "evals.calculation_reconciliation.thirteen_f_reporting_unit_break_ownership",
+  "task_family": "calculation_reconciliation",
+  "data_sources": [
+    "sec_13f_filings",
+    "sec_13f_holdings",
+    "sec_companyfacts"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "turns": [
+        {
+          "query": "Form 13F filings carry a cover page whose value total is stated separately from the individual holding rows. Use Form 13F-HR submissions, including combination reports, but exclude notices and every amendment, and keep filings that report both a positive cover-page value total and a positive holding-row count. For the quarters ending 2022-09-30 and 2022-12-31 report the number of qualifying filings in each. For each quarter compute every filing's cover-page value total divided by its holding-row count and report the median of that quantity, then report the later quarter's median divided by the earlier one and, separately, the later quarter's summed cover-page totals divided by the earlier quarter's. Take every median and percentile asked for here with linear interpolation. Explain what the size of these two ratios says about whether the change between the quarters is an economic one.",
+          "validator": "validate_cover_page_break",
+          "stores": [
+            "pre_break_filing_count",
+            "post_break_filing_count",
+            "pre_break_median_cover_value_per_holding_reported",
+            "post_break_median_cover_value_per_holding_reported",
+            "median_value_per_holding_ratio",
+            "cover_total_sum_ratio"
+          ],
+          "claims": [
+            {
+              "id": "scale_break_result",
+              "description": "The response identifies the large discontinuity as a change in the cover-page field's reported denomination rather than evidence that institutional holdings grew by the raw-field ratio.",
+              "mode": "required"
+            },
+            {
+              "id": "time_series_continuity_boundary",
+              "description": "The response warns that stacking this field into a time series across the boundary produces a break that no economic reading can support.",
+              "mode": "required"
+            },
+            {
+              "id": "median_versus_sum_reasoning",
+              "description": "The response explains that a median of filing-level values and a ratio of raw-field sums apply different weights and need not move by the same factor, especially with mixed per-filing denominations and changing filing counts.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Stay with the qualifying filings for the quarter ending 2022-12-31. The governed table records, for each filing, the reporting unit inferred from its holding rows. For this exercise, classify the cover-page field separately as thousands scale when its reported value total divided by its holding-row count is below 100,000 reported units, and as dollar scale otherwise. Report how many filings the holding-row classification marks as dollars and how many as thousands, how many the cover-page heuristic marks as each, how many filings the two classifications disagree on, and how many of those report holding rows in dollars while the cover-page heuristic reads as thousands scale. Explain what the disagreement means for inferring one field's unit from the other and discuss the status of the 100,000 cutoff.",
+          "validator": "validate_convention_crosstab",
+          "stores": [
+            "post_break_dollar_holding_convention_count",
+            "post_break_thousand_holding_convention_count",
+            "post_break_dollar_cover_scale_count",
+            "post_break_thousand_cover_scale_count",
+            "convention_disagreement_filing_count",
+            "dollar_holdings_thousand_cover_count"
+          ],
+          "claims": [
+            {
+              "id": "independent_conventions_reasoning",
+              "description": "The response notes that the two inferred classifications agree for most filings but are not interchangeable for an individual filing because the observed disagreements are real.",
+              "mode": "required"
+            },
+            {
+              "id": "classification_rule_boundary",
+              "description": "The response presents the 100,000 cut as an analytic inference rule fixed by the query, not as source metadata and not as a bound implied by the $100 million manager filing threshold.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Turn to the issuer-level aggregation. For the quarter ending 2022-12-31 report the number of issuer rows and their total reported value in USD trillions. Identify the issuer with the largest reported value, breaking a tie by CUSIP ascending, and report its CUSIP, its issuer name as the aggregation records it, its reported value in USD trillions and how many filers report it. Then report the numerical quotient of that USD aggregation total divided by the summed raw cover-page values you computed for the same quarter in turn 1. Assess the quotient's financial meaning and its inputs' denominations; identify which aggregate supports a dollar statement. Explain what the reported filer count measures.",
+          "validator": "validate_normalized_aggregation",
+          "stores": [
+            "holdings_issuer_row_count",
+            "holdings_total_usd_trillions",
+            "leading_issuer_cusip",
+            "leading_issuer_name",
+            "leading_issuer_value_usd_trillions",
+            "leading_issuer_filer_count",
+            "holdings_usd_to_raw_cover_quotient"
+          ],
+          "claims": [
+            {
+              "id": "aggregation_choice_reasoning",
+              "description": "The response states that the issuer-level figures share a USD denomination, while the raw cover-page values mix reported scales, so their numerical quotient is not a unit-consistent financial ratio.",
+              "mode": "required"
+            },
+            {
+              "id": "filer_count_boundary",
+              "description": "The response describes the filer count as a count of distinct filing accessions contributing to the governed issuer aggregate.",
+              "mode": "required"
+            },
+            {
+              "id": "filer_owner_equation_boundary",
+              "description": "If the response reads the filer count as a number of beneficial owners or accounts, it states that it counts distinct filing accessions instead.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Bridge the leading issuer from turn 3 to the registrant universe. Match it to the registrant whose name equals the issuer name once both are compared in lower case with characters other than letters, digits and spaces removed, and report that registrant's ticker. Take the registrant's cover-page count of common shares outstanding, using the latest such count filed on or before 2023-02-15, and report the share count together with its as-of date. Report the shares the issuer aggregation records for the quarter, and those shares as a percent of shares outstanding. Then report how many of the quarter's qualifying filings include other managers' holdings and the largest number of other managers included on any one of them. Explain what the percent does and does not establish about institutional ownership of this issuer.",
+          "validator": "validate_ownership_bridge",
+          "stores": [
+            "leading_issuer_ticker",
+            "leading_issuer_reported_shares",
+            "leading_issuer_shares_outstanding",
+            "shares_outstanding_end_date",
+            "reported_13f_shares_to_outstanding_pct",
+            "filings_including_other_managers",
+            "largest_included_manager_count"
+          ],
+          "claims": [
+            {
+              "id": "ownership_measure_boundary",
+              "description": "The response labels the percentage as aggregated reported 13F shares divided by a registrant share count, not total institutional or beneficial ownership and not a proven upper bound; the included-manager counts flag shared-discretion reporting but do not quantify duplicate shares.",
+              "mode": "required"
+            },
+            {
+              "id": "share_count_timing_boundary",
+              "description": "The response observes that the 13F shares are for 2022-12-31 while the selected outstanding-share count is as of 2023-01-20, so the percentage mixes measurement dates.",
+              "mode": "required"
+            },
+            {
+              "id": "reporting_population_boundary",
+              "description": "The response notes that Form 13F covers the reporting population and Section 13(f) securities rather than every institution, account, or security class.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen SEC Form 13F filing and issuer-aggregation tables for the 2022-09-30 and 2022-12-31 quarters, with the SEC registrant universe and company facts",
+    "facts": [
+      "6,745 qualifying filings cover 2022-09-30 and 7,066 cover 2022-12-31. The median raw cover-page value per holding row rises from 4,045.1296 to 2,566,876.9847 reported units, a ratio of 634.5599, while raw summed cover-page totals rise by a factor of 155.5334. Form 13F values moved from rounding to thousands to rounding to whole dollars for filings made from January 3, 2023.",
+      "For 2022-12-31 the holding-row classification marks 5,758 filings as dollars and 1,308 as thousands, while the cover-page classification marks 5,799 as dollar scale and 1,267 as thousands scale. The two disagree on 243 filings, of which 101 report holding rows in dollars while their cover page reads as thousands scale.",
+      "The issuer aggregation for that quarter holds 36,120 rows totalling 75.484185 trillion USD. Dividing it by the raw mixed-scale cover-page sum produces a numerical quotient of 2.1700, not a unit-consistent ratio. Apple Inc. leads at 1.464846 trillion USD reported by 4,569 filing accessions under CUSIP 037833100.",
+      "Apple's registrant ticker is AAPL. The aggregation records 10,535,889,677 shares against 15,821,946,000 shares outstanding as of 2023-01-20, or 66.5904 percent on this mixed-date reported-shares quotient. 974 filings include other managers' holdings and one includes 63, but those counts do not quantify duplicate shares."
+    ],
+    "known_overclaims": [
+      "Reading the cover-page step between the quarters as growth in institutional holdings.",
+      "Rescaling the cover-page total by the holding-row reporting unit.",
+      "Presenting the share percentage as total institutional or beneficial ownership, or as a proven upper bound, when reporting scope, security scope, dates, and shared-discretion arrangements differ.",
+      "Treating the filer count on an issuer row as a count of distinct institutional owners."
+    ]
+  }
+}

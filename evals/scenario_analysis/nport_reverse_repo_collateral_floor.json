@@ -1,0 +1,56 @@
+{
+  "name": "nport_reverse_repo_collateral_floor",
+  "module": "evals.scenario_analysis.nport_reverse_repo_collateral_floor",
+  "task_family": "scenario_analysis",
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "data_sources": ["sec_nport_repo_collateral", "nyfed_reference_rates"],
+  "conversations": [{
+    "id": "main",
+    "turns": [
+      {
+        "query": "Retrospectively examine PIMCO Total Return ESG Fund's original June 30, 2025 N-PORT filing. Among USD repurchase and reverse-repurchase positions with principal-amount balances and USD Treasury collateral, report the position count and signed balance total for each direction. Explain the fund's cash role in each direction.",
+        "validator": "validate_turn_1",
+        "stores": ["repo_position_count", "reverse_position_count", "repo_signed_balance_m", "reverse_signed_balance_m"],
+        "claims": [
+          {"id": "repo_t1_cash_roles", "mode": "required", "description": "The response identifies the fund as cash lender in repurchase and cash borrower in reverse repurchase, with opposite collateral flows."}
+        ]
+      },
+      {
+        "query": "Carry those reverse repos forward. Aggregate all reported collateral within each position; keep positions whose collateral value initially covers at least 100% of the absolute reported balance. Select the largest absolute balance, breaking ties by holding ID ascending. Report the eligible count and selected holding ID. Interpret the screen's scope.",
+        "validator": "validate_turn_2",
+        "stores": ["reverse_covered_count", "reverse_selected_holding_id"],
+        "claims": [
+          {"id": "repo_t2_reporting_scope", "mode": "required", "description": "The response treats reported collateral coverage as a snapshot screen, without asserting it proves compliance with the actual margin contract."}
+        ]
+      },
+      {
+        "query": "For that position, report absolute balance, total collateral value and agreement rate. Compare its rate with the June 30 effective-date SOFR fixing once published, reporting the spread in basis points. Interpret what the comparison establishes.",
+        "validator": "validate_turn_3",
+        "stores": ["reverse_balance_m", "reverse_collateral_m", "reverse_contract_rate_pct", "reverse_sofr_spread_bp"],
+        "claims": [
+          {"id": "repo_t3_rate_distinction", "mode": "required", "description": "The response distinguishes the individual agreement rate from the market-wide SOFR benchmark and treats the comparison as retrospective rather than contemporaneously known at report-date close."}
+        ]
+      },
+      {
+        "query": "At that reporting-date snapshot, mark only the selected position's reported collateral value down 5%, keeping its absolute reported balance fixed. Impose a hypothetical collateral floor of 100% of that balance. Report additional collateral needed to meet it and interpret how the initial buffer changes.",
+        "validator": "validate_turn_4",
+        "stores": ["reverse_floor_topup_m"],
+        "claims": [
+          {"id": "repo_t4_buffer", "mode": "required", "description": "The response explains that the markdown exhausts the selected position's initially positive collateral cushion and creates a deficit under the stipulated floor."},
+          {"id": "repo_t4_actual_terms", "mode": "conditional", "description": "If the response discusses actual contract margin terms or an observed call, it identifies those terms and any real call as unestablished by the reported collateral fields."},
+          {"id": "repo_t4_temporal", "mode": "conditional", "description": "If the response suggests action after filing, it recognizes that the selected position matured before the August public filing."}
+        ]
+      }
+    ]
+  }],
+  "judge_reference": {
+    "source": "SEC 2025Q3 N-PORT original filing 0000810893-25-002583, holdings joined to repurchase agreements and collateral by holding ID; New York Fed SOFR at 2025-06-30 effective date. The filing was submitted August 28 after selected-position maturity.",
+    "facts": [
+      "N-PORT repurchase denotes the fund lending cash and receiving collateral; reverse repurchase denotes borrowing cash and posting collateral.",
+      "Holding BALANCE in PA units is distinct from the principal amount of securities in the collateral schedule. Aggregate collateral within a holding before selecting a position.",
+      "The selected holding is 153742555; its contract rate exceeds same-effective-date SOFR by 4 basis points. The 100% floor is an isolated counterfactual."
+    ],
+    "known_overclaims": ["Calling the hypothetical top-up an actual margin call, or using the collateral security principal as the repo balance."]
+  }
+}

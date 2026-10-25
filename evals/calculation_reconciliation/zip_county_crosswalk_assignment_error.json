@@ -1,0 +1,126 @@
+{
+  "name": "zip_county_crosswalk_assignment_error",
+  "module": "evals.calculation_reconciliation.zip_county_crosswalk_assignment_error",
+  "task_family": "calculation_reconciliation",
+  "data_sources": [
+    "ffiec_nic_institutions",
+    "census_zcta_county_relationships",
+    "census_zcta_primary_counties",
+    "census_counties"
+  ],
+  "case_type": "baseline",
+  "difficulty": "hard",
+  "judge_reference": {
+    "source": "Census 2020 ZIP code tabulation area to county relationship and primary-county files, the 2024 county gazetteer, and the FFIEC National Information Center institution identifiers.",
+    "facts": [
+      "The relationship file carries 46,960 rows pairing 33,791 tabulation areas with 3,232 counties, with no area-and-county pair repeated.",
+      "10,186 areas, 30.1441 percent, reach into more than one county, and the largest reach is 6 counties.",
+      "Ranking each area's parts by shared land area with water area as tie-breaker reproduces the published primary county for all 33,791 areas with 0 disagreements.",
+      "Across split areas the largest county holds a median 82.8811 percent of the land, a tenth percentile of 55.1992 and a minimum of 30.1308, and on 1,629 of them, 15.9925 percent, it holds under 60 percent.",
+      "Of 61,914 FFIEC institutions, 52,324 carry both a five-digit postal code and a county code, and 98.3927 percent of the counties so recorded appear in the county file.",
+      "4,953 institution records have postal codes that match no tabulation area in the published primary-county file, leaving 47,371 institutions to test.",
+      "Assigning a county from the postal code through the primary rule returns the recorded county on 95.6091 percent of the tested institutions.",
+      "Accuracy falls with the reach of the area: 96.9805 percent on the 39,377 institutions in single-county areas, 90.1042 percent on the 5,760 in two-county areas and 85.6312 percent on the 2,234 in areas reaching three or more.",
+      "The residual error on single-county areas has other sources, among them a recorded county that is itself wrong and a postal address that is not the site of the institution."
+    ],
+    "known_overclaims": [
+      "Treating a postal code as nested inside a county, when 30.1441 percent of tabulation areas cross county lines.",
+      "Reporting the overall accuracy without noting that it is knowable in advance which assignments are unreliable.",
+      "Reading an unmatched postal code as a wrong-county result rather than as an observation outside the tested crosswalk population.",
+      "Presenting the record count as a measure of how much of the banking system is misplaced, when institutions are counted one per record and not weighted by size."
+    ]
+  },
+  "conversations": [
+    {
+      "turns": [
+        {
+          "query": "Using the Census ZIP code tabulation area to county relationship file, report how many rows it carries, how many distinct tabulation areas and how many distinct counties appear in it, and how many rows repeat an area-and-county pair that already appears. Then report how many areas reach into more than one county, that count as a percentage of all areas, and the largest number of counties any single area reaches. Explain what the split-area result means for treating a tabulation area as if it were always contained in one county.",
+          "validator": "validate_crosswalk_shape",
+          "stores": [
+            "relationship_rows",
+            "area_count",
+            "county_count",
+            "duplicate_pairs",
+            "split_area_count",
+            "split_area_share_pct",
+            "maximum_counties"
+          ],
+          "claims": [
+            {
+              "id": "nesting_conclusion",
+              "description": "The response concludes that postal geography and county geography are different partitions of the same land, so a postal code is not contained within a county.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Rebuild Census primary-county assignments for each tabulation area: rank its county parts by shared land area, then shared water area, both descending, then county ID ascending. Report assigned-area count and disagreements with published primary counties. For areas spanning multiple counties, report the median, 10th percentile and minimum of each largest part's share of total area land, the count below 60%, and that count's share of split areas. Use linear interpolation for quantiles. Interpret agreement with the published rule and the limits of assigning every split-area record to one county.",
+          "validator": "validate_primary_rule",
+          "stores": [
+            "reproduced_areas",
+            "rule_disagreements",
+            "median_largest_share_pct",
+            "tenth_percentile_share_pct",
+            "minimum_share_pct",
+            "weak_primary_count",
+            "weak_primary_share_pct"
+          ],
+          "claims": [
+            {
+              "id": "primary_rule_boundary",
+              "description": "The response distinguishes reproducing the published selection rule from validating a one-county assignment for all records and uses the under-60-percent result as evidence of weak geographic dominance, not as proof that the selected county is random.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "From FFIEC institution identifiers, use the first five postal-code digits and reported county code. Prefix the three-digit zero-padded county code with the two-digit state code from Census county IDs for the matching postal abbreviation. Keep records with both fields and a five-character county ID. Report their count and the share of their recorded IDs present in the Census county file. Join postal code to the published primary-county mapping; report the number of eligible institution records with no postal-code match and the number of retained institution records. For retained records report the share whose assigned primary county equals the recorded county. Interpret unmatched codes and the agreement rate's limits.",
+          "validator": "validate_assignment_accuracy",
+          "stores": [
+            "eligible_institutions",
+            "recorded_county_present_pct",
+            "unmatched_postal_codes",
+            "tested_institutions",
+            "assignment_accuracy_pct"
+          ],
+          "claims": [
+            {
+              "id": "mapping_boundary",
+              "description": "The response treats an unmatched postal code as absent from the tabulation-area crosswalk rather than as a tested wrong-county assignment, and treats the FFIEC recorded county as the comparison field rather than infallible ground truth.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Finally test how assignment accuracy varies with geographic reach. Split the tested institutions by how many counties their tabulation area reaches, using the relationship file, into areas reaching exactly one county, exactly two, and three or more. For each group report how many tested institutions it holds and the percentage where the assigned county equals the recorded county. Explain what the comparison says about whether reach is useful as an advance reliability flag, note any residual error in the single-county group, and state the weighting boundary of the record-level rates.",
+          "validator": "validate_error_structure",
+          "stores": [
+            "single_county_tested",
+            "single_county_accuracy_pct",
+            "two_county_tested",
+            "two_county_accuracy_pct",
+            "many_county_tested",
+            "many_county_accuracy_pct"
+          ],
+          "claims": [
+            {
+              "id": "predictability",
+              "description": "The response states that because the reach of an area is known from the crosswalk before any answer is checked, an analysis can flag in advance which of its own assignments are unreliable.",
+              "mode": "required"
+            },
+            {
+              "id": "residual_error",
+              "description": "The response notes that single-county areas still miss about 3 percent of the time, so the crosswalk is not the only source of error.",
+              "mode": "required"
+            },
+            {
+              "id": "weighting_boundary",
+              "description": "The response notes that institutions are counted one per record rather than weighted by size, so this measures how often a mapping differs from the recorded county and not how much activity or assets are assigned differently.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

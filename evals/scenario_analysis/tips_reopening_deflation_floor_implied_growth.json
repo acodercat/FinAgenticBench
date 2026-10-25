@@ -1,0 +1,57 @@
+{
+  "name": "tips_reopening_deflation_floor_implied_growth",
+  "task_family": "scenario_analysis",
+  "data_sources": ["treasury_auctions", "treasury_yield_curve"],
+  "case_type": "baseline",
+  "module": "evals.scenario_analysis.tips_reopening_deflation_floor_implied_growth",
+  "difficulty": "hard",
+  "conversations": [{
+    "id": "main",
+    "turns": [
+      {
+        "query": "Analyze a hypothetical purchase of USD 100 original face of CUSIP 91282CNB3 at its June 17, 2025 TIPS reopening, settled June 30. Use the published adjusted price per USD 100 and the published adjusted accrued interest per USD 1,000 once each, rescaling the accrued interest to the USD 100 basis, with no fees, and retain the original face and issue-date index ratio separately. Future coupons follow the security's published semiannual schedule through maturity. Carry unrounded values across turns and round only reported outputs. Report the dirty invoice in USD per USD 100 original face, settlement index ratio and next coupon date. Explain the economic basis of the invoice and principal protection.",
+        "stores": ["dirty_invoice_per_100", "settlement_index_ratio", "next_coupon_date"],
+        "claims": [{"id": "purchase_basis", "description": "The response distinguishes the indexed settlement invoice from USD 100 original principal, which is the maturity-floor basis.", "mode": "required"}],
+        "validator": "validate_turn_1"
+      },
+      {
+        "query": "Use the June 30, 2025 nominal Treasury par curve at 6 months, 1, 2, 3 and 5 years. Interpolate par yields linearly onto semiannual dates, bootstrap semiannual nominal discount factors from those par rates, include a time-zero factor of one, and interpolate log discount factors linearly to actual coupon dates using ACT/365 time. For valuation only, let the settlement index ratio evolve under a lognormal nominal pricing measure in which the expected index ratio after t ACT/365 years equals the settlement ratio multiplied by exp(g times t). Set the annual arithmetic proportional growth rate g to 2% and annual volatility to 3%, using ACT/365 Brownian time. Each coupon pays half the published annual coupon percentage, applied to the expected indexed original face at that coupon date. Report the maturity discount factor and the present value of coupons plus indexed principal before any maturity floor, per USD 100 original face. State that the nominal curve and the lognormal index process are stipulated pricing inputs, and that the 2% drift is not a forecast of inflation.",
+        "stores": ["maturity_discount_factor", "unfloored_price_per_100"],
+        "claims": [{"id": "nominal_model_scope", "description": "The answer identifies the nominal curve and lognormal index process as hypothetical pricing inputs, not observed inflation forecasts.", "mode": "required"}],
+        "validator": "validate_turn_2"
+      },
+      {
+        "query": "Add the TIPS maturity protection on original USD 100 principal: the final principal payment is the greater of that original face and indexed original face; coupons remain indexed and have no floor. Keep all auction and discount inputs fixed. At 3% annual index volatility, solve for the unique annual arithmetic proportional growth rate in the closed range −10% to 15% whose full model present value matches the dirty invoice. Report that growth rate in percent, the incremental present value of the maturity floor per original USD 100, and the model probability of ending below original face in percent. Explain in which states of the world the principal floor pays anything, and how adding it bears on the growth rate that matches the invoice.",
+        "stores": ["fitted_growth_3pct", "floor_value_3pct_per_100", "floor_probability_3pct"],
+        "claims": [{"id": "floor_value_role", "description": "The response connects the positive modeled floor value and nonzero modeled shortfall probability to the full price that matches the invoice.", "mode": "required"}],
+        "validator": "validate_turn_3"
+      },
+      {
+        "query": "Raise annual index volatility to 5% while keeping the just-fitted arithmetic growth rate, auction terms, schedule and nominal discount curve unchanged. Revalue the full bond and separately report the incremental maturity-floor present value, both in USD per original USD 100. Interpret the valuation change caused by this single parameter update.",
+        "stores": ["fixed_growth_price_5pct_per_100", "fixed_growth_floor_5pct_per_100"],
+        "claims": [{"id": "fixed_growth_sensitivity", "description": "The response explains that at fixed arithmetic index growth the expected indexed coupons and principal are unchanged, while the nonlinear floor changes value.", "mode": "required"}],
+        "validator": "validate_turn_4"
+      },
+      {
+        "query": "With 5% volatility now fixed, recalibrate annual arithmetic proportional growth within the same −10% to 15% range to match the original dirty invoice. Report the refitted growth rate and the resulting model probability of ending below original face, both in percent. Interpret the recalibration relative to the fixed-growth revaluation and state the scope of the fitted parameter.",
+        "stores": ["refitted_growth_5pct", "refitted_floor_probability_5pct"],
+        "claims": [
+          {"id": "recalibration_direction", "description": "The response explains that the greater floor value at fixed growth raises the price and that matching the same invoice at higher volatility therefore calls for lower fitted arithmetic growth.", "mode": "required"},
+          {"id": "forecast_boundary", "description": "If the response treats the fitted growth rate as an observed CPI forecast, it distinguishes a parameter of this hypothetical pricing model from a directly observed forecast.", "mode": "conditional"}
+        ],
+        "validator": "validate_turn_5"
+      }
+    ]
+  }],
+  "judge_reference": {
+    "source": "Frozen Treasury auction and nominal par curve; hypothetical nominal-measure lognormal index model stated in the conversation.",
+    "facts": [
+      "dirty_invoice_per_100: 100.986749", "settlement_index_ratio: 1.00764", "next_coupon_date: 2025-10-15",
+      "maturity_discount_factor: 0.835579", "unfloored_price_per_100: 100.5084",
+      "fitted_growth_3pct: 2.0760", "floor_value_3pct_per_100: 0.1250", "floor_probability_3pct: 5.499",
+      "fixed_growth_price_5pct_per_100: 101.698", "fixed_growth_floor_5pct_per_100: 0.8365",
+      "refitted_growth_5pct: 1.8947", "refitted_floor_probability_5pct: 19.919"
+    ],
+    "known_overclaims": ["Original-face maturity protection guarantees recovery of the indexed reopening invoice.", "A fitted index-growth parameter is an observed CPI forward."]
+  }
+}

@@ -1,0 +1,140 @@
+{
+  "name": "nmfp_hmm_liquidity_regime",
+  "module": "evals.temporal_path.nmfp_hmm_liquidity_regime",
+  "task_family": "temporal_path",
+  "data_sources": [
+    "sec_nmfp",
+    "nyfed_reference_rates"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Use the governed N-MFP projections from 2024-06-03 through 2025-11-28 inclusive. Include every filing accession in the projection once at accession level, without collapsing original/amended accessions; preserve every physical daily-flow row, including repeated business keys. First aggregate class subscriptions minus redemptions within accession and date. Inner-join that accession-day flow with the accession-day liquidity row, attach exactly one series-filings row per accession, and compute both daily measures only from those matched accession-day rows: divide their summed net flow by their summed net assets and asset-weight their weekly-liquid-asset fractions with the same denominator. Align the resulting common-population measures with SOFR. Report aligned date count/boundaries and maximum matched-accession count. Select the minimum net-flow date, breaking a tie by earlier date, and report its net-flow percentage, weighted weekly-liquidity percentage and SOFR. Carry the panel forward and interpret the selected outflow's contemporaneous relationship with SOFR and its aggregation scope.",
+          "validator": "validate_panel",
+          "stores": [
+            "aligned_day_count",
+            "aligned_start_date",
+            "aligned_end_date",
+            "matched_accession_count",
+            "minimum_net_flow_date",
+            "minimum_net_flow_pct",
+            "minimum_flow_weekly_liquidity_pct",
+            "minimum_flow_sofr_pct"
+          ],
+          "claims": [
+            {
+              "id": "aggregate_flow_liquidity_meaning",
+              "description": "The response relates the selected aggregate outflow to the contemporaneous weighted liquidity level while distinguishing market aggregation from a representative-fund result.",
+              "mode": "required"
+            },
+            {
+              "id": "sofr_overlay_limit",
+              "description": "The response treats same-day SOFR as rate context rather than causal evidence for the outflow.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Use the first 300 carried dates to fit a two-state diagonal-covariance Gaussian hidden Markov model by forward-backward EM. Standardize aggregate net-flow and weekly-liquidity percentages using training sample means and n-1 standard deviations. Put observations with feature-sum at or below the median in the lower group, assigned pre-label state 1; assign the upper group pre-label state 0. Initialize state probabilities at (0.5,0.5), group means at their sample means, group variances at their population variances plus 0.1, and transitions with P00=0.95 and P11=0.92 and off-diagonals as row complements. After every M-step floor transition probabilities at 0.0000000001 and diagonal variances at 0.000001 before row normalization; fail on an empty state or non-finite value. After each M-step, run a synchronized E-step under the updated parameters; count that completed M/E pair as one update, compare its likelihood with the preceding updated-parameter likelihood, and stop when improvement is below 0.0000000001. Accept the synchronized finite state at the 500-update cap. Report the same updated parameters, likelihood and posterior together. Label as stress the fitted state with the lower sum of standardized means, breaking an exact tie by its pre-label numeric state index. Report training count, updates, log likelihood, cross-state transition probabilities, both states' original-unit means, maximum posterior-mass residual, and absolute difference between the log-domain likelihood and an independently scaled probability-domain forward likelihood. Carry parameters and final posterior forward and interpret persistence, the fitted-state labeling convention, and the status and economic meaning of inferred regimes.",
+          "validator": "validate_hmm",
+          "stores": [
+            "hmm_training_day_count",
+            "hmm_em_iteration_count",
+            "hmm_log_likelihood",
+            "calm_to_stress_probability",
+            "stress_to_calm_probability",
+            "stress_state_mean_net_flow_pct",
+            "stress_state_mean_weekly_liquidity_pct",
+            "calm_state_mean_net_flow_pct",
+            "calm_state_mean_weekly_liquidity_pct",
+            "hmm_maximum_posterior_mass_residual",
+            "hmm_scaled_forward_log_likelihood_residual"
+          ],
+          "claims": [
+            {
+              "id": "hmm_state_meaning",
+              "description": "The response uses both fitted feature means to explain the economic stress label rather than treating the numeric state index as intrinsically ordered.",
+              "mode": "required"
+            },
+            {
+              "id": "hmm_latent_state_limit",
+              "description": "The response identifies the regimes as model-inferred latent states, not directly observed regulatory classifications.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "With parameters frozen, recursively filter the remaining carried dates from the final training posterior. Report test boundaries/count and the date with maximum filtered stress-state probability, breaking an exact tie by earlier date, together with that probability, aggregate net flow, weighted weekly liquidity and SOFR. Explain which model settings and which observations the reported probability rests on, and what calling that date a stress episode would need beyond this output.",
+          "validator": "validate_filter",
+          "stores": [
+            "hmm_test_start_date",
+            "hmm_test_end_date",
+            "hmm_test_day_count",
+            "maximum_filtered_stress_date",
+            "maximum_filtered_stress_probability",
+            "maximum_stress_date_net_flow_pct",
+            "maximum_stress_date_weekly_liquidity_pct",
+            "maximum_stress_date_sofr_pct"
+          ],
+          "claims": [
+            {
+              "id": "posterior_probability_meaning",
+              "description": "The response interprets the reported probability as conditional on the frozen HMM, standardized features and observations through that date.",
+              "mode": "required"
+            },
+            {
+              "id": "posterior_event_overclaim",
+              "description": "If the response calls the maximum-posterior date a known crisis, it states that the latent-state probability alone does not establish that classification.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "For the held-out dates, compute the average one-step predictive log score of the frozen HMM mixture and of a single diagonal Gaussian using training means and population diagonal variances. Report both averages and whether the HMM average is higher. Classify a test date as stress when its filtered stress probability is at least 0.5; excluding the final date, report the stress-classified count and next-day mean aggregate net flow after stress versus calm classifications. Interpret the relationship, if any, between predictive-density performance and the next-day-flow comparison.",
+          "validator": "validate_scores",
+          "stores": [
+            "hmm_average_predictive_log_score",
+            "single_gaussian_average_log_score",
+            "stress_classified_test_day_count",
+            "stress_classified_next_day_mean_net_flow_pct",
+            "calm_classified_next_day_mean_net_flow_pct",
+            "hmm_beats_single_gaussian"
+          ],
+          "claims": [
+            {
+              "id": "density_score_meaning",
+              "description": "The response explains that a higher held-out log score favors the HMM predictive density on this sample without proving structural regimes.",
+              "mode": "required"
+            },
+            {
+              "id": "next_day_direction_separation",
+              "description": "The response compares the signed next-day flows after stress and calm classifications independently of the density-score result rather than assuming better density fit implies more negative next-day flows.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "The reference constructs asset-weighted N-MFP daily flow/liquidity aggregates, fits and labels a deterministic two-state diagonal Gaussian HMM, filters the holdout with frozen parameters, and separates predictive-density scoring from signed next-day-flow evidence and SOFR context.",
+    "facts": [
+      "The aligned panel runs 372 days from 2024-06-03 to 2025-11-28 across 330 matched filings. The heaviest single-day net outflow, 2024-11-14 at -0.8741 percent of assets, occurs with weekly liquid assets at 81.3107 percent and SOFR at 4.58 percent.",
+      "Expectation-maximization converges in 12 iterations over 300 training days to a log likelihood of -653.606581. Both states are persistent: calm-to-stress 0.01931034 and stress-to-calm 0.01419855.",
+      "What separates the states is liquidity, not the direction of flow. The stress state carries mean weekly liquid assets of 80.4091 percent against 82.5289 in the calm state, while mean net flow is positive in both, 0.0460 against 0.0836 percent. Posterior mass and scaled forward likelihood residuals are both zero at the scored precision.",
+      "Over the 72 test days the two-state model beats the single Gaussian on average predictive log score, -1.62295459 against -2.24292589, an improvement of 0.6199713, and filtered stress probability reaches 0.9994187 on 2025-09-24.",
+      "The classification carries no next-day flow information: the 54 stress-classified days are followed by mean net flow of 0.0827 percent against 0.0734 for calm-classified days, a difference of 0.0094 percentage points in the wrong direction for a stress signal."
+    ],
+    "known_overclaims": [
+      "Presenting two states as selected by the data; the count is imposed and the Gaussian emission is assumed rather than tested.",
+      "Giving the fitted state labels regulatory or supervisory meaning; they are a modelling convention attached to fitted moments.",
+      "Reading aggregate flows as fund-level behaviour, which conceals offsetting movements.",
+      "Concluding predictive value in either direction from 72 test days with 54 classified one way.",
+      "Treating the better predictive log score as evidence that the stress state is a usable early warning."
+    ]
+  }
+}

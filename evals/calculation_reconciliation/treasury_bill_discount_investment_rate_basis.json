@@ -1,0 +1,134 @@
+{
+  "name": "treasury_bill_discount_investment_rate_basis",
+  "module": "evals.calculation_reconciliation.treasury_bill_discount_investment_rate_basis",
+  "task_family": "calculation_reconciliation",
+  "data_sources": [
+    "treasury_auctions",
+    "treasury_yield_curve"
+  ],
+  "case_type": "baseline",
+  "difficulty": "hard",
+  "judge_reference": {
+    "source": "Frozen Treasury auction records and daily par yield curve observations through 2025. The rate differences, their split and the comparison with the curve are analytic constructions rather than published statistics.",
+    "facts": [
+      "867 regular bill auctions were issued from 2023-01-01 through 2025-12-31, cash management bills excluded, and 821 of them run 182 days or fewer. The discount rate states the discount from face value as an annual rate on a 360-day year; the investment rate states the return on the price paid over the bill's own year of y days.",
+      "Every one of the 821 published investment rates is reproduced to three decimals only when y is the number of days in the year that follows the issue date. A bill issued on 2023-03-07 and maturing on 2023-04-04 takes 366 days although no 29 February falls in its life, and a bill issued on 2024-02-29 takes 365. Under that rule 273 of the 867 auctions carry a 366-day year; tying the year to a leap day inside the bill's life reproduces only 630 of the 821.",
+      "Grouped by the term offered at the auction, the median of investment rate less discount rate is 8.40 basis points for 4-week bills, 13.45 for 13-week, 18.65 for 26-week and 22.20 for 52-week. The investment rate is higher because the price is below face and the year is longer than 360 days, and the difference widens with term because a longer bill is bought at a deeper discount.",
+      "The day-count part, the discount rate times the excess of y over 360 days, has a median of 6.7167 basis points on 4-week bills and 6.6424 on 26-week bills: it tracks the level of rates but not the term. The remainder, from stating the return on price rather than on face, grows from 1.6806 to 11.6583 because the discount from face deepens with time to maturity.",
+      "The par yield curve quotes bills on a coupon-equivalent basis. Against it the 26-week discount rate sits a median 18.50 basis points below the 6-month point while the investment rate sits 0.00 from it, and the 52-week discount rate sits 23.00 below the 1-year point while the investment rate sits 0.30 below. Reading a discount rate against the curve mixes rate bases; only the investment rate is comparable."
+    ]
+  },
+  "conversations": [
+    {
+      "turns": [
+        {
+          "query": "From Treasury bill auctions issued 2023-01-01 through 2025-12-31, excluding cash management bills, report count. For bills with issue-to-maturity terms of at most 182 days, infer the calendar-year day count that reproduces each published high investment rate to three decimals from a simple return on its published high price per USD 100; report cohort count. Apply the inferred convention to all selected bills and report how many use 366 days. Explain the day-count rule and the distinction between published high discount and investment rates.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "bill_auction_count",
+            "short_bill_count",
+            "leap_basis_count"
+          ],
+          "claims": [
+            {
+              "id": "discount_rate_on_face_360",
+              "mode": "required",
+              "description": "States that the discount rate expresses the discount from face value, not the price paid, as an annual rate on a 360-day year."
+            },
+            {
+              "id": "year_basis_follows_issue_date",
+              "mode": "required",
+              "description": "Identifies y as the number of days in the year that follows the issue date, so a bill issued in the twelve months before a 29 February takes a 366-day year even when it matures before that date."
+            },
+            {
+              "id": "naive_leap_rule_fails",
+              "mode": "optional",
+              "description": "Notes that tying the 366-day year to a 29 February inside the bill's own life fails to reproduce the published rates."
+            }
+          ]
+        },
+        {
+          "query": "Keep all the auctions and group them by the term offered at that auction as stated in weeks, whatever the exact number of days the bill runs, and not by the original term of a reopened bill. For each auction take the published investment rate less the published discount rate, in basis points. Report the median of that difference, taken with linear interpolation, for the 4-week, 13-week, 26-week and 52-week offerings. Explain the relationship between the two rates and how it varies with term.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "median_gap_4_week_bp",
+            "median_gap_13_week_bp",
+            "median_gap_26_week_bp",
+            "median_gap_52_week_bp"
+          ],
+          "claims": [
+            {
+              "id": "price_below_face_and_longer_year",
+              "mode": "required",
+              "description": "Explains that the investment rate exceeds the discount rate because the price paid is below face value and the year counts more than 360 days."
+            },
+            {
+              "id": "deeper_discount_on_longer_bills",
+              "mode": "required",
+              "description": "Explains that the difference widens with term because a longer bill is bought at a deeper discount to face, which enlarges the gap between a return on price and a return on face."
+            },
+            {
+              "id": "reopenings_by_offered_term",
+              "mode": "optional",
+              "description": "Notes that a reopened bill is grouped by the term offered at that auction rather than by its original term."
+            }
+          ]
+        },
+        {
+          "query": "Split each auction's difference into two parts. The first is the discount rate times y over 360 less the discount rate, which is what moving the discount rate from a 360-day year to the auction's own y-day year adds; the second is the remainder. Report the median of each part in basis points, taken with linear interpolation, for the 4-week and the 26-week offerings. Explain what the remainder captures, and how each part depends on the bill's term and on the level of rates.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "day_part_4_week_bp",
+            "price_part_4_week_bp",
+            "day_part_26_week_bp",
+            "price_part_26_week_bp"
+          ],
+          "claims": [
+            {
+              "id": "remainder_is_price_base",
+              "mode": "required",
+              "description": "Identifies the remainder as the effect of stating the return on the price paid rather than on face value."
+            },
+            {
+              "id": "day_part_rate_only_price_part_term",
+              "mode": "required",
+              "description": "Explains that the day-count part scales with the level of rates but not with term, while the price part grows with term because the discount from face grows with time to maturity."
+            },
+            {
+              "id": "both_parts_scale_with_rates",
+              "mode": "optional",
+              "description": "Notes that both parts shrink toward zero as rates fall, which is why the difference is small when rates are near zero."
+            }
+          ]
+        },
+        {
+          "query": "Now set each 26-week and 52-week auction against the Treasury par yield curve published on the auction date, using its 6-month point for the 26-week bills and its 1-year point for the 52-week bills. For each of the two offerings report the median, in basis points and taken with linear interpolation, of the published discount rate less the curve point and of the published investment rate less the curve point. Explain which of the two auction rates can be read against the curve and why.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "discount_less_curve_26_week_bp",
+            "investment_less_curve_26_week_bp",
+            "discount_less_curve_52_week_bp",
+            "investment_less_curve_52_week_bp"
+          ],
+          "claims": [
+            {
+              "id": "curve_is_coupon_equivalent",
+              "mode": "required",
+              "description": "States that the par yield curve quotes bill yields on a coupon-equivalent basis comparable to the investment rate, so the discount rate reads low when set against the curve."
+            },
+            {
+              "id": "mixing_bases_is_a_units_error",
+              "mode": "required",
+              "description": "Treats a comparison of a discount rate with a curve yield as a mismatch of rate bases rather than a market signal."
+            },
+            {
+              "id": "residual_is_timing",
+              "mode": "optional",
+              "description": "Attributes the small remaining difference between the investment rate and the curve to the curve being a closing secondary-market reading rather than the auction stop."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

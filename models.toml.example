@@ -1,0 +1,68 @@
+# Copy to models.toml (gitignored) and fill in real endpoints and keys.
+#
+# Two things have to be present for the suite to run end to end:
+#
+#   * the agent you are testing, named on `scripts.run --model`;
+#   * every section named by the judge panel in `core/judging.py`
+#     (DEFAULT_JUDGE_PANEL).
+#
+# The panel is a fixed jury, so the same three judges score every tested model
+# and a leaderboard stays comparable. `registry.select()` raises on an unknown
+# name rather than quietly scoring with a smaller panel, so a missing section
+# stops `scripts.score_response_quality` and `scripts.score_claim_coverage`
+# before either makes a call: `ValueError: unknown model 'qwen-max'`. With
+# `MIN_PANEL = 2` a panel that resolves but has only one reachable member
+# produces `judges_below_quorum` on every sample instead of scores.
+#
+# Point the panel sections at whatever endpoints serve those models for you;
+# the section NAME is the contract with the code, the `api_model` is not.
+
+[deepseek-flash]
+api_model = "deepseek-v4-flash"
+api_key = "replace-me"
+base_url = "https://example.com/v1"
+temperature = 0.1
+max_tokens = 8192
+timeout = 300
+# Optional but recommended for judge-panel bias checks.
+lab = "deepseek"
+# Supported judge API surfaces: openai_compatible or openai_responses.
+provider = "openai_compatible"
+# Reasoning models can omit temperature and use the provider-specific token field.
+reasoning = false
+# Optional accounting metadata. Set both from the price in force for the run;
+# leave unset rather than guessing. Aggregate reports separate agent and judge cost.
+# input_cost_per_million_usd = 0.0
+# output_cost_per_million_usd = 0.0
+
+# -- the judge panel: DEFAULT_JUDGE_PANEL in core/judging.py -----------------
+
+[gpt55]
+api_model = "gpt-5.5"
+api_key = "replace-me"
+base_url = "https://example.com/v1"
+temperature = 0.1
+max_tokens = 8192
+timeout = 300
+lab = "openai"
+provider = "openai_compatible"
+
+[qwen-max]
+api_model = "qwen-max"
+api_key = "replace-me"
+base_url = "https://example.com/v1"
+temperature = 0.1
+max_tokens = 8192
+timeout = 300
+lab = "alibaba"
+provider = "openai_compatible"
+
+[deepseek-pro]
+api_model = "deepseek-v4-pro"
+api_key = "replace-me"
+base_url = "https://example.com/v1"
+temperature = 0.1
+max_tokens = 8192
+timeout = 300
+lab = "deepseek"
+provider = "openai_compatible"

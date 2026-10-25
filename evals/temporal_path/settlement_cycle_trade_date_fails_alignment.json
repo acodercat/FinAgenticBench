@@ -1,0 +1,99 @@
+{
+  "name": "settlement_cycle_trade_date_fails_alignment",
+  "module": "evals.temporal_path.settlement_cycle_trade_date_fails_alignment",
+  "task_family": "temporal_path",
+  "data_sources": [
+    "finra_short_volume",
+    "sec_ftd"
+  ],
+  "case_type": "trap",
+  "difficulty": "hard",
+  "judge_reference": {
+    "source": "Frozen FINRA daily short-volume files and SEC fails-to-deliver files for 2024 and 2025. The settlement mapping follows the standard U.S. equity settlement cycle and the settlement calendar; the busiest days, balances and rises are analytic selections from the files.",
+    "facts": [
+      "The busiest 2025 trading day in the short-volume file is 2025-04-09. U.S. equity trades have settled one business day after the trade since 2024-05-28, so its trades settled on 2025-04-10, when 515,030,616 shares stood failed across all securities. A two-day cycle would point to 2025-04-11 and 398,091,073 shares.",
+      "The fails file reports the balance of shares failed and outstanding on each settlement date, carrying fails from earlier dates, so the change from the previous settlement date shows new fails net of fails closed out. DMN rose most into 2025-04-10, by 98,318,799 shares, ahead of SUNE at 96,204,262.",
+      "Before 2024-05-28 the standard cycle was two business days. The busiest trading day from January through April 2024 is 2024-01-16, whose trades settled on 2024-01-18 with 118,542,824 shares failed; a one-day reading gives 2024-01-17 and 121,872,221.",
+      "Trades of 2024-05-24 settled on 2024-05-29 under the two-day cycle, the same day as 2024-05-28 trades under the new one-day cycle, with Memorial Day in between. Settlement follows the depository's calendar, which skips Federal Reserve holidays and Good Friday: 2025-01-08 trades settled on 2025-01-09, a day the stock market closed for a national day of mourning but settlement ran, and 2025-10-10 trades settled on 2025-10-14 because Columbus Day, 2025-10-13, is a bank holiday on which stocks still trade."
+    ]
+  },
+  "conversations": [
+    {
+      "turns": [
+        {
+          "query": "FINRA's daily short-volume file is dated by trading day; the SEC fails-to-deliver file is dated by settlement date. Find the 2025 trading day with the largest total volume in the short-volume file, all reported shares rather than short sales alone, summed over symbols and breaking a tie by the earlier day. Report that day, the settlement date of its trades, and the shares failed on that settlement date summed over all securities. Explain how you matched the two dates.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "recent_peak_trading_day",
+            "recent_peak_settlement_date",
+            "recent_peak_failed_shares"
+          ],
+          "claims": [
+            {
+              "id": "one_day_cycle",
+              "mode": "required",
+              "description": "Explains that U.S. equity trades have settled one business day after the trade since May 2024, so the day's trades settle on the next settlement date."
+            },
+            {
+              "id": "fails_dated_by_settlement",
+              "mode": "optional",
+              "description": "Notes that a fail can only arise when delivery is due, which is why the file is dated by settlement date rather than trading day."
+            }
+          ]
+        },
+        {
+          "query": "On that settlement date, which symbol's failed shares rose most from the previous settlement date in the file, summing rows per symbol, reading a symbol absent on a date as zero and breaking a tie by symbol ascending? Report the symbol and its rise. Explain what the file's figure for a date measures.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "largest_rise_symbol",
+            "largest_rise_shares"
+          ],
+          "claims": [
+            {
+              "id": "balance_carries_old_fails",
+              "mode": "required",
+              "description": "Explains that the figure is the balance of failed shares outstanding on the settlement date, including fails carried from earlier dates, so the change from the previous date shows new fails net of fails closed out, while the level also carries older ones."
+            }
+          ]
+        },
+        {
+          "query": "Repeat the first turn for January through April 2024: report the busiest trading day, the settlement date of its trades, and the shares failed on that settlement date. Explain how you matched the dates.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "early_peak_trading_day",
+            "early_peak_settlement_date",
+            "early_peak_failed_shares"
+          ],
+          "claims": [
+            {
+              "id": "two_day_cycle_before_switch",
+              "mode": "required",
+              "description": "Explains that before 2024-05-28 the standard cycle was two business days, so these trades settled two settlement days after the trade."
+            }
+          ]
+        },
+        {
+          "query": "Report the settlement dates of trades executed on 2024-05-24, on 2025-01-08 and on 2025-10-10. Explain what decided each one.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "settlement_for_2024_05_24",
+            "settlement_for_2025_01_08",
+            "settlement_for_2025_10_10"
+          ],
+          "claims": [
+            {
+              "id": "switch_weekend_overlap",
+              "mode": "required",
+              "description": "Explains that 2024-05-24 trades still settled two business days later, on 2024-05-29, the same day as the first trades under the one-day cycle."
+            },
+            {
+              "id": "settlement_calendar",
+              "mode": "required",
+              "description": "Explains that settlement follows the settlement system's own calendar rather than the exchange calendar: 2025-01-09 was a settlement day although the stock market was closed, and Columbus Day, 2025-10-13, was not although stocks traded."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

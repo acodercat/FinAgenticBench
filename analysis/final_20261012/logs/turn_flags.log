@@ -1,0 +1,19 @@
+500 runs
+1000 runs
+1500 runs
+2000 runs
+2500 runs
+3000 runs
+3500 runs
+4000 runs
+4500 runs
+5000 runs
+5500 runs
+6000 runs
+6500 runs
+7000 runs
+7500 runs
+8000 runs
+8500 runs
+runs whose transcript turn count differs from run.json: 0
+turns 36036 {'n_missing': 3263, 'n_near_name': 274, 'phantom': 12, 'has_check': 1325, 'check_failed': 304, 'alt_mentions': 2292, 'n_wrong_numeric': 10634, 'n_computed_not_delivered': 438, 'n_cnd_loose': 1175}

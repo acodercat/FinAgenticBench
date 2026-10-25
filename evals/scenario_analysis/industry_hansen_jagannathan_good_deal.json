@@ -1,0 +1,93 @@
+{
+  "name": "industry_hansen_jagannathan_good_deal",
+  "module": "evals.scenario_analysis.industry_hansen_jagannathan_good_deal",
+  "task_family": "scenario_analysis",
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "data_sources": [
+    "ken_french_10_industry_portfolios",
+    "nyfed_reference_rates"
+  ],
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Use all ten Kenneth French value-weighted industry daily simple returns on complete joint dates from 2024-01-01 through 2024-03-31 as equally likely states of a hypothetical one-day market. Each industry investment and the cash investment costs USD1 initially. Each industry investment returns its initial dollar together with that state’s simple-return gain or loss at the terminal date. The cash annual effective rate is the arithmetic mean of all published New York Fed SOFR fixings with effective dates in that quarter; one day is 1/252 of a year, and its terminal cash payoff is identical across states. Find the unrestricted Hansen–Jagannathan minimum-second-moment stochastic discount factor that prices every investment exactly under this empirical law. Report the scenario count, kernel mean, population standard deviation and minimum state value. Carry the complete empirical pricing model and kernel forward. Interpret its admissibility as a state-pricing model. Use unrounded inputs and state throughout.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "scenario_count",
+            "kernel_mean",
+            "unrestricted_kernel_sd",
+            "unrestricted_minimum_kernel"
+          ],
+          "claims": [
+            {
+              "id": "industry_hansen_jagannathan_good_deal_t1_interpretation",
+              "description": "The response connects the negative kernel value to failure of nonnegative marginal valuation, while distinguishing exact pricing from positivity.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "In the carried market, obtain the Hansen–Jagannathan minimum-second-moment kernel subject also to nonnegativity in every state. Preserve the physical scenario probabilities, investment prices and cash payoff. Report its population standard deviation, largest state value and number of states with exactly zero kernel value. Carry the complete constrained kernel forward and interpret the economic effect of the constraint.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "nonnegative_kernel_sd",
+            "maximum_nonnegative_kernel",
+            "zero_kernel_states"
+          ],
+          "claims": [
+            {
+              "id": "industry_hansen_jagannathan_good_deal_t2_interpretation",
+              "description": "The response relates the higher minimum dispersion to the additional state-pricing restriction rather than to changed physical return probabilities.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Consider a USD100 portfolio initially invested equally across the ten industries for the one-day horizon. A downside claim pays the positive shortfall of its terminal value below USD100; a separate digital pays USD1 exactly when that terminal value is strictly below USD100. Value both with the complete carried nonnegative kernel and unchanged physical scenario law. Report both prices in USD. Carry the downside payoff across every state and both valuations forward, and assess what the kernel-based valuation establishes.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "downside_claim_price_usd",
+            "downside_digital_price_usd"
+          ],
+          "claims": [
+            {
+              "id": "industry_hansen_jagannathan_good_deal_t3_interpretation",
+              "description": "The response distinguishes a valuation under the selected minimum-dispersion kernel from a uniquely determined traded price of an unspanned payoff.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "For the carried downside claim, determine the sharp lower and upper Cochrane–Saa-Requejo one-period good-deal price bounds. Retain the same empirical physical law and exact investment-pricing constraints, require statewise nonnegative kernels, and cap kernel population standard deviation at 1.5 times the second-turn constrained kernel standard deviation. Report both bounds in USD and assess their meaning for the preceding selected-kernel price.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "good_deal_lower_usd",
+            "good_deal_upper_usd"
+          ],
+          "claims": [
+            {
+              "id": "industry_hansen_jagannathan_good_deal_t4_interpretation",
+              "description": "The response interprets the nondegenerate interval containing the selected-kernel price as valuation uncertainty under the stipulated admissibility restrictions.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen governed dataset_new and explicitly stipulated named-model scenario.",
+    "facts": [
+      "The response connects the negative kernel value to failure of nonnegative marginal valuation, while distinguishing exact pricing from positivity.",
+      "The response relates the higher minimum dispersion to the additional state-pricing restriction rather than to changed physical return probabilities.",
+      "The response distinguishes a valuation under the selected minimum-dispersion kernel from a uniquely determined traded price of an unspanned payoff.",
+      "The response interprets the nondegenerate interval containing the selected-kernel price as valuation uncertainty under the stipulated admissibility restrictions."
+    ],
+    "known_overclaims": [
+      "Treating a hypothetical model-based valuation or capital measure as an observed market price, causal estimate or guarantee."
+    ]
+  }
+}

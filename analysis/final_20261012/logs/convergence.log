@@ -1,0 +1,49 @@
+leave-one-out convergence and determinism by configuration:
+  DeepSeek V4 Pro    T strong acc 84.0% | wrong = crowd value 54.0% (n=278) | identical given >=2 wrong 77.6% | identical given 3 wrong 23.1%
+  Gemini 3.8 Flash   T strong acc 83.3% | wrong = crowd value 67.9% (n=137) | identical given >=2 wrong 93.5% | identical given 3 wrong 92.0%
+  GPT-6 Luna         T strong acc 82.2% | wrong = crowd value 57.9% (n=368) | identical given >=2 wrong 76.9% | identical given 3 wrong 71.2%
+  Claude Sonnet 5.5  T strong acc 79.8% | wrong = crowd value 65.4% (n=616) | identical given >=2 wrong 80.2% | identical given 3 wrong 79.3%
+  Claude Sonnet 5.5  N mid    acc 72.1% | wrong = crowd value 53.8% (n=795) | identical given >=2 wrong 70.1% | identical given 3 wrong 61.1%
+  Qwen3.8 Flash      T mid    acc 70.9% | wrong = crowd value 40.1% (n=609) | identical given >=2 wrong 45.2% | identical given 3 wrong 51.9%
+  GLM-5.3            T mid    acc 70.1% | wrong = crowd value 46.4% (n=880) | identical given >=2 wrong 44.6% | identical given 3 wrong 43.4%
+  DeepSeek V4 Flash  T mid    acc 62.8% | wrong = crowd value 53.8% (n=1033) | identical given >=2 wrong 63.4% | identical given 3 wrong 59.5%
+  Qwen3.8-27B        T mid    acc 62.3% | wrong = crowd value 29.6% (n=1141) | identical given >=2 wrong 36.2% | identical given 3 wrong 22.9%
+  DeepSeek V4 Pro    N weak   acc 59.2% | wrong = crowd value 34.6% (n=1219) | identical given >=2 wrong 42.7% | identical given 3 wrong 41.1%
+  DeepSeek V4 Flash  N weak   acc 58.8% | wrong = crowd value 40.0% (n=1351) | identical given >=2 wrong 39.8% | identical given 3 wrong 44.0%
+  GPT-6 Luna         N weak   acc 58.8% | wrong = crowd value 25.9% (n=1268) | identical given >=2 wrong 40.4% | identical given 3 wrong 21.1%
+  Qwen3.8-27B        N weak   acc 47.9% | wrong = crowd value 22.2% (n=1815) | identical given >=2 wrong 22.2% | identical given 3 wrong 25.6%
+  Qwen3.8 Flash      N weak   acc 47.6% | wrong = crowd value 21.5% (n=1409) | identical given >=2 wrong 25.8% | identical given 3 wrong 16.9%
+  by tier: strong 61.4% (n=1399), mid 44.3% (n=4458), weak 28.3% (n=7062)
+  Spearman(accuracy, convergence) 0.92 | (accuracy, all identical|>=2 wrong) 0.93 | (accuracy, identical|3 wrong) 0.64
+  all-identical given >=2 wrong, range by tier: strong 76.9%-93.5%, mid 36.2%-70.1%, weak 22.2%-42.7%
+-> analysis/final_20261012/tables/convergence_by_config.csv
+within slot, strong vs weak: strong 52.2% vs weak 37.2%; diff +15.1% [+8.3%, +21.7%], slots 562, strong>weak on 227, < on 78
+within slot, strong vs mid: strong 53.2% vs mid 50.3%; diff +2.9% [-2.7%, +8.2%], slots 548, strong>mid on 156, < on 102
+within slot, mid vs weak: mid 36.7% vs weak 29.9%; diff +6.8% [+3.8%, +9.8%], slots 1142, mid>weak on 353, < on 141
+-> analysis/final_20261012/tables/convergence_within_slot.csv
+thinking minus non-thinking convergence, DeepSeek V4 Pro    +1.8% [-21.3%, +24.8%] slots 123
+thinking minus non-thinking convergence, DeepSeek V4 Flash  +1.3% [-5.2%, +8.4%] slots 445
+thinking minus non-thinking convergence, GPT-6 Luna         +12.5% [+0.3%, +24.1%] slots 180
+thinking minus non-thinking convergence, Claude Sonnet 5.5  +9.0% [-2.4%, +20.2%] slots 265
+thinking minus non-thinking convergence, Qwen3.8 Flash      +10.7% [-0.3%, +22.3%] slots 297
+thinking minus non-thinking convergence, Qwen3.8-27B        +8.0% [+3.1%, +13.5%] slots 529
+thinking minus non-thinking convergence, pooled            +7.0% [+2.9%, +11.2%] slots 1839
+   by class K4: +11.6% [+1.2%, +20.4%] slots 246
+   by class K5: +17.3% [+0.0%, +31.7%] slots 187
+   by class K6: +11.3% [+5.5%, +16.8%] slots 137
+   by class K3: +19.3% [+0.6%, +29.9%] slots 77
+   by class K1: +9.2% [-2.6%, +32.2%] slots 74
+   by class K9: +4.8% [-7.8%, +33.3%] slots 56
+   by class K7: +38.4% [+6.7%, +51.2%] slots 43
+   by class K2: -15.6% [-53.3%, -2.8%] slots 32
+   by class K8: -15.0% [-37.5%, +0.0%] slots 10
+-> analysis/final_20261012/tables/convergence_thinking.csv
+flips, non-thinking correct, thinking wrong: model-slot pairs 567, with a consensus error 291 (225 distinct slots), erring mode gave it 180/291 = 61.9% [44.1%, 76.8%]; over all pairs 31.7%
+flips, thinking correct, non-thinking wrong: model-slot pairs 2606, with a consensus error 1428 (734 distinct slots), erring mode gave it 648/1428 = 45.4% [39.5%, 51.1%]; over all pairs 24.9%
+flips, difference (N->T minus T->N): +16.5% [-1.3%, +31.7%]
+-> analysis/final_20261012/tables/convergence_flips.csv
+dose-response: P(wrong value = value most other configs gave) by number of other configs giving it:
+  strong k=1: 42% (n=134)  k=2: 42% (n=149)  k=3: 56% (n=200)  k=4: 68% (n=224)  k=5: 58% (n=124)  k=6+: 84% (n=534)
+  mid    k=1: 34% (n=631)  k=2: 37% (n=836)  k=3: 41% (n=700)  k=4: 53% (n=636)  k=5: 46% (n=535)  k=6+: 79% (n=965)
+  weak   k=1: 24% (n=1507)  k=2: 27% (n=1384)  k=3: 30% (n=950)  k=4: 39% (n=1078)  k=5: 36% (n=622)  k=6+: 62% (n=1133)
+-> analysis/final_20261012/tables/convergence_dose.csv

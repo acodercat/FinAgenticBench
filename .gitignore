@@ -1,0 +1,32 @@
+# Local configuration with endpoints and keys; copy models.toml.example.
+models.toml
+.env
+.env.*
+
+# Python and tooling
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.DS_Store
+
+# Data trees: the runtime tables arrive with FinAgenticBench-data.zip; the build and raw trees are
+# produced by scripts/ingest/ when rebuilding from source.
+datasets/
+datasets_build/
+datasets_raw/
+*.zip
+
+# Run artifacts arrive with FinAgenticBench-runs.zip; only the layout note is tracked.
+experiments/*
+!experiments/README.md
+
+# Analysis intermediates, and the pre-revision input that ships with the run archive.
+analysis/scratch/
+analysis/final_20261012/inputs/final_data_prerevision_20261011.json
+
+# Written by scripts.no_data_control; a measurement, not a registry input.
+metadata/no_data_control.json

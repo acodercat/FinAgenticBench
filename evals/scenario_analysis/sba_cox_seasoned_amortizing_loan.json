@@ -1,0 +1,96 @@
+{
+  "name": "sba_cox_seasoned_amortizing_loan",
+  "module": "evals.scenario_analysis.sba_cox_seasoned_amortizing_loan",
+  "task_family": "scenario_analysis",
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "data_sources": [
+    "sba_7a",
+    "nyfed_reference_rates"
+  ],
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Using the SBA 7(a) public loan rows for Texas projects approved in fiscal years 2020–2022, retain positive gross approval amounts and original terms, with recorded first disbursement no later than 2024-12-31. Each row is one equally weighted subject; retain identical public rows. Measure age in actual days from first disbursement. Observation ends at the first charge-off, paid-in-full date or 2024-12-31; charge-off wins a same-row tie. Charge-off is the event and paid-in-full is censoring; same-day censors remain in the pre-event risk set. Fit an unpenalized, unstratified Cox proportional-hazards model with Breslow tied-event partial likelihood, no intercept and unrestricted coefficients. Its two covariates are the natural log of gross approval relative to USD 100,000 and original term in units of 120 months. Report subject count, charge-off count, both coefficients in that order and the unnormalized partial log likelihood without additive tie-count constants. Carry the full fitted state, retaining unrounded values throughout. Discuss what the fitted associations and retrospective observation cutoff establish about credit risk.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "cohort_count",
+            "chargeoff_count",
+            "log_approval_coefficient",
+            "term_coefficient",
+            "partial_log_likelihood"
+          ],
+          "claims": [
+            {
+              "id": "sba_cox_seasoned_amortizing_loan_t1_interpretation",
+              "description": "The response relates the fitted covariate coefficients to conditional hazard associations and recognizes that the frozen retrospective cohort is not a causal or as-known-at-2024 forecast.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Retain the fitted coefficients and use the Breslow cumulative baseline hazard at both covariates zero, without recentering. Consider a hypothetical loan with gross approval USD 250,000 and original term 48 months, conditional on remaining default-free through age 730 days. Use Cox exponential net survival. Report the baseline cumulative hazard at day 730, conditional net default probability through day 1460 and restricted mean remaining default-free days over that interval. Carry the complete conditional survival law forward. Explain the financial meaning of this net-risk estimate and its relationship to the treatment of paid-in-full loans.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "baseline_cumulative_hazard_day730",
+            "conditional_net_default_pct",
+            "restricted_mean_default_free_days"
+          ],
+          "claims": [
+            {
+              "id": "sba_cox_seasoned_amortizing_loan_t2_interpretation",
+              "description": "The response distinguishes the fitted net default risk with paid-in-full censoring from an observed competing-risk charge-off incidence.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Use that carried conditional law to value a hypothetical no-prepayment loan at age 730, with current outstanding principal 100 and 24 remaining monthly periods. Each period is exactly one twelfth of a 365-day year. The nominal annual coupon is eight percent, convertible monthly, with level fully amortizing payments. A period excludes its starting age and includes its ending age; default exactly at its ending age belongs to that period. Default within a period replaces its scheduled payment with recovery of 40 percent of beginning-of-period scheduled outstanding, paid at that period's end; otherwise the scheduled payment is made at period end. No accrued interest, fees or other cash flows apply. Discount expected cash flows at a flat annual-effective rate equal to New York Fed SOFR for 2024-12-31, using Actual/365. Report value per 100 current outstanding and Macaulay duration of the expected discounted cash flows in years. Carry the full contract and cash-flow state forward, and interpret the value relative to par and the scope of this actuarial valuation.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "seasoned_loan_value_per100",
+            "seasoned_payment_duration_years"
+          ],
+          "claims": [
+            {
+              "id": "sba_cox_seasoned_amortizing_loan_t3_interpretation",
+              "description": "The response interprets the computed loan value relative to par and recognizes that expected cash flows under a fitted historical hazard give a stipulated actuarial valuation rather than an identified risk-neutral market price.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Multiply the carried future hazard after day 730 by 1.5, retaining the fitted covariates, baseline shape, discount rate and all other contract conventions. Find the contractual nominal annual coupon between zero and 30 percent inclusive that makes value equal to 100. Reamortize the same current principal over the same remaining 24 periods at that coupon; recovery continues to reference the resulting scheduled outstanding. Report the break-even coupon in percent, the present value of recoveries per 100 current outstanding and expected-cash-flow Macaulay duration in years. Explain how the resulting quote compensates for the stipulated credit stress and give a material limit of treating it as a commercial lending rate.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "stressed_break_even_coupon_pct",
+            "stressed_recovery_pv_per100",
+            "stressed_payment_duration_years"
+          ],
+          "claims": [
+            {
+              "id": "sba_cox_seasoned_amortizing_loan_t4_interpretation",
+              "description": "The response relates the stressed break-even coupon to the modeled cash-flow loss and gives a material omitted commercial pricing consideration, such as funding spreads, capital costs or model risk.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen governed dataset_new and the explicitly stipulated named-model financial contract.",
+    "facts": [
+      "{\"baseline_cumulative_hazard_day730\": 0.10198926253478147, \"chargeoff_count\": 201, \"cohort_count\": 9311, \"conditional_net_default_pct\": 13.841750297895683, \"log_approval_coefficient\": -0.26925445531764136, \"partial_log_likelihood\": -1554.523349470414, \"restricted_mean_default_free_days\": 681.8109561058552, \"seasoned_loan_value_per100\": 99.43603211998986, \"seasoned_payment_duration_years\": 0.995406244098781, \"stressed_break_even_coupon_pct\": 10.656351520001826, \"stressed_payment_duration_years\": 0.9801468441155368, \"stressed_recovery_pv_per100\": 4.029659246498948, \"term_coefficient\": -3.07865541100331}",
+      "The response relates the fitted covariate coefficients to conditional hazard associations and recognizes that the frozen retrospective cohort is not a causal or as-known-at-2024 forecast.",
+      "The response distinguishes the fitted net default risk with paid-in-full censoring from an observed competing-risk charge-off incidence.",
+      "The response interprets the computed loan value relative to par and recognizes that expected cash flows under a fitted historical hazard give a stipulated actuarial valuation rather than an identified risk-neutral market price.",
+      "The response relates the stressed break-even coupon to the modeled cash-flow loss and gives a material omitted commercial pricing consideration, such as funding spreads, capital costs or model risk."
+    ],
+    "known_overclaims": [
+      "Treating hypothetical contractual, probability or long-horizon assumptions as observed market prices, causal effects or guaranteed outcomes."
+    ]
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "name": "industry_variance_gamma_esscher_hedge",
+  "module": "evals.scenario_analysis.industry_variance_gamma_esscher_hedge",
+  "task_family": "scenario_analysis",
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "data_sources": [
+    "ken_french_10_industry_portfolios",
+    "nyfed_reference_rates"
+  ],
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Use Kenneth French's value-weighted HiTec daily total simple returns dated 2020-01-01 through 2024-12-31. Fit the asymmetric Madan–Carr–Chang Variance-Gamma law to the corresponding daily log returns by exact matching of their first four empirical cumulants, using population central moments without bias corrections and 252 model trading days per year. Use the Brownian-with-drift gamma-clock parameterization with a separate deterministic log-drift: the independent gamma clock has unit mean rate, positive variance rate, the Brownian volatility is positive, and its drift and the separate deterministic drift are unrestricted. Report observation count, the deterministic drift and Brownian clock drift, Brownian volatility, and the gamma-clock variance-rate parameter. Carry the full physical law forward, and assess the financial scope of the fitted jump distribution. Use unrounded inputs and state throughout.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "return_count",
+            "deterministic_log_drift_pct",
+            "brownian_clock_drift_pct",
+            "brownian_volatility_pct",
+            "gamma_variance_trading_days"
+          ],
+          "claims": [
+            {
+              "id": "industry_variance_gamma_esscher_hedge_t1_interpretation",
+              "description": "The response treats the fitted stationary jump law as a moment-based historical calibration, rather than evidence that future returns obey that law.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Set a constant bank-account rate from the equal-fixing arithmetic mean of published New York Fed SOFR observations with effective dates in calendar 2024, interpreted as an annual effective rate. Consider a hypothetical reinvested HiTec fund currently worth USD 100, with the carried log-return law and no external payouts. Select the Esscher transform of log returns under which the discounted fund is a martingale. Report the Esscher tilt parameter and the bank account's continuously compounded annual rate. Carry the complete transformed law and cash convention forward, and discuss the financial meaning of this pricing-measure choice.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "esscher_tilt",
+            "cash_force_pct"
+          ],
+          "claims": [
+            {
+              "id": "industry_variance_gamma_esscher_hedge_t2_interpretation",
+              "description": "The response distinguishes the stipulated Esscher selection from a uniquely determined no-arbitrage measure in an incomplete jump market.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Use the same fitted Variance-Gamma Lévy process with stationary independent increments over the option horizon. Using the carried Esscher pricing law and cash rate, value one European call on the fund with strike USD 102 and maturity five model trading days. Report its current price and the undiscounted second raw moment of its terminal payoff. Carry the full stock/payoff joint moments and pricing law forward, and interpret the distinction between the price and payoff-risk assessment.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "call_price_usd",
+            "call_payoff_second_moment_usd2"
+          ],
+          "claims": [
+            {
+              "id": "industry_variance_gamma_esscher_hedge_t3_interpretation",
+              "description": "The response recognizes that valuing the claim uses its discounted mean, whereas assessing the distribution of liabilities requires additional moments.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "For a short position in that one call, choose a static hedge consisting of fund shares and a bank-account cash position, with no interim rebalancing. Minimize expected squared undiscounted terminal hedging error under the carried Esscher measure. Both positions are unrestricted and there is no fixed initial-capital constraint; cash earns the carried rate. Report the optimal number of shares, the minimum root-mean-square terminal hedging error, and the probability under that same measure that the call payoff exceeds terminal hedge wealth by more than USD 1. Explain what the error figure and the shortfall odds say about how completely a single unrebalanced position covers the payoff, and how that differs from continuous rehedging.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "optimal_static_shares",
+            "minimum_terminal_rmse_usd",
+            "one_dollar_shortfall_probability"
+          ],
+          "claims": [
+            {
+              "id": "industry_variance_gamma_esscher_hedge_t4_interpretation",
+              "description": "The response interprets the positive residual error and shortfall probability as risk remaining after optimal static quadratic hedging, rather than exact replication or a dynamic delta hedge.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Governed frozen dataset_new and the specified hypothetical named-model contract.",
+    "facts": [
+      "The response treats the fitted stationary jump law as a moment-based historical calibration, rather than evidence that future returns obey that law.",
+      "The response distinguishes the stipulated Esscher selection from a uniquely determined no-arbitrage measure in an incomplete jump market.",
+      "The response recognizes that valuing the claim uses its discounted mean, whereas assessing the distribution of liabilities requires additional moments.",
+      "The response interprets the positive residual error and shortfall probability as risk remaining after optimal static quadratic hedging, rather than exact replication or a dynamic delta hedge."
+    ],
+    "known_overclaims": [
+      "Treating calibrated hypothetical fundamentals, pricing measures or synthetic trades as observed market facts or guaranteed future outcomes."
+    ]
+  }
+}

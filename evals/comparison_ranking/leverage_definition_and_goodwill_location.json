@@ -1,0 +1,119 @@
+{
+  "name": "leverage_definition_and_goodwill_location",
+  "module": "evals.comparison_ranking.leverage_definition_and_goodwill_location",
+  "task_family": "comparison_ranking",
+  "data_sources": [
+    "sec_financial_statements",
+    "sec_notes_dimensional"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Select original full-year Form 10-Ks ending in calendar 2024, one per filer by latest report date, filing date, then accession. Report filer count. Among period-end balances, count filers with long-term debt total, its noncurrent portion, operating lease liability, goodwill and stockholders' equity; count those with positive equity and those whose debt total is below its noncurrent portion. Interpret that discrepancy and how you would resolve it.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "annual_filer_count",
+            "complete_filer_count",
+            "positive_equity_count",
+            "total_below_noncurrent_count"
+          ],
+          "claims": [
+            {
+              "id": "two_tags_contradict",
+              "mode": "required",
+              "description": "The response treats a long-term total below its own noncurrent portion as the two tags contradicting one another, and says nothing in these filings settles which of the two is the one to correct."
+            }
+          ]
+        },
+        {
+          "query": "Work with the filers carrying equity above zero. Report three medians of debt to equity, each taken with linear interpolation: on the noncurrent portion alone, on the whole long-term total, and on that whole total with the operating lease liability added to it. Then report those filers' operating lease liability summed. Explain what each of the three numerators leaves in or leaves out, and which of them a lender writing a covenant would want.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "median_noncurrent_leverage",
+            "median_total_debt_leverage",
+            "median_lease_inclusive_leverage",
+            "operating_lease_total_bn"
+          ],
+          "claims": [
+            {
+              "id": "what_each_numerator_covers",
+              "mode": "required",
+              "description": "The response says the noncurrent portion omits debt falling due inside the year while the operating lease liability is a contractual obligation the conventional debt definition leaves out, and takes a position on which measure a lender would want, supported by what that measure covers."
+            }
+          ]
+        },
+        {
+          "query": "Stay with the same filers. Report their equity summed and their goodwill summed, how many of them are left with equity below zero once goodwill is taken out of it, and their summed long-term total plus lease liability divided by their summed equity after goodwill, summing across every one of those filers including the ones whose own equity after goodwill falls below zero. Explain what taking goodwill out of equity is meant to capture, and what a result below zero leaves of the ratio.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "equity_total_bn",
+            "goodwill_total_bn",
+            "negative_tangible_equity_count",
+            "aggregate_lease_tangible_leverage"
+          ],
+          "claims": [
+            {
+              "id": "why_goodwill_comes_out",
+              "mode": "required",
+              "description": "The response explains taking goodwill out as leaving the equity backed by identifiable assets rather than by amounts paid over book value in past acquisitions, and says a denominator below zero makes the ratio uninterpretable rather than merely large."
+            }
+          ]
+        },
+        {
+          "query": "In the separate dimensional fact file, match business-segment goodwill balances to the exact filing used for each entity goodwill figure by filer, period end and accession. Use only primary presentation (index 0) for repeated members. Report matched-filer count and count whose segment sum is within USD 1 of entity goodwill. Among reconciled filers report median largest-segment share of goodwill, with linear interpolation, and count with one segment above half. Interpret the accession match, what an unreconciled segment sum permits you to conclude, and the concentration versus the prior entity-level ratio.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "segment_filer_count",
+            "segment_tie_count",
+            "median_largest_segment_share_pct",
+            "single_segment_majority_count"
+          ],
+          "claims": [
+            {
+              "id": "same_filing_comparatives",
+              "mode": "required",
+              "description": "The response says an annual report repeats an earlier period as a comparative, so matching on the period end alone risks setting one filing's segment figures against another filing's entity total."
+            },
+            {
+              "id": "unreconciled_segment_boundary",
+              "mode": "required",
+              "description": "The response explains that a segment sum missing the entity total cannot be uniquely repaired by dropping a member or adjusting a value from the declared facts alone."
+            },
+            {
+              "id": "concentration_below_the_entity",
+              "mode": "required",
+              "description": "The response connects goodwill concentrated in one segment to impairment being assessed below the entity rather than across the whole firm."
+            },
+            {
+              "id": "concentration_is_not_impairment",
+              "mode": "conditional",
+              "description": "If the response treats a filer whose largest segment holds most of the goodwill as facing an impairment, it states that these figures record where goodwill sits and carry no measure of the fair value it would be tested against."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen SEC company-facts balance-sheet extracts for annual filings with period ends in calendar 2024, and the frozen single-axis dimensional fact file for the 500 largest filers. The leverage definitions, the tangible-equity adjustment and the segment concentration are analytic constructions rather than reported statistics.",
+    "facts": [
+      "5,524 filers are in the annual population; 709 tag long-term debt, its noncurrent portion, the operating lease liability, goodwill and equity together, and 624 of those carry positive equity. On 23 of the 709 the long-term total is below its own noncurrent portion, which the two tags cannot both be right about, and nothing in the filing says which to correct.",
+      "Across the 624 the median ratio to equity is 0.6305 on the noncurrent portion, 0.6805 on the whole long-term total and 0.7852 once the operating lease liability joins it; their lease liability sums to 419.849886 USD billions. The noncurrent portion omits debt maturing inside a year, and the lease liability is a contractual obligation the conventional debt definition leaves out, so a lender writing a covenant wants the widest of the three.",
+      "Their equity sums to 3394.290464 USD billions against goodwill of 1612.234198, so taking goodwill out removes nearly half the denominator and leaves 138 of the 624 with equity below zero. The summed lease-inclusive debt over summed equity after goodwill is 1.4399, more than double the same numerator over unadjusted equity. Where the denominator is below zero the ratio is uninterpretable rather than large.",
+      "180 filers break goodwill out along a business-segment axis inside the same filing that carries their entity figure, and 162 of those have segment figures summing to the entity total within a dollar. Matching on the period end alone would be looser, since a later annual report repeats the year as a comparative and can restate it; inside one filing a member can still appear under more than one presentation index, and the primary presentation is the one taken. The 18 that miss the total are dropped whole because nothing says which member to remove. Among the 162 the largest segment carries a median 63.5991% of goodwill and 125 have one segment holding more than half, so an entity-level ratio understates how concentrated the exposure is. These figures record where goodwill sits and carry no fair value to test it against."
+    ],
+    "known_overclaims": [
+      "Reading the noncurrent portion of long-term debt as total debt, which omits whatever matures inside the year.",
+      "Leaving the operating lease liability out of leverage on the grounds that it is not borrowing, when it has sat on the balance sheet as an obligation since the 2019 leases standard.",
+      "Reading a leverage ratio struck on negative equity after goodwill as a large number rather than as an uninterpretable one.",
+      "Repairing a filer whose segment goodwill misses the entity total by dropping a member chosen after the fact, when the filing gives no basis for the choice.",
+      "Treating goodwill concentrated in one segment as evidence of impairment, when these figures carry no fair value to test the carrying amount against.",
+      "Correcting a filer whose long-term total falls below its own noncurrent portion, when nothing in the filing says which tag is wrong.",
+      "Matching segment goodwill to an entity total on the period end alone, which can pair one filing's segments with another filing's total."
+    ]
+  }
+}

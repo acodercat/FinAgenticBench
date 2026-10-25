@@ -1,0 +1,178 @@
+{
+  "name": "nport_pca_keyrate_factor_hedge",
+  "module": "evals.scenario_analysis.nport_pca_keyrate_factor_hedge",
+  "task_family": "scenario_analysis",
+  "data_sources": [
+    "treasury_yield_curve",
+    "sec_nport_interest_rate_risk"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Use complete daily 3-month, 1-year, 5-year, 10-year, and 30-year Treasury par yields from 2020-01-02 through 2024-12-31, ordered as stated. Form consecutive available-curve-date yield differences in basis points and estimate their sample covariance with the n-minus-one denominator. Perform covariance PCA, order eigenvalues descending, and orient every eigenvector so the sum of its five loadings is positive. Report the yield-change count, all five eigenvalues, first-three cumulative explained variance, covariance 2-norm condition number, and all five PC1 and PC2 loadings. Interpret the shapes of the leading fitted loadings and discuss the temporal scope of the fitted covariance structure, then carry the full eigenbasis forward.",
+          "validator": "validate_pca",
+          "stores": [
+            "pca_yield_change_count",
+            "pca_eigenvalue_1_bp2",
+            "pca_eigenvalue_2_bp2",
+            "pca_eigenvalue_3_bp2",
+            "pca_eigenvalue_4_bp2",
+            "pca_eigenvalue_5_bp2",
+            "pca_first_three_explained_pct",
+            "pca_covariance_condition_number",
+            "pc1_3month_loading",
+            "pc1_1year_loading",
+            "pc1_5year_loading",
+            "pc1_10year_loading",
+            "pc1_30year_loading",
+            "pc2_3month_loading",
+            "pc2_1year_loading",
+            "pc2_5year_loading",
+            "pc2_10year_loading",
+            "pc2_30year_loading"
+          ],
+          "claims": [
+            {
+              "id": "pca_factor_interpretation",
+              "description": "The response interprets the leading empirical loading shapes while recognizing that factor labels are inferred from the fitted eigenvectors.",
+              "mode": "required"
+            },
+            {
+              "id": "pca_sample_boundary",
+              "description": "The response treats PCA as sample-window covariance structure rather than a permanent term-structure law.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "In N-PORT interest-rate-risk rows for report date 2025-03-31, keep USD rows with positive net assets, a nonmissing SEC series identifier, and complete five-bucket DV01. For each series keep the row with latest filing date, ties by accession descending. Divide its ordered DV01 vector by net assets and multiply by 10,000, then project it on the carried Treasury eigenvectors. Rank funds by absolute PC1 duration exposure descending, ties by series identifier ascending. Report eligible count; the selected fund's registered series name verbatim from N-PORT, series identifier, accession, net assets; five reported DV01 buckets; all five normalized factor exposures; and the absolute-PC1 margin over the runner-up. Explain what selection on factor-normalized exposure means and what reported DV01 does not reveal about the complete portfolio.",
+          "validator": "validate_selection",
+          "stores": [
+            "nport_eligible_fund_count",
+            "selected_fund_name",
+            "selected_fund_series_id",
+            "selected_fund_accession",
+            "selected_fund_net_assets_usd",
+            "selected_3month_dv01_usd",
+            "selected_1year_dv01_usd",
+            "selected_5year_dv01_usd",
+            "selected_10year_dv01_usd",
+            "selected_30year_dv01_usd",
+            "selected_pc1_duration_exposure",
+            "selected_pc2_duration_exposure",
+            "selected_pc3_duration_exposure",
+            "selected_pc4_duration_exposure",
+            "selected_pc5_duration_exposure",
+            "selected_pc1_absolute_margin"
+          ],
+          "claims": [
+            {
+              "id": "factor_selection_meaning",
+              "description": "The response explains that the ranking selects sensitivity per unit of net assets along the fitted PC1 direction rather than fund size alone.",
+              "mode": "required"
+            },
+            {
+              "id": "nport_disclosure_boundary",
+              "description": "The response limits the inference to reported currency-bucket first-order interest-rate sensitivity.",
+              "mode": "required"
+            },
+            {
+              "id": "holdings_model_boundary",
+              "description": "If the response presents the exposure as a portfolio risk model, it states that the reported buckets are not a complete holdings or risk model.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Construct a hypothetical key-rate DV01 overlay using only the 1-year, 5-year, and 30-year buckets. Solve the three-instrument linear system that makes the carried fund's post-overlay exposures to PC1, PC2, and PC3 exactly zero; do not constrain signs or notionals. Report the three overlay DV01 values, the hedge-factor matrix 2-norm condition number, maximum absolute residual across the first three factor exposures, remaining PC4 and PC5 DV01 exposures, and gross absolute overlay DV01. Interpret the conditioning and reported residual factor exposures, and discuss material implementation and cost limitations.",
+          "validator": "validate_hedge",
+          "stores": [
+            "hedge_1year_dv01_usd",
+            "hedge_5year_dv01_usd",
+            "hedge_30year_dv01_usd",
+            "hedge_factor_matrix_condition_number",
+            "hedge_maximum_first_three_factor_residual",
+            "hedged_pc4_dv01_usd",
+            "hedged_pc5_dv01_usd",
+            "hedge_gross_dv01_usd"
+          ],
+          "claims": [
+            {
+              "id": "factor_hedge_scope",
+              "description": "The response uses the reported PC4 and PC5 residual exposures to explain whether exact PC1-PC3 neutralization leaves material factor exposure and identifies which residual component dominates.",
+              "mode": "required"
+            },
+            {
+              "id": "hedge_implementation_boundary",
+              "description": "The response identifies the overlay as a sensitivity mapping rather than an executable trade specification.",
+              "mode": "required"
+            },
+            {
+              "id": "zero_cost_overclaim",
+              "description": "If the response describes the overlay as costless or directly executable, it qualifies that claim for instrument mapping, transaction costs, and feasibility.",
+              "mode": "conditional"
+            },
+            {
+              "id": "fully_hedged_overclaim",
+              "description": "If the response calls the portfolio fully hedged, it accounts for the reported residual components and risks outside the linear-DV01 model.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Hold both the report-date DV01 vector and the carried overlay fixed. From Treasury par yields on 2025-03-31 and 2025-12-31, report ending-minus-starting changes for all five tenors in basis points. Treat positive DV01 as a gain for a one-basis-point yield decline and compute unhedged and hedged signed first-order P&L, both P&Ls as percentages of report-date net assets, and the percentage reduction in absolute P&L relative to absolute unhedged P&L, retaining a negative value if the hedge increases absolute P&L. Interpret the comparison and discuss its material model, implementation, and selection limitations.",
+          "validator": "validate_realized",
+          "stores": [
+            "realized_3month_yield_change_bp",
+            "realized_1year_yield_change_bp",
+            "realized_5year_yield_change_bp",
+            "realized_10year_yield_change_bp",
+            "realized_30year_yield_change_bp",
+            "unhedged_first_order_pnl_usd",
+            "hedged_first_order_pnl_usd",
+            "unhedged_pnl_pct_net_assets",
+            "hedged_pnl_pct_net_assets",
+            "absolute_pnl_reduction_pct"
+          ],
+          "claims": [
+            {
+              "id": "realized_hedge_comparison",
+              "description": "The response interprets the comparison as one retrospective first-order path under frozen sensitivities rather than realized fund performance.",
+              "mode": "required"
+            },
+            {
+              "id": "hedge_model_limit",
+              "description": "The response identifies at least one material nonlinear, implementation, or selection effect omitted from the proxy.",
+              "mode": "required"
+            },
+            {
+              "id": "performance_equivalence_overclaim",
+              "description": "If the response equates the proxy with realized fund performance, it distinguishes the two and identifies omitted portfolio effects.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "The reference independently estimates Treasury yield-change PCA, selects the largest normalized PC1 N-PORT exposure, solves the three-tenor factor-neutral overlay, and evaluates frozen-DV01 P&L on a held-out curve path.",
+    "facts": [
+      "The solved three-instrument overlay is 34,722.119 of one-year DV01, -300,321.124 of five-year and -4,154,201.614 of thirty-year. The hedge-factor matrix has a 2-norm condition number of 3.8329 and the maximum absolute residual across the first three factor exposures is 0.0.",
+      "Zeroing three factors is not zeroing risk: the overlay leaves 4,884.877 of PC4 DV01 and -668,238.560 of PC5, and it takes 4,489,244.857 of gross DV01 to put on.",
+      "The realized move is a twist rather than a level shift: the three-month yield falls 65 basis points, the one-year 55, the five-year 23, the ten-year 5, while the thirty-year rises 25.",
+      "On that path the unhedged fund loses 94,307,323.86 dollars, 5.910295 percent of net assets, while the hedged fund gains 4,550,047.21, 0.285154 percent: a 98,857,371.07 dollar difference and a 95.1753 percent reduction in absolute first-order profit and loss.",
+      "Every realized profit-and-loss figure is computed from the unrounded DV01s and overlay notionals, and the post-hedge residual is pinned at 7 decimals so the shared tolerance absorbs the noise a convergent linear solve leaves."
+    ],
+    "known_overclaims": [
+      "Presenting the overlay as implementable, when it carries no financing cost, bid-offer or margin.",
+      "Treating a first-order DV01 approximation as a full repricing; convexity and the underlying holdings' actual repricing are outside it.",
+      "Describing the principal components as stable structural factors; they are estimated on this training window and a different window yields different loadings.",
+      "Reading period-end key-rate DV01s as a picture of intra-period trading."
+    ]
+  }
+}

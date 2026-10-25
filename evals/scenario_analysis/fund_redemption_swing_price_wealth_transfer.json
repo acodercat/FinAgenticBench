@@ -1,0 +1,110 @@
+{
+  "name": "fund_redemption_swing_price_wealth_transfer",
+  "module": "evals.scenario_analysis.fund_redemption_swing_price_wealth_transfer",
+  "task_family": "scenario_analysis",
+  "data_sources": [
+    "sec_nport",
+    "treasury_yield_curve"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "From original N-PORT accession 0001752724-25-122382 build a hypothetical USD fund: opening net assets and cash equal the report's net assets and cash not elsewhere reported, at USD 100 per unit, and the first redemption request is the report's third-month gross redemptions converted to units at that NAV. Split the remaining assets by face 30/40/30 into synthetic two-, five- and ten-year bonds whose semiannual coupons price each at par on the 2025-03-31 Treasury yields for 1, 2, 3, 6 months and 1, 2, 3, 5, 7, 10, 20, 30 years, read as zero rates, semiannually compounded, linearly interpolated with flat ends. Cash earns nothing, no coupon has elapsed, and there are no liabilities or other flows. Report opening units and requested units.",
+          "stores": [
+            "opening_units_mn",
+            "first_redemption_units_mn"
+          ],
+          "validator": "validate_turn_1",
+          "claims": []
+        },
+        {
+          "query": "Shift all those zero rates up 100 basis points and remark the same faces with unchanged coupons. Liquidation is cash first, then proportional sales of noncash holdings at stressed marks. Cost on cumulative gross sales is banded: 20 basis points on the first 5% of original net assets, 80 on the next 10%, and 200 above 15%; costs are fund cash expenses, holdings are divisible, and the bands carry across redemptions. As a comparison, pay the whole first request at pre-redemption NAV without swinging, selling enough to fund the payout and its costs. Report the post-shock pre-redemption NAV and the remaining units' NAV after that comparison. Explain the wealth allocation.",
+          "stores": [
+            "shock_pretrade_nav",
+            "unswung_post_nav"
+          ],
+          "validator": "validate_turn_2",
+          "claims": [
+            {
+              "id": "unswung_dilution",
+              "description": "The response explains that paying redeeming units at pretrade NAV leaves disposal costs with remaining investors and reduces their per-unit wealth.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "From the same pre-redemption shocked book, instead execute the first request at the unique nondiluting redemption price: all transaction costs belong to the redeeming units and remaining units keep their pre-redemption NAV. Use the same cash-first proportional sales and cost contract, with full funding and no borrowing. Report the redemption price and gross asset sales. Carry the actual remaining faces, cash, units and consumed cost bands. Explain the cost allocation.",
+          "stores": [
+            "fair_first_price",
+            "fair_first_gross_sales_mn"
+          ],
+          "validator": "validate_turn_3",
+          "claims": [
+            {
+              "id": "nondiluting_allocation",
+              "description": "The response connects the solved price discount and gross sales to the cash expense incurred, reconciling unchanged remaining-unit NAV with the actual redemption payment.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "From that executed first redemption, compare a second request equal to 10% of original opening units after a total upward curve shift of 150 basis points from the original curve. Independently compare both requests redeemed simultaneously from the untouched opening book at that same 150-basis-point shift. Apply nondiluting prices in each comparison; neither comparison is executed. Report the sequential second price, NAV of units remaining after it, and the common simultaneous price. Explain why these prices differ.",
+          "stores": [
+            "second_fair_price",
+            "second_post_nav",
+            "simultaneous_150bp_price"
+          ],
+          "validator": "validate_turn_4",
+          "claims": [
+            {
+              "id": "sequence_consumed_tiers",
+              "description": "The response relates sequential versus simultaneous prices to different marked holdings and the cumulative transaction-cost bands already consumed by the executed first redemption.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "At the same total 150-basis-point shift, use the actual post-first-redemption state to determine the maximum next nondiluting request. Requests may range from zero through 95% of actual remaining units; sales cannot exceed remaining holdings. The redemption price discount relative to the pre-next-redemption NAV may be at most 120 basis points. Report the largest feasible request and its binding restriction: SWING for the discount limit, ASSET for holdings, DOMAIN for the request ceiling; resolve a coincident limit in that order. Explain which constraint sets the capacity.",
+          "stores": [
+            "maximum_next_request_units_mn",
+            "cap_binding"
+          ],
+          "validator": "validate_turn_5",
+          "claims": [
+            {
+              "id": "swing_capacity_frontier",
+              "description": "The response explains that the swing-discount limit determines the maximum next request before the remaining-holdings or request-domain limits are exhausted.",
+              "mode": "required"
+            },
+            {
+              "id": "reported_fund_scope",
+              "description": "If the response treats these prices or capacity as reported fund policy or executable liquidity, it qualifies that inference because synthetic holdings, pricing and transaction-cost terms are stipulated here.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen governed dataset_new tables; explicitly hypothetical financial contracts in the conversation.",
+    "facts": [
+      "opening_units_mn: 25.6756",
+      "first_redemption_units_mn: 3.1426",
+      "shock_pretrade_nav: 95.4309",
+      "unswung_post_nav: 95.3703",
+      "fair_first_price: 94.9999",
+      "fair_first_gross_sales_mn: 265.5898",
+      "second_fair_price: 91.9270",
+      "second_post_nav: 93.2329",
+      "simultaneous_150bp_price: 92.4628",
+      "maximum_next_request_units_mn: 1.9233",
+      "cap_binding: SWING"
+    ],
+    "known_overclaims": []
+  }
+}

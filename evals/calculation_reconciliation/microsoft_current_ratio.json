@@ -1,0 +1,79 @@
+{
+  "name": "microsoft_current_ratio",
+  "module": "evals.calculation_reconciliation.microsoft_current_ratio",
+  "task_family": "calculation_reconciliation",
+  "data_sources": [
+    "sec_companyfacts",
+    "sec_submissions"
+  ],
+  "difficulty": "easy",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "From the SEC submissions table, select Microsoft's original, non-amended Form 10-K filed on 2025-07-30. Require exactly one match and report its accession, report-date fiscal period end, and acceptance timestamp. Explain why the filing identity and period end must be carried forward before selecting point-in-time facts.",
+          "validator": "validate_filing_selection",
+          "stores": [
+            "filing_accession",
+            "fiscal_period_end",
+            "acceptance_datetime"
+          ],
+          "claims": [
+            {
+              "id": "filing_selection_boundary",
+              "description": "The response states that it selected the unique original, non-amended 10-K by ticker, form and filing date and will use that accession and report date to scope the facts.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Using the accession and fiscal period end from turn 1, retrieve Microsoft's USD current assets and current liabilities from CompanyFacts for that same filing and instant date. Report each in USD billions and compute current assets divided by current liabilities. Interpret what this ratio measures at that date, state what a value above one means, and give at least one material limitation of reading it on its own.",
+          "validator": "validate_current_ratio",
+          "stores": [
+            "current_assets_usd_billions",
+            "current_liabilities_usd_billions",
+            "current_ratio"
+          ],
+          "claims": [
+            {
+              "id": "point_in_time_ratio",
+              "description": "The response states that the two balances and ratio are point-in-time measures at the turn-1 period end, not annual flows or averages.",
+              "mode": "required"
+            },
+            {
+              "id": "ratio_direction",
+              "description": "The response explains that a current ratio above one means reported current assets exceeded reported current liabilities at that date.",
+              "mode": "required",
+              "overlap_waiver": "The query asks what a value above one means; it does not say. The response must read the two reported figures and state the inequality they establish at that instant."
+            },
+            {
+              "id": "liquidity_limitation",
+              "description": "The response characterizes the ratio as a short-term liquidity indicator and gives at least one limitation involving asset convertibility, liability timing or cash-flow context.",
+              "mode": "required"
+            },
+            {
+              "id": "solvency_inference_boundary",
+              "description": "If the response comments on solvency or future payment capacity, it states that the current ratio alone establishes neither.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm",
+    "facts": [
+      "The submissions table contains exactly one original non-amended Microsoft 10-K filed on 2025-07-30: accession 0000950170-25-100235, report date 2025-06-30, accepted 2025-07-30T20:11:40.",
+      "At 2025-06-30 the filing reports current assets of 191.131 billion USD and current liabilities of 141.218 billion USD.",
+      "The current ratio is 191.131 / 141.218 = 1.3534, reported as 1.35.",
+      "The inputs are balance-sheet instant facts at one date. A current ratio above one indicates reported current assets exceeded current liabilities at that date, but does not independently establish solvency or cash-flow timing."
+    ],
+    "known_overclaims": [
+      "Calling the ratio an annual average or cash-flow measure.",
+      "Concluding that Microsoft is definitively solvent or risk-free from this ratio alone."
+    ]
+  }
+}

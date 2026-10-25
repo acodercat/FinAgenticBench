@@ -1,0 +1,147 @@
+{
+  "name": "energy_garch_ofr_tail_forecast",
+  "module": "evals.scenario_analysis.energy_garch_ofr_tail_forecast",
+  "task_family": "scenario_analysis",
+  "data_sources": [
+    "eia_bulk_wti_daily",
+    "ken_french_10_industry_portfolios",
+    "ken_french_daily_factors",
+    "ofr_market_stress"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "On the full governed WTI price history, first form log returns as 100 times the adjacent-date log price ratio, retaining a return only when both prices are positive; then apply the 2018-2025 return-date window. Align those returns with Kenneth French Energy-industry and risk-free returns and the OFR Financial Stress Index, with Energy excess returns in percentage points. Split 2018-2022 for estimation and 2023-2025 for conditional evaluation. Report all three counts; across the aligned panel select the maximum OFR-stress date, breaking a tie by earlier date, and report its OFR index, Energy excess return and WTI return plus the minimum aligned WTI price. Carry the aligned panel and split forward and interpret the selected cross-market episode and its limits.",
+          "validator": "validate_alignment",
+          "stores": [
+            "aligned_observation_count",
+            "training_observation_count",
+            "test_observation_count",
+            "maximum_ofr_stress_date",
+            "maximum_ofr_stress_index",
+            "same_day_energy_excess_return_pct",
+            "same_day_wti_return_pct",
+            "minimum_wti_price_usd_per_barrel"
+          ],
+          "claims": [
+            {
+              "id": "stress_episode_relationship",
+              "description": "The response uses the signed same-day Energy and WTI returns to explain why the OFR maximum is a joint realized stress observation rather than a directionally predetermined oil-equity move.",
+              "mode": "required"
+            },
+            {
+              "id": "stress_episode_causality",
+              "description": "If the response assigns causality among the same-day series, it states that the alignment alone does not identify a causal channel.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "On the carried 2018-2022 sample, estimate a deterministic two-start local Gaussian maximum-likelihood oil-conditioned GARCH(1,1): an intercept-bearing Energy-excess conditional mean with contemporaneous WTI log return, and a variance recursion with positive omega, nonnegative shock and lagged-variance coefficients, and their sum strictly below 0.999. Initialize the first variance at the preliminary OLS residual variance using n-1. Optimize an exponential-omega/stationary-softmax parameterization by L-BFGS-B to a 0.0000000000001 relative objective tolerance and 3000-iteration cap. Both starts use the preliminary OLS mean coefficients; their omega values are 0.03 and 0.08 times the initial variance and their shock/lagged-variance pairs are respectively (0.0158603637364903, 0.8659465188651376) and (0.0899405425972101, 0.6645757148190471). Choose the converged finite fit with greater likelihood, breaking an exact tie lexicographically; fail if neither converges. Report the mean coefficients, variance parameters, persistence, implied unconditional volatility, maximized log likelihood, and the maximum absolute unscaled squared-percentage recursion residual over observations after the initializer. Also report the minimum fitted-minus-perturbed log-likelihood loss when, holding the fitted mean and initializer fixed, omega is multiplied by 1.05 or 0.95, alpha by 1.01, or beta by 0.999 one at a time. Carry the fitted state forward and interpret persistence, conditioning and model-distribution limits.",
+          "validator": "validate_garch",
+          "stores": [
+            "garch_mean_intercept_pct",
+            "garch_oil_mean_beta",
+            "garch_omega_pct2",
+            "garch_alpha",
+            "garch_beta",
+            "garch_persistence",
+            "garch_unconditional_volatility_pct",
+            "garch_training_log_likelihood",
+            "garch_variance_recursion_max_residual_pct2",
+            "garch_minimum_perturbation_log_likelihood_loss"
+          ],
+          "claims": [
+            {
+              "id": "garch_persistence_meaning",
+              "description": "The response interprets the fitted alpha-plus-beta as volatility persistence while distinguishing it from a unit-root claim about returns.",
+              "mode": "required"
+            },
+            {
+              "id": "gaussian_distribution_limit",
+              "description": "The response identifies Gaussian innovations as a material tail-model assumption rather than an empirical proof of normality.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Hold the fitted coefficients fixed and recursively update conditional variance through the carried 2023-2025 sample using each prior realized residual. Using each day's realized WTI return in the conditional mean, evaluate left-tail Gaussian 1% VaR and ES for Energy excess returns. Report test boundaries, breach count, expected count, breach rate, average VaR and ES as positive losses, and the Kupiec unconditional-coverage likelihood-ratio statistic with its chi-square(1) p-value. Interpret coverage, the information set and practical forecasting scope, and the data-vintage/revision scope of this conditional diagnostic.",
+          "validator": "validate_coverage",
+          "stores": [
+            "conditional_test_start_date",
+            "conditional_test_end_date",
+            "conditional_var_breach_count",
+            "conditional_var_expected_breach_count",
+            "conditional_var_breach_rate_pct",
+            "conditional_gaussian_var_average_loss_pct",
+            "conditional_gaussian_es_average_loss_pct",
+            "kupiec_unconditional_coverage_lr",
+            "kupiec_unconditional_coverage_p_value"
+          ],
+          "claims": [
+            {
+              "id": "kupiec_scope",
+              "description": "The response explains that the Kupiec statistic assesses unconditional breach frequency, not independence, clustering or the correctness of ES magnitudes.",
+              "mode": "required"
+            },
+            {
+              "id": "conditional_information_set",
+              "description": "The response identifies the realized same-day WTI regressor as making the exercise an ex-post conditional risk diagnostic rather than a deployable pre-market forecast.",
+              "mode": "required"
+            },
+            {
+              "id": "revised_history_scope",
+              "description": "The response identifies the current-revised source histories as a retrospective evidence boundary rather than an as-known historical backtest.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Within the carried test sample, select the ten highest OFR-stress days, breaking an exact OFR tie by earlier date. Treat realized Energy loss as negative Energy excess return. Report their count and mean OFR index, mean fitted conditional volatility versus all other test days, their VaR breach count, realized mean Energy loss and mean Gaussian ES loss. Interpret the scope and limitations of this ten-day OFR-conditioned tail comparison.",
+          "validator": "validate_stress_tail",
+          "stores": [
+            "ofr_stress_tail_day_count",
+            "ofr_stress_tail_mean_index",
+            "stress_tail_mean_conditional_volatility_pct",
+            "other_days_mean_conditional_volatility_pct",
+            "stress_tail_var_breach_count",
+            "stress_tail_realized_mean_loss_pct",
+            "stress_tail_gaussian_es_mean_loss_pct"
+          ],
+          "claims": [
+            {
+              "id": "stress_conditioned_volatility_meaning",
+              "description": "The response compares the two reported conditional-volatility means and treats the selected OFR tail as a stress-conditioned diagnostic rather than an unconditional model validation.",
+              "mode": "required"
+            },
+            {
+              "id": "small_tail_boundary",
+              "description": "The response states that ten selected dates are too few and selection-dependent for broad tail-performance conclusions.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "The reference independently aligns the four sources, estimates the constrained oil-conditioned Gaussian GARCH model, recursively evaluates conditional VaR/ES and Kupiec coverage, and contrasts the ten highest held-out OFR days with the remainder without claiming causality or ex-ante forecastability.",
+    "facts": [
+      "The 2018-2022 fit gives an oil mean beta of 0.43729 and a variance recursion with alpha 0.13192 and beta 0.85231, so persistence is 0.984227 and unconditional volatility 2.0330 percent per day. The training log likelihood is -2347.796258 and the maximum variance-recursion residual is 0.0.",
+      "Over the 745 held-out days the one-percent conditional Gaussian bound is breached 7 times against 7.45 expected, a 0.939597 percent rate. The Kupiec unconditional coverage test cannot reject calibration: likelihood ratio 0.0280, p-value 0.8671.",
+      "On the ten highest-OFR-stress held-out days conditional volatility nearly doubles to 2.1358 percent against 1.195352 on the other days, yet none of those days breaches the bound and the realized mean loss is -0.097 percent, a gain.",
+      "Average expected shortfall on those ten days is 5.8522 percent, overshooting realized loss by 5.9492 percentage points: passing an unconditional coverage test does not make a model calibrated on the stress subsample.",
+      "The query fixes the estimator completely, including the two-start L-BFGS-B optimizer, its tolerance and iteration cap, the parameterization and the starting values, so the fitted parameters are determined by the question rather than by the solver."
+    ],
+    "known_overclaims": [
+      "Treating the Gaussian innovation as established; it is assumed, and expected shortfall is especially sensitive to it.",
+      "Presenting the conditional mean as a forecast a risk manager would have had; it uses the contemporaneous oil return.",
+      "Comparing held-out stress severity with the sample maximum: 2020-03-19 at an index of 10.266 sits inside the training window, while held-out stress days average 2.0472.",
+      "Reading the passed coverage test as evidence that the tail forecasts are calibrated on the stress days."
+    ]
+  }
+}

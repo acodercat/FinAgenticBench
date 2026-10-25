@@ -1,0 +1,1 @@
+"""FinAgenticBench scenario analysis cases."""

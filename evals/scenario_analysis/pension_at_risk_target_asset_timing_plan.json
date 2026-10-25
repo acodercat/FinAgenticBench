@@ -1,0 +1,52 @@
+{
+  "name": "pension_at_risk_target_asset_timing_plan",
+  "module": "evals.scenario_analysis.pension_at_risk_target_asset_timing_plan",
+  "task_family": "scenario_analysis",
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "data_sources": ["dol_form5500_schedule_sb", "dol_form5500_financials"],
+  "conversations": [{
+    "id": "main",
+    "turns": [
+      {
+        "query": "For plans ending December 31, 2024, keep the latest successfully received Schedule SB per sponsor EIN and plan number, breaking a receipt-date tie by greatest filing ID. Among at-risk plans with positive, complete funding targets and a matching Schedule H with positive beginning and ending net assets, rank the positive gap between the reported target and target without at-risk assumptions descending, filing ID ascending for ties. Report the eligible count and leading filing ID.",
+        "validator": "validate_turn_1",
+        "stores": ["at_risk_eligible_plans", "at_risk_selected_filing"],
+        "claims": []
+      },
+      {
+        "query": "For that plan, report its valuation date, both reported funding targets, and its current-value and actuarial-value assets, all as filed. Explain which comparison changes the liability basis and which changes the asset basis.",
+        "validator": "validate_turn_2",
+        "stores": ["at_risk_valuation_date", "at_risk_target_usd", "at_risk_without_target_usd", "at_risk_current_assets_usd", "at_risk_actuarial_assets_usd"],
+        "claims": [{"id": "at_risk_liability_asset_basis", "mode": "required", "description": "The response identifies the two funding targets as alternative liability-assumption bases and current versus actuarial assets as a separate asset-valuation choice."}]
+      },
+      {
+        "query": "Use the matching Schedule H filing. Report beginning and ending net assets. Explain their timing relative to the Schedule SB valuation-date current-value asset and what the annual change can establish.",
+        "validator": "validate_turn_3",
+        "stores": ["at_risk_h_begin_assets_usd", "at_risk_h_end_assets_usd"],
+        "claims": [
+          {"id": "at_risk_valuation_timing", "mode": "required", "description": "The response places the Schedule SB current-value asset at the valuation date near the plan-year beginning, not at Schedule H year-end."},
+          {"id": "at_risk_net_asset_change_boundary", "mode": "required", "description": "The response treats the change in Schedule H net assets as the result of annual plan activity, not a directly identified investment return."}
+        ]
+      },
+      {
+        "query": "Plan a hypothetical next year from those ending net assets. Hold each funding target fixed, repeat this filing's annual expenses, assume no other flows or investment return, and contribute once at the start. Report the expense and the minimum contribution needed to fully cover each target at year-end. Explain the status of these amounts.",
+        "validator": "validate_turn_4",
+        "stores": ["at_risk_repeated_expense_usd", "at_risk_target_contribution_usd", "at_risk_without_contribution_usd"],
+        "claims": [{"id": "at_risk_scenario_status", "mode": "required", "description": "The response identifies both contributions as mechanical scenario amounts under held targets and repeated expenses, not certified minimum required contributions or benefit-restriction determinations."}]
+      }
+    ]
+  }],
+  "judge_reference": {
+    "source": "Frozen DOL Form 5500 Schedule SB and matching Schedule H for the selected 2024 year-end plan; the next-year policy is hypothetical.",
+    "facts": [
+      "Twelve unique at-risk plans have a positive reported-versus-without-at-risk target gap, a matched Schedule H and positive net assets at both year boundaries. The largest gap belongs to filing 20251002153843NAL0000663025001.",
+      "Its Schedule SB valuation date is 2024-01-01. The reported and without-at-risk targets are 824,435,822 and 817,044,697 USD; current and actuarial asset values are 565,075,203 and 621,582,723 USD.",
+      "Schedule H net assets begin at 565,083,072 USD and end at 548,628,096 USD. Repeating 54,798,724 USD of reported annual expenses with no other flows or return implies hypothetical contributions of 330,606,450 USD for the at-risk target and 323,215,325 USD for the other target."
+    ],
+    "known_overclaims": [
+      "Treating the two targets as different cash benefit payments or replacing valuation-date assets with year-end assets when reproducing reported FTAP.",
+      "Calling the hypothetical contributions statutory minimum contributions, or treating the annual net-asset change as investment return."
+    ]
+  }
+}

@@ -1,0 +1,107 @@
+{
+  "name": "state_hpi_level_growth_leaders",
+  "module": "evals.comparison_ranking.state_hpi_level_growth_leaders",
+  "task_family": "comparison_ranking",
+  "data_sources": [
+    "fhfa_hpi",
+    "census_geo_crosswalk",
+    "bls_qcew"
+  ],
+  "difficulty": "medium",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Across the 50 states and the District of Columbia, use the FHFA traditional purchase-only quarterly state HPI and BLS QCEW annual state totals to compare unadjusted 2024-Q4 and 2025-Q4 HPI with 2024-to-2025 total-covered annual-average employment, bridging geography through the Census Gazetteer's USPS-to-state-FIPS correspondence. Report the matched population, then identify the entity with the highest 2025-Q4 HPI index, breaking any tie alphabetically by name, and report both of its HPI endpoints, its HPI growth and its employment growth. Carry the matched population forward and explain what the index level represents.",
+          "validator": "validate_index_level_leader",
+          "stores": [
+            "matched_state_count",
+            "highest_2025q4_index_state",
+            "highest_state_2024q4_index",
+            "highest_state_2025q4_index",
+            "highest_state_hpi_growth_pct",
+            "highest_state_employment_growth_pct"
+          ],
+          "claims": [
+            {
+              "id": "hpi_index_semantics",
+              "description": "The response characterizes the ending HPI level as an accumulated index position relative to its base rather than a dollar home price or a one-year appreciation rate.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Within that population, identify the entity with the fastest one-year HPI growth under the same tie rule. Report both of its HPI endpoints, its HPI growth and its employment growth. Explain who and what each of the two series actually counts, and how their publication timing bears on reading them side by side.",
+          "validator": "validate_price_growth_leader",
+          "stores": [
+            "fastest_hpi_growth_state",
+            "fastest_hpi_state_2024q4_index",
+            "fastest_hpi_state_2025q4_index",
+            "fastest_hpi_growth_pct",
+            "fastest_hpi_state_employment_growth_pct"
+          ],
+          "claims": [
+            {
+              "id": "measure_population_boundary",
+              "description": "The response distinguishes FHFA purchase-only transaction price movement from QCEW total-covered employment as measures of different underlying populations.",
+              "mode": "required"
+            },
+            {
+              "id": "release_vintage_boundary",
+              "description": "If the response presents the comparison as information available on 2025-12-31, it identifies both the 2025-Q4 FHFA HPI and the 2025 annual QCEW observations as later-released retrospective data.",
+              "mode": "conditional"
+            },
+            {
+              "id": "qcew_finality_boundary",
+              "description": "If the response describes the frozen 2025 annual QCEW observations as final, it identifies them as a preliminary annual vintage that BLS finalizes with the subsequent year's first-quarter data.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Finally identify the entity with the fastest employment growth under the same tie rule, and report its employment growth and its HPI growth. Compare the three leaders and explain what their separation shows and what the alignment of these aggregates does not establish.",
+          "validator": "validate_employment_leader",
+          "stores": [
+            "fastest_employment_growth_state",
+            "fastest_employment_growth_pct",
+            "fastest_employment_state_hpi_growth_pct"
+          ],
+          "claims": [
+            {
+              "id": "leader_divergence_meaning",
+              "description": "The response uses the separated leaders to show that recent house-price appreciation and covered-employment growth need not rank states similarly.",
+              "mode": "required"
+            },
+            {
+              "id": "observation_timing_inference",
+              "description": "The response interprets the comparison as an alignment of differently timed aggregates rather than evidence that employment and house prices moved synchronously within 2025.",
+              "mode": "required"
+            },
+            {
+              "id": "causal_affordability_boundary",
+              "description": "If the response attributes HPI movement to employment or makes an affordability conclusion, it qualifies that inference because the aligned state aggregates omit income, population, financing costs, housing supply and other drivers.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "FHFA traditional purchase-only HPI, Census 2024 county Gazetteer, and BLS QCEW 2024-2025 annual state totals",
+    "facts": [
+      "The 50 states and the District of Columbia form 51 state-level entities; all 51 have both FHFA endpoints, a unique Census state-FIPS bridge and both QCEW annual employment observations.",
+      "Montana has the highest 2025-Q4 HPI at 726.20, down from 737.14: -1.4841% HPI growth and -0.0842% covered-employment growth.",
+      "Delaware has the fastest HPI growth: 326.57 to 349.49, or 7.0184%, alongside 0.7913% employment growth. Idaho has the fastest employment growth at 1.7943%, while its HPI changes by -0.9318%.",
+      "BLS publishes preliminary annual averages with fourth-quarter QCEW data and finalizes them with the following year's preliminary first-quarter release; the frozen 2025 annual file downloaded on 2026-08-13 is a preliminary vintage."
+    ],
+    "known_overclaims": [
+      "Calling an HPI index value a dollar home price or treating the level leader as the appreciation leader.",
+      "Treating state-level housing and employment co-movement as causal or as a complete affordability analysis.",
+      "Presenting either the 2025-Q4 FHFA result or the 2025 annual QCEW table as information already available on 2025-12-31.",
+      "Calling the frozen 2025 annual QCEW observations final even though they are the preliminary annual vintage available before the 2026-Q1 release."
+    ]
+  }
+}

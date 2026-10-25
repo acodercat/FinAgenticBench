@@ -1,0 +1,64 @@
+{
+  "name": "money_fund_class_flow_yield_path",
+  "module": "evals.temporal_path.money_fund_class_flow_yield_path",
+  "task_family": "temporal_path",
+  "difficulty": "medium",
+  "case_type": "baseline",
+  "data_sources": ["sec_nmfp_series_filings", "sec_nmfp_flows", "sec_nmfp_class_yields"],
+  "conversations": [{
+    "id": "main",
+    "turns": [
+      {
+        "query": "For HSBC U.S. Government Money Market Fund (S000005047), use its original September 2025 N-MFP3 filing public by 2025-12-31. Report its accession, series net assets, and the count of classes with both September 30 flows and yields. Carry those classes forward.",
+        "validator": "validate_turn_1",
+        "stores": ["class_flow_sep_accession", "class_flow_sep_assets_m", "class_flow_sep_matched_classes"],
+        "claims": []
+      },
+      {
+        "query": "On September 30, identify the carried classes with the largest net inflow and outflow, where net means subscriptions less redemptions. Break ties by ascending class ID. Report their IDs and signed flows, plus the carried-class net flow. Interpret the offset.",
+        "validator": "validate_turn_2",
+        "stores": ["class_flow_inflow_id", "class_flow_inflow_m", "class_flow_outflow_id", "class_flow_outflow_m", "class_flow_sep_total_m"],
+        "claims": [
+          {"id": "class_flow_offset", "mode": "required", "description": "The response explains that large positive and negative class-level net flows partly offset, leaving a much smaller positive net flow across the six matched classes."},
+          {"id": "class_flow_direct_transfer", "mode": "conditional", "description": "If the response claims the opposite class flows prove investors transferred money directly between those classes, it recognizes that independently reported subscriptions and redemptions cannot establish that investor-level path."},
+          {"id": "class_flow_external_cash", "mode": "conditional", "description": "If the response treats all reported gross subscriptions as new external investor cash, it recognizes that N-MFP gross subscriptions include dividend reinvestments."}
+        ]
+      },
+      {
+        "query": "For those two classes on that date, report each seven-day net yield and the series gross yield. What does this comparison establish about yield and flow?",
+        "validator": "validate_turn_3",
+        "stores": ["class_flow_inflow_net_yield_pct", "class_flow_outflow_net_yield_pct", "class_flow_sep_gross_yield_pct"],
+        "claims": [
+          {"id": "class_flow_yield_order", "mode": "required", "description": "The response identifies that the class with the larger net inflow had a lower seven-day net yield than the class with the larger net outflow on September 30."},
+          {"id": "class_flow_gross_scope", "mode": "required", "description": "The response treats the common gross yield as a series-level measure and the two net yields as class-level investor-facing measures, rather than three independent class gross yields."},
+          {"id": "class_flow_yield_cause", "mode": "conditional", "description": "If the response attributes the flow directions to yield differences, it acknowledges that same-day yields and flows alone do not identify an investor-choice cause."},
+          {"id": "class_flow_fee_attribution", "mode": "conditional", "description": "If the response identifies the gross-minus-net yield gap as one exact contractual fee rate, it acknowledges that the reported rates alone cannot isolate that fee."}
+        ]
+      },
+      {
+        "query": "Follow those two IDs and the carried classes into the original October 2025 filing public by 2025-12-31. Report its accession, the two October 31 signed net flows and net yields, and the carried-class net flow. How did the pattern change?",
+        "validator": "validate_turn_4",
+        "stores": ["class_flow_oct_accession", "class_flow_oct_inflow_id_net_m", "class_flow_oct_outflow_id_net_m", "class_flow_oct_inflow_id_yield_pct", "class_flow_oct_outflow_id_yield_pct", "class_flow_oct_total_m"],
+        "claims": [
+          {"id": "class_flow_oct_reversal", "mode": "required", "description": "The response recognizes that September's largest-outflow class became a small net-inflow class in October while September's largest-inflow class stayed positive."},
+          {"id": "class_flow_oct_aggregate", "mode": "required", "description": "The response interprets the October net flow of all six carried classes as near zero relative to their substantial offsetting class flows, rather than treating either tracked class as the whole fund."},
+          {"id": "class_flow_future_yield", "mode": "conditional", "description": "If the response treats a reported seven-day yield as a realized or guaranteed future investor return, it acknowledges that the historical yield does not establish that outcome."}
+        ]
+      }
+    ]
+  }],
+  "judge_reference": {
+    "source": "SEC Form N-MFP3 original filings for series S000005047 for September and October 2025, matched by accession, class ID and report-date daily observations; SEC Form N-MFP field definitions.",
+    "facts": [
+      "September original accession 0001410368-25-013991, six matched classes, series net assets USD 43,162.64176569 million.",
+      "On September 30, Y Shares C000013784 had +USD 2,088.37100184 million net flow and 3.95% net seven-day yield; I Shares C000013788 had -USD 908.68556565 million net flow and 4.05% net yield. Six-class net flow was +USD 554.84966347 million, and common series gross yield was 4.19%.",
+      "October original accession 0001410368-25-021425. On October 31, the same Y class had +USD 484.12893126 million net flow and 3.94% net yield; the same I class had +USD 17.57218027 million net flow and 4.04% net yield. Six-class net flow was +USD 6.18779838 million."
+    ],
+    "known_overclaims": [
+      "Class-level net flows do not identify direct investor transfers between classes.",
+      "N-MFP gross subscriptions include dividend reinvestments, so they are not all new external cash; see Form N-MFP Part B, Item B.7.",
+      "The same-day yield-flow ranking does not identify why investors subscribed or redeemed.",
+      "The series gross-minus-class net yield difference does not isolate one contractual fee, and a seven-day yield does not guarantee future return."
+    ]
+  }
+}

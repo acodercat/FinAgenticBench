@@ -1,0 +1,100 @@
+{
+  "name": "mortgage_ho_lee_prepayment_oas",
+  "module": "evals.scenario_analysis.mortgage_ho_lee_prepayment_oas",
+  "task_family": "scenario_analysis",
+  "data_sources": [
+    "hmda",
+    "treasury_yield_curve"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Use the frozen 2024 HMDA register's California conventional first-lien originations for owner-occupied, one-unit properties, retaining numeric interest rates from 0.1 through 20 percent inclusive. Report the retained count and unweighted median interest rate. Estimate a normal short-rate diffusion volatility from consecutive one-year Treasury CMT yield changes wholly within calendar 2024, using sample standard deviation, one trading day per consecutive observation and 252 trading days per year. Report the increment count and estimated volatility. Carry the median rate and unrounded volatility forward and discuss their financial scope.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "mortgage_rate_count",
+            "median_coupon_pct",
+            "short_rate_sigma_bp",
+            "yield_increment_count"
+          ],
+          "claims": [
+            {
+              "id": "mortgage_ho_lee_prepayment_oas_t1_interpretation",
+              "description": "The response gives at least one financially material limitation of using the origination-rate cross-section and historical CMT volatility for the hypothetical loan.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Build a four-year semiannual analytical discount curve from Treasury's 2024-12-31 par yields at six months and one, two, three and five years, with linear maturity interpolation of par yields and semiannual par-instrument bootstrapping. Calibrate a recombining additive Ho\u2013Lee short-rate tree to that complete discount curve using the carried volatility, half-year steps, equal risk-neutral branch probabilities and continuously compounded node rates without a rate floor. Report the four-year discount factor and the lowest short rate at year two. Carry the tree forward and interpret the resulting discounting and short-rate profile.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "fourth_year_discount",
+            "year_two_low_short_rate_pct"
+          ],
+          "claims": [
+            {
+              "id": "mortgage_ho_lee_prepayment_oas_t2_interpretation",
+              "description": "The response uses the fitted four-year discount factor below one to explain the present value of a cash flow at that maturity.",
+              "mode": "required"
+            },
+            {
+              "id": "mortgage_ho_lee_prepayment_oas_t2_state_measure",
+              "description": "The response interprets the year-two low-node short rate as a risk-neutral tree state rather than a physical point forecast.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Value a hypothetical loan of 100 initial principal with the carried median as its nominal annual coupon, eight equal semiannual total payments and full amortization at year four. The borrower can repay the remaining scheduled principal immediately after each of the first seven payments, with no fees or default; there is no inception prepayment. Assume optimal borrower exercise, with prepayment at exact indifference. Using the carried Ho\u2013Lee tree, report its nonprepayable and prepayable values at zero spread. Then fit a constant continuously compounded option-adjusted spread to a price of 95, including that spread in both discounting and the borrower's continuation valuation, and report the spread. Carry the fitted spread and optimal policy forward and interpret the option cost and spread.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "noncallable_value_per100",
+            "prepayable_value_per100",
+            "option_adjusted_spread_bp"
+          ],
+          "claims": [
+            {
+              "id": "mortgage_ho_lee_prepayment_oas_t3_interpretation",
+              "description": "The response explains why the borrower option reduces investor value relative to the matched nonprepayable cash flows.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Under the carried fitted-spread policy, report the risk-neutral probability of prepayment strictly before maturity. Holding the coupon, payment grid, volatility and fitted spread fixed, measure standard symmetric effective duration and convexity from parallel one-basis-point upward and downward shifts to every continuously compounded zero rate on the base analytical discount curve, with the Ho\u2013Lee tree recalibrated and exercise reoptimized for each shift. Report both sensitivities and interpret the resulting risk profile.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "prepayment_probability",
+            "effective_duration_years",
+            "effective_convexity_years2"
+          ],
+          "claims": [
+            {
+              "id": "mortgage_ho_lee_prepayment_oas_t4_interpretation",
+              "description": "The response relates the positive measured duration and convexity to the fitted-spread policy\u2019s low prepayment probability.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen governed data and the named-model scenario.",
+    "facts": [
+      "The response gives at least one financially material limitation of using the origination-rate cross-section and historical CMT volatility for the hypothetical loan.",
+      "The response uses the fitted four-year discount factor below one to explain the present value of a cash flow at that maturity.",
+      "The response interprets the year-two low-node short rate as a risk-neutral tree state rather than a physical point forecast.",
+      "The response explains why the borrower option reduces investor value relative to the matched nonprepayable cash flows.",
+      "The response relates the positive measured duration and convexity to the fitted-spread policy\u2019s low prepayment probability."
+    ],
+    "known_overclaims": [
+      "Presenting the hypothetical model as an observed issuer or traded-loan valuation."
+    ]
+  }
+}

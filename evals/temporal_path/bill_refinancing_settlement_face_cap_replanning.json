@@ -1,0 +1,59 @@
+{
+  "name": "bill_refinancing_settlement_face_cap_replanning",
+  "module": "evals.temporal_path.bill_refinancing_settlement_face_cap_replanning",
+  "task_family": "temporal_path",
+  "data_sources": ["treasury_marketable_securities", "treasury_auctions", "nyfed_reference_rates"],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [{
+    "id": "main",
+    "turns": [
+      {
+        "query": "Prepare a retrospective hypothetical issuer refinancing exercise for 2025-01-01 through 2025-03-31. In the 2024-12-31 Monthly Statement of the Public Debt marketable-securities table, select only Bills Maturity Value CUSIP detail maturing inside that window, not totals. A CUSIP may have several issue-date lines: use its one nonnull outstanding-principal detail amount once, then allocate it to that CUSIP's maturity date; scale each reported USD-million amount by 0.000001 to create the hypothetical issuer's USD-million old-debt book. In the Treasury auction table, use the one Bill, 4-Week record for each issue date 2025-01-07, 2025-01-28, 2025-02-18 and 2025-03-04; its actual issue date, maturity date and price per 100 are candidate templates. The issuer is not the US Treasury, and the auction results are known only because this is a retrospective counterfactual. Open 2025-01-01 with USD0.3m cash and zero borrowing. A base bridge line can draw to cover each dated cash deficit and immediately sweeps any surplus to repay debt. Each day, take the New York Fed SOFR with the latest Effective Date on or before that calendar day and add 300 basis points; apply that rate retrospectively to outstanding debt at the start of the day and accrue simple ACT/360. Pay accumulated interest at whichever comes first of the next old-debt maturity, new-note maturity, candidate issue settlement, or the 2025-03-31 terminal event. New draws start interest the following day. At an event, pay accrued bridge interest, old-debt principal and any maturing new-note face in that order, clearing cash after each stage, before receiving any newly issued note proceeds; then sweep the proceeds to bridge debt. Before choosing any new notes, report the total scaled old principal due, the last old maturity date, and the base bridge principal required immediately before the first candidate issue's proceeds arrive. Explain how MSPD issue-date detail and settlement order affect those quantities.",
+        "validator": "validate_turn_1",
+        "stores": ["legacy_due_mn", "last_legacy_maturity_date", "first_issue_pre_cash_gap_mn"],
+        "claims": [{"id": "first_settlement_gap", "description": "The response connects its reported first-issue pre-cash funding gap to the actual dated old-principal and bridge-interest sequence before issue proceeds.", "mode": "required"}]
+      },
+      {
+        "query": "Now let the hypothetical issuer choose 0 through 20 whole USD0.1m face lots at each of the four candidate issue dates. A lot brings the observed auction price-per-100 times its face only on the actual issue settlement date and owes its full face on the recorded maturity date. Its outstanding live new-note face may not exceed USD2.5m after any issue; this separate policy cap excludes old obligations and bridge debt. The base bridge principal may not exceed USD2.7m at any intermediate clearing stage, including before same-day issue proceeds; emergency credit is unavailable in this original plan. Follow turn 1's daily SOFR+300bp accrual and event-order cash sweep. Minimize through 2025-03-31 the aggregate new-note issue discounts plus base bridge interest, using full unrounded inputs and states. At March 31, keep any still-outstanding note face and bridge debt as terminal liabilities at par. An exact cost tie selects the lexicographically lower four lot counts. Report the four selected issue lot counts, full-window financing cost and highest base bridge principal immediately before any candidate issue settlement. Explain how the chosen lot sizes trade the discount paid at issue against the bridge the issuer must carry into each settlement date.",
+        "validator": "validate_turn_2",
+        "stores": ["jan_7_lots", "jan_28_lots", "feb_18_lots", "mar_4_lots", "initial_total_cost_mn", "initial_peak_preissue_bridge_mn"],
+        "claims": [{"id": "initial_funding_tradeoff", "description": "The response interprets the reported selected issues and peak preissue bridge as an interaction between dated maturities, live note face and the bridge limit.", "mode": "required"}]
+      },
+      {
+        "query": "Treat the selected 2025-01-07 and 2025-01-28 lot counts from turn 2 as issued and irrevocable. Execute the dated old principal, new-note maturity, issue cash, bridge interest and sweeps through the end of all 2025-01-28 settlements using the unrounded plan. The later two turn-2 lot counts are still proposals. Report cash and base bridge principal immediately after the January 28 issue proceeds and cash sweep, in USD millions. Explain the obligations remaining from the two executed issues after the January 28 settlement.",
+        "validator": "validate_turn_3",
+        "stores": ["post_jan_28_cash_mn", "post_jan_28_base_bridge_mn"],
+        "claims": [{"id": "jan_executed_obligations", "description": "The response uses its computed January 28 cash and borrowing state to explain the specific still-live note face that survives the bridge sweep.", "mode": "required"}]
+      },
+      {
+        "query": "After the executed January 28 state, impose a USD2.3m cap on live new-note face starting with the 2025-02-18 issue; do not cancel either earlier issuance. Permit an unlimited emergency bridge only after the base bridge reaches its USD2.7m principal cap. Price emergency outstanding by taking the SOFR fixing with the latest Effective Date on or before each day and adding 600 basis points, under the same daily interest and event-order rules, and charge one USD0.01m cash activation fee at its first draw; fund the fee by the same clearing order, with no second fee. Positive cash repays emergency debt before base debt. Rechoose only the still-future February 18 and March 4 whole lot counts to minimize the full-window total of note discounts, both bridge interest costs and the activation fee, counting costs already incurred on the executed January path within that total. Break an exact cost tie by the lexicographically lower four lot counts. Execute that revised path through 2025-02-27; the revised March 4 count remains a proposal. Report the two revised lot counts, the first emergency draw date, the highest emergency principal across the full proposed path through March 31 (including stages after February 27 and before future issue proceeds), and full-window proposed-plan financing cost. Explain how the face restriction and settlement timing produce the emergency need.",
+        "validator": "validate_turn_4",
+        "stores": ["tightened_feb_18_lots", "tightened_mar_4_lots", "first_emergency_draw_date", "tightened_peak_emergency_mn", "tightened_total_cost_mn"],
+        "claims": [{"id": "tightened_path_mechanism", "description": "The response connects its revised February/March lots and measured emergency draw to the binding live-face policy and dated preissue liquidity path.", "mode": "required"}]
+      },
+      {
+        "query": "On 2025-03-01, restore the live new-note face cap to USD2.5m for still-future issues. Retain all actually executed January and February lots, dated debt/interest state through February 27, and any emergency draw and activation fee already incurred under turn 4. The turn-4 March 4 lot count was only a proposal and may be changed; all other issue counts are fixed. The base line remains capped at USD2.7m and the already activated emergency line remains available at the same spread, with no new activation fee. From this carried state reoptimize only the March 4 lot count for the lowest full-window financing cost through March 31; preserve event ordering and terminal par liabilities. Report the new March 4 lot count, full-window cost and March 31 base bridge principal, in USD millions where applicable. Explain how the restored capacity changes the proposed financing path and full-window obligation and cost measures.",
+        "validator": "validate_turn_5",
+        "stores": ["restored_mar_4_lots", "restored_total_cost_mn", "restored_end_base_bridge_mn"],
+        "claims": [{"id": "restored_path_irreversibility", "description": "The response uses the computed March lot change and cost difference from turn 4 to explain the inherited borrowing and live-note inventory.", "mode": "required"}]
+      }
+    ]
+  }],
+  "judge_reference": {
+    "source": "Frozen 2024-12-31 MSPD Bills Maturity Value detail, selected 2025 Treasury 4-Week auctions and NY Fed SOFR; all issuer/facility policies are hypothetical retrospective scenario terms.",
+    "facts": [
+      "The 25 selected CUSIPs contribute USD4.3841507164m scaled old principal due through March 27; exactly one nonnull outstanding value per CUSIP prevents double counting. The January 7 preissue bridge draw is USD0.1739195375m.",
+      "Original optimum has lot counts 4, 19, 6, 19; USD0.031263421535m cost and USD2.651462725902m peak bridge immediately before an issue. January 28 closes with USD0.674930995466m cash and zero bridge, while USD2.3m of new-note face remains live.",
+      "Tightened face-cap optimum retains 4 and 19 earlier lots, then chooses 4 and 19; emergency credit first draws on February 27 and peaks intraday at USD0.161421449193m. The full proposed-path cost is USD0.041848505037m including the paid USD0.01m activation fee.",
+      "Restoration on March 1 retains February's four lots and the emergency history, then chooses 20 March lots. Full cost is USD0.041629085276m; March 31 base bridge is USD2.125779801676m and the April-maturing new face of USD2m remains a par liability."
+    ],
+    "known_overclaims": [
+      "Treating auction date rather than issue date as spendable cash.",
+      "Treating the four selected auction records as actual debt issued by the hypothetical firm.",
+      "Counting note issue proceeds without its future face redemption or March 31 outstanding liability.",
+      "Testing bridge only after issue proceeds instead of before same-day settlement.",
+      "Removing February's issued note or the activated emergency fee when the face cap is restored."
+    ]
+  }
+}

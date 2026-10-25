@@ -1,0 +1,160 @@
+{
+  "name": "deposit_franchise_rate_cycle_beta",
+  "module": "evals.comparison_ranking.deposit_franchise_rate_cycle_beta",
+  "task_family": "comparison_ranking",
+  "data_sources": [
+    "fdic_bankfind",
+    "nyfed_reference_rates"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "turns": [
+        {
+          "query": "At the 2024-12-31 report date keep banks with positive total deposits and assets and nonmissing total interest expense and reported net interest margin. Define an expense proxy as annual total interest expense divided by period-end total deposits, in percent. Report the qualifying count and the unweighted bank-level median reported margin and expense proxy. Using assets in thousands of USD, assign four left-closed bands: [0, 1,000,000), [1,000,000, 10,000,000), [10,000,000, 100,000,000), and [100,000,000, infinity); report the smallest- and largest-band counts. Take every median and percentile asked for here with linear interpolation. Explain that the proxy mixes an annual flow with a period-end stock, includes interest expense on nondeposit funding, and is neither a deposit rate nor an asset-weighted industry measure.",
+          "validator": "validate_cross_section",
+          "stores": [
+            "late_bank_count",
+            "late_median_margin_pct",
+            "late_median_expense_proxy_pct",
+            "late_smallest_band_count",
+            "late_largest_band_count"
+          ],
+          "claims": [
+            {
+              "id": "cross_section_result",
+              "description": "The response reports the qualifying population, both central figures and the counts at the two extremes of size.",
+              "mode": "required"
+            },
+            {
+              "id": "flow_over_stock_boundary",
+              "description": "The response states that the numerator is annual total interest expense while the denominator is period-end total deposits, so the proxy has a stock/flow mismatch and includes nondeposit interest expense rather than measuring a deposit rate.",
+              "mode": "required"
+            },
+            {
+              "id": "band_concentration_reasoning",
+              "description": "The response notes that the median is unweighted across institutions and therefore is not an asset-weighted industry aggregate.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Compare the extreme size bands at the same date. Report the median reported margin and median expense proxy for the smallest and largest bands. Take every median and percentile asked for here with linear interpolation. Interpret the direction of the two cross-band gaps, and state what the expense field covers and what that allows you to say about deposit pricing.",
+          "validator": "validate_size_gradient",
+          "stores": [
+            "late_smallest_band_margin_pct",
+            "late_largest_band_margin_pct",
+            "late_smallest_band_expense_proxy_pct",
+            "late_largest_band_expense_proxy_pct"
+          ],
+          "claims": [
+            {
+              "id": "gradient_result",
+              "description": "The response gives both bands' figures on both measures and states the sign of each cross-band gap.",
+              "mode": "required"
+            },
+            {
+              "id": "cross_section_calibration",
+              "description": "The response interprets the signs as cross-sectional differences in the two reported measures.",
+              "mode": "required"
+            },
+            {
+              "id": "funding_mix_attribution_boundary",
+              "description": "If the response attributes those differences to funding mix or deposit pricing, it states that neither is observed in the declared tables.",
+              "mode": "conditional"
+            },
+            {
+              "id": "margin_versus_cost_boundary",
+              "description": "The response distinguishes reported net interest margin from the total-interest-expense-to-period-end-deposits proxy.",
+              "mode": "required",
+              "overlap_waiver": "The query names both measures because it must request them; which parts of funding cost the expense field covers, and therefore how the two differ, is absent from it."
+            },
+            {
+              "id": "margin_cost_substitution_boundary",
+              "description": "If the response uses one of the two measures in place of the other, it states that they are different quantities.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Repeat the same qualification, bands and expense-proxy construction for 2021-12-31. Report the qualifying count and the median expense proxy for the smallest and largest bands. From the published overnight rates, report EFFR on 2021-12-31 and 2024-12-31 in percent. Compare the two bands' proxy ordering across the endpoints, while stating that single-day EFFR observations and annual expense proxies do not establish deposit-pricing behavior. Take every median and percentile asked for here with linear interpolation.",
+          "validator": "validate_cycle_endpoints",
+          "stores": [
+            "early_bank_count",
+            "early_smallest_band_expense_proxy_pct",
+            "early_largest_band_expense_proxy_pct",
+            "early_policy_rate_pct",
+            "late_policy_rate_pct"
+          ],
+          "claims": [
+            {
+              "id": "cycle_endpoint_result",
+              "description": "The response gives the earlier population, both bands' earlier cost ratios and the two policy readings.",
+              "mode": "required"
+            },
+            {
+              "id": "ordering_inversion_result",
+              "description": "The response observes whether the two extreme bands' expense-proxy ordering reverses between the two endpoints without attributing the pattern to deposit pricing.",
+              "mode": "required"
+            },
+            {
+              "id": "single_day_rate_boundary",
+              "description": "The response notes that EFFR is observed on one day at each endpoint whereas total interest expense accumulates over each reporting year.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Compute a descriptive endpoint sensitivity for each asset band: its 2024 median expense proxy minus its 2021 median expense proxy, divided by the endpoint EFFR change from turn 3. Report all four coefficients. Also report the endpoint change in median reported margin for the largest and smallest bands, in percentage points. Describe the coefficient ordering and explain what these coefficients measure, given how the expense field, the rate observation and the endpoint populations are each constructed. Take every median and percentile asked for here with linear interpolation. State what the table can and cannot reconcile about the two measures.",
+          "validator": "validate_pass_through",
+          "stores": [
+            "smallest_band_endpoint_sensitivity",
+            "second_band_endpoint_sensitivity",
+            "third_band_endpoint_sensitivity",
+            "largest_band_endpoint_sensitivity",
+            "largest_band_margin_change_pp",
+            "smallest_band_margin_change_pp"
+          ],
+          "claims": [
+            {
+              "id": "pass_through_result",
+              "description": "The response gives the four coefficients and both changes in margin.",
+              "mode": "required"
+            },
+            {
+              "id": "endpoint_sensitivity_calibration",
+              "description": "The response describes the ordering as a difference in endpoint sensitivity of the defined proxy and states that the coefficients are not deposit betas or causal pass-through estimates.",
+              "mode": "required"
+            },
+            {
+              "id": "margin_driver_boundary",
+              "description": "The response states that the available measures cannot reconcile asset-yield, funding-cost, balance-mix or cohort-composition drivers of the margin changes.",
+              "mode": "required"
+            },
+            {
+              "id": "cohort_composition_boundary",
+              "description": "The response states that bands are formed independently at each date and the coefficients do not track a fixed bank cohort.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen FDIC quarterly bank financial reports for 2021-12-31 and 2024-12-31 with the Federal Reserve Bank of New York published reference rates",
+    "facts": [
+      "4,485 banks qualify at 2024-12-31 after requiring both reported measures, with an unweighted median reported margin of 3.4261 percent and median total-interest-expense-to-period-end-deposits proxy of 2.1522 percent. The left-closed smallest band holds 3,469 banks and the largest 33.",
+      "At that date the smallest band has median margin 3.4944 percent and expense proxy 2.0360 percent; the largest has 2.9942 and 3.0833 percent.",
+      "At 2021-12-31, 4,838 banks qualify; the smallest band's median expense proxy is 0.3302 percent and the largest band's 0.1154 percent, reversing the later ordering. EFFR was 0.0700 percent on that date and 4.3300 percent on 2024-12-31.",
+      "The descriptive endpoint sensitivities are 0.4004, 0.5314, 0.5838 and 0.6967 from smallest to largest. Median margins changed by 0.6806 points for the largest band and 0.1988 for the smallest."
+    ],
+    "known_overclaims": [
+      "Reading the expense proxy as a deposit rate or deposit beta; total interest expense includes nondeposit funding and the denominator is period-end deposits.",
+      "Attributing the cross-sectional pattern to funding mix or deposit repricing that the two sources do not observe.",
+      "Presenting the endpoint sensitivities as causal pass-through estimates or as measured on a fixed panel of banks.",
+      "Quoting the all-bank median as a description of the industry's balance sheet."
+    ]
+  }
+}

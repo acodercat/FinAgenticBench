@@ -1,0 +1,16 @@
+error class                                  non-think /1000  think /1000   change   (pooled over 6 pairs)
+shared                                                  36.4         28.7     -21%
+other                                                   77.2         29.8     -61%
+unset                                                   29.2         11.5     -61%
+shape:far off >10%                                      52.8         26.1     -51%
+shape:1-10% off                                         13.7          7.4     -46%
+shape:near miss 0.1-1%                                  11.6          6.5     -44%
+shape:near miss <0.1% (rounding/convention)             11.4          5.9     -48%
+shape:convention factor (12/4/360/252/2)                 6.9          3.9     -43%
+shape:power-of-ten scale                                 3.5          2.4     -32%
+shape:sign flip                                          0.7          0.4     -43%
+shape:off by one (count)                                 2.6          1.1     -56%
+shape:small count diff (2-5)                             3.3          1.5     -54%
+shape:string/token                                       4.2          1.8     -56%
+shape:string: date                                       1.3          0.7     -47%
+-> analysis/final_20261012/tables/thinking_by_error_class.csv

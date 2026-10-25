@@ -1,0 +1,83 @@
+{
+  "name": "tech_point_in_time_revenue_growth_ranking",
+  "module": "evals.temporal_path.tech_point_in_time_revenue_growth_ranking",
+  "task_family": "temporal_path",
+  "data_sources": [
+    "sec_companyfacts",
+    "sec_submissions"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Standing at 2025-08-15 23:59:59, use SEC submissions metadata to select the latest original, non-amended Form 10-K accepted by EDGAR for each of AAPL, MSFT, NVDA, AMZN and GOOGL. Rank availability by acceptance timestamp descending; if timestamps tie, choose the lexicographically smallest accession. Report a ticker-to-accession mapping and a ticker-to-acceptance-timestamp mapping. Explain why acceptance time, report date and fiscal period are different notions.",
+          "validator": "validate_filing_cutoff",
+          "stores": [
+            "selected_accession_by_ticker",
+            "acceptance_datetime_by_ticker"
+          ],
+          "claims": [
+            {
+              "id": "availability_boundary",
+              "description": "The response uses EDGAR acceptance time to enforce the information cutoff and distinguishes that availability event from each filing's report date and fiscal period.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Using those five accessions, compare each filing's current annual total revenue with the immediately preceding annual comparative in that same filing. Use revenue from contracts with customers excluding assessed tax for AAPL, MSFT, AMZN and GOOGL, and total revenues for NVDA. Report each ticker's latest annual period end and year-over-year revenue growth, then identify the highest-growth ticker and rate. Rank unrounded rates and break an exact tie alphabetically by ticker. Explain the issuer-specific fiscal-period alignment and state what the ranking does not establish.",
+          "validator": "validate_growth_ranking",
+          "stores": [
+            "revenue_growth_by_ticker_pct",
+            "latest_annual_period_end_by_ticker",
+            "highest_growth_ticker",
+            "highest_growth_pct"
+          ],
+          "claims": [
+            {
+              "id": "issuer_specific_annual_periods",
+              "description": "The response aligns each current annual duration with the immediately preceding annual comparative from the same filing and recognizes that the five latest periods have different end dates rather than forcing calendar-year alignment.",
+              "mode": "required"
+            },
+            {
+              "id": "concept_alias_and_comparative_metadata",
+              "description": "The response applies the requested Nvidia revenue alias and uses duration dates, not presenting-filing fiscal-year metadata alone, to distinguish current and comparative annual rows.",
+              "mode": "required"
+            },
+            {
+              "id": "ranking_limitation",
+              "description": "The response characterizes the ranking as historical reported revenue growth and explicitly gives at least one financially material limitation on comparing or interpreting that ranking.",
+              "mode": "required"
+            },
+            {
+              "id": "ranking_inference_boundary",
+              "description": "If the response makes a profitability, sustainability, valuation, causal, predictive or investment claim, it does not present that claim as established by the revenue-growth ranking alone.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "SEC CompanyFacts and submissions frozen at 2025-12-31, evaluated with a 2025-08-15 knowledge cutoff",
+    "facts": [
+      "AAPL latest eligible annual end is 2024-09-28 and growth is 2.0220 percent from 383.285 to 391.035 billion USD.",
+      "MSFT latest eligible annual end is 2025-06-30 and growth is 14.9322 percent from 245.122 to 281.724 billion USD.",
+      "NVDA latest eligible annual end is 2025-01-26 and growth is 114.2034 percent from 60.922 to 130.497 billion USD.",
+      "AMZN latest eligible annual end is 2024-12-31 and growth is 10.9909 percent from 574.785 to 637.959 billion USD.",
+      "GOOGL latest eligible annual end is 2024-12-31 and growth is 13.8662 percent from 307.394 to 350.018 billion USD.",
+      "NVDA is the highest-growth ticker at 114.20 percent.",
+      "Nvidia uses the Revenues concept while the other four use RevenueFromContractWithCustomerExcludingAssessedTax in the selected filings."
+    ],
+    "known_overclaims": [
+      "Using Apple's fiscal-2025 revenue filed after the cutoff.",
+      "Treating comparative facts' fiscal_year metadata as their own annual period labels without checking dates.",
+      "Requiring every issuer's annual period to end on December 31.",
+      "Calling the growth ranking a profitability, quality, valuation or investment ranking."
+    ]
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "name": "mortgage_refinance_horizon_sunk_cost_replanning",
+  "task_family": "comparison_ranking",
+  "data_sources": ["hmda", "nyfed_reference_rates"],
+  "case_type": "baseline",
+  "module": "evals.comparison_ranking.mortgage_refinance_horizon_sunk_cost_replanning",
+  "difficulty": "hard",
+  "conversations": [{
+    "id": "main",
+    "turns": [
+      {
+        "query": "Construct a hypothetical borrower book from every 2024 Illinois HMDA originated conventional first-lien, owner-occupied, one-unit site-built home-purchase row with reported loan amount USD 100,000–750,000 inclusive and nominal annual interest rate at least 3% but below 10%. Retain identical reported rows as separate loans. Use those amounts and rates only as templates for synthetic 360-month level-payment loans, with nominal annual coupons convertible monthly and end-month payments. Place every synthetic loan just after its 24th scheduled payment on 2024-12-31, regardless of the reported origination date. Report the eligible loan count, remaining aggregate balance and original aggregate monthly payment, carrying every loan separately. Interpret the resulting balance and the scope of this constructed book.",
+        "stores": ["eligible_loan_count", "month24_balance_mn", "old_monthly_payment_mn"],
+        "claims": [
+          {"id": "synthetic_balance_scope", "description": "The response identifies positive scheduled principal reduction after 24 modeled payments and limits the resulting balance interpretation to the constructed loans.", "mode": "required"}
+        ],
+        "validator": "validate_turn_1"
+      },
+      {
+        "query": "At that month-24 point, compare holding the existing loans against two hypothetical fixed-rate refinance offers using the New York Fed SOFR fixing effective 2024-12-31. A charges SOFR plus 100 basis points for the remaining 336 months and a cash fee equal to 2% of refinanced balance. B charges SOFR plus 75 basis points for a new 360 months and finances a 3% fee into new principal. There are no prepayment penalties. Evaluate each all-book alternative over 60 end-month payments and a payoff immediately after payment 60; discount monthly cash flows at the fixing's nominal annual rate convertible monthly and add any cash fee undiscounted at the decision date. Report each offer's aggregate monthly payment and its present-cost saving against holding, measured as the holding present cost minus that offer's present cost. Say which offer has the lower monthly payment, and explain how the financed fee and the payoff at month 60 bear on the present-cost comparison.",
+        "stores": ["offer_a_monthly_payment_mn", "offer_b_monthly_payment_mn", "all_a_saving_mn", "all_b_saving_mn"],
+        "claims": [
+          {"id": "payment_cost_divergence", "description": "The response identifies the lower-payment offer and explains why its measured present-cost saving is smaller once the financed fee and exit payoff are included.", "mode": "required"}
+        ],
+        "validator": "validate_turn_2"
+      },
+      {
+        "query": "Divide the carried loans by original annual coupon into [3%,5%), [5%,6%), [6%,7%) and [7%,10%). Choose one of HOLD, A or B for every whole group, minimizing combined 60-month present cost under a cash-fee budget of 0.75% of the entire month-24 balance; financed B fees do not consume that cash budget. Break an exact cost tie by less upfront cash, then by comparing the four band actions in band order from the lowest coupon band upward and taking the sequence that is first under the ranking HOLD before A before B. Execute the chosen contracts and fees now. Report the four group actions, cash fees actually paid, and minimum combined cost. Explain how the cash-fee budget limits which bands can take A, and how A and B compare in a band that can afford either.",
+        "stores": ["band_3_to_5_action", "band_5_to_6_action", "band_6_to_7_action", "band_7_to_10_action", "initial_upfront_cash_mn", "chosen_60month_cost_mn"],
+        "claims": [
+          {"id": "budget_binding_selection", "description": "The response relates the selected high-coupon A and next-highest B combination to A's cash fee budget use and the small cost advantage of A over B.", "mode": "required"}
+        ],
+        "validator": "validate_turn_3"
+      },
+      {
+        "query": "After six scheduled payments on the executed contracts, the [7%,10%) group now expects to leave 12 months later. Its prior cash fee remains paid. At this month-six decision, compare keeping its executed loan with refinancing its current balance into a new B offer using the New York Fed SOFR fixing effective 2025-06-30 plus 75 basis points, 360 new monthly payments and a 3% fee financed into principal. Discount future cash flows at that fixing's nominal annual rate convertible monthly. Include the payoff after the twelfth new period. Report the cheaper forward action, its undiscounted outstanding balance immediately after the twelfth new payment, and its forward present cost, excluding past fees. Break an exact cost tie alphabetically by action token. Explain how B's financed fee weighs against its lower rate over only twelve payments, once the balance still owed at exit is counted.",
+        "stores": ["early_exit_action", "early_exit_payoff_mn", "early_exit_forward_cost_mn"],
+        "claims": [
+          {"id": "short_horizon_sunk_fee", "description": "The response explains that KEEP wins the shortened horizon because the new B loan's financed fee raises its exit payoff more than its lower rate saves over only 12 payments.", "mode": "required"}
+        ],
+        "validator": "validate_turn_4"
+      },
+      {
+        "query": "The [7%,10%) group's early-exit plan is cancelled before any turn-four refinancing is executed. Keep the same actual month-six balance and paid history, and restore a 60-month forward holding horizon. Compare KEEP, a new B on the same 2025-06-30 terms, and a one-time cash prepayment of 5% of the month-six balance on the executed loan plus a cash recast fee equal to 0.1% of that same pre-prepayment balance, followed by a new level payment at the executed contract's own fixed coupon over that contract's unchanged remaining term. Pay off after forward payment 60. Use the same monthly discount convention. Break an exact cost tie alphabetically by action token. Report the least-cost action, its new upfront cash and forward present cost; interpret the changed decision and its evidentiary scope.",
+        "stores": ["restored_horizon_action", "restored_upfront_cash_mn", "restored_forward_cost_mn"],
+        "claims": [
+          {"id": "restored_horizon_paydown", "description": "The response explains that the longer restored horizon makes the specified paydown/recast option the least-cost forward choice for the already refinanced high-coupon group.", "mode": "required"},
+          {"id": "observed_offer_boundary", "description": "If the response describes these as observed refinance quotes or outcomes, it distinguishes the stipulated offers and repayment histories from HMDA-reported facts.", "mode": "conditional"}
+        ],
+        "validator": "validate_turn_5"
+      }
+    ]
+  }],
+  "judge_reference": {
+    "source": "Frozen 2024 Illinois HMDA source rows and NYFed SOFR fixings under explicit hypothetical loan and offer contracts.",
+    "facts": [
+      "69,993 source rows retain USD 20,543.3529m after 24 hypothetical payments; original aggregate monthly payment is USD 136.7018m.",
+      "A's monthly payment is USD 119.8397m and B's USD 116.7134m, yet A saves USD 741.2650m versus HOLD against B's USD 734.1264m over the full 60-month exit cost.",
+      "The budget-feasible minimum is HOLD/HOLD/B/A, USD 132.4781m cash fee and USD 21,818.911m total present cost.",
+      "For the high-coupon executed group at month six, KEEP is cheaper on a 12-month exit: payoff USD 6,467.8711m and forward present cost USD 6,639.571m.",
+      "At the restored 60-month horizon, PAYDOWN costs USD 335.2388m upfront and yields the lowest forward present cost, USD 6,858.783m. These are stipulated-contract outcomes, not observed borrower offers."
+    ],
+    "known_overclaims": ["Treating synthetic month-24 balances as observed HMDA performance or the stipulated SOFR-spread offers as real mortgage quotes."]
+  }
+}

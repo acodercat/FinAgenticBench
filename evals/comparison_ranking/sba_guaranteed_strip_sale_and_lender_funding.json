@@ -1,0 +1,107 @@
+{
+  "name": "sba_guaranteed_strip_sale_and_lender_funding",
+  "module": "evals.comparison_ranking.sba_guaranteed_strip_sale_and_lender_funding",
+  "task_family": "comparison_ranking",
+  "data_sources": [
+    "sba_7a",
+    "fdic_bankfind"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "The 7(a) file marks a loan whose guaranteed portion the lender sold with an indicator that reads Y on sold loans and is absent on every other row; no value marks a loan the lender kept. Take disbursed loans, read from the first disbursement date, and count lenders by reported name rather than deposit-insurance certificate. Report how many of those loans were sold, that as a percentage of disbursed loans, how many distinct lenders appear, and how many sell none of their loans. Explain what an absent indicator does and does not establish about a loan, and what it says about a lender never on the sold side.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "sold_loan_count",
+            "sold_share_pct",
+            "lender_count",
+            "never_selling_lender_count"
+          ],
+          "claims": [
+            {
+              "id": "absence_is_not_a_denial",
+              "mode": "required",
+              "description": "The response reads an absent indicator as the file recording no sale rather than as a reported decision to keep the loan, and treats a lender with no sold loans as one whose originations stay on its own balance sheet."
+            }
+          ]
+        },
+        {
+          "query": "Ask what kind of loan the market takes. Report how many revolving loans were sold, the sold percentage among the loans that are not revolving, and the variable-rate percentage among the sold loans and among the rest, counting a loan whose rate type the file leaves unreported in the denominator. Explain what a buyer of a guaranteed portion needs from the loan's structure, and how a revolving line measures against that.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "revolver_sold_count",
+            "nonrevolver_sold_share_pct",
+            "sold_variable_rate_pct",
+            "retained_variable_rate_pct"
+          ],
+          "claims": [
+            {
+              "id": "structure_the_buyer_needs",
+              "mode": "required",
+              "description": "The response ties the near-absence of sold revolving lines and the concentration of variable-rate loans on the sold side to what a buyer of a guaranteed strip can price, naming a fixed repayment schedule or a floating coupon."
+            }
+          ]
+        },
+        {
+          "query": "Match each lender to the bank file on its deposit-insurance certificate, taking total assets at the 2025-12-31 report date. Report the sold percentage among loans from lenders carrying no certificate and among loans from lenders carrying one, across every such loan. Then, among loans whose certificate the bank file carries at that date, report the sold percentage for lenders above ten billion USD of total assets and for the rest. Explain what a lender outside the insured banking system must do instead of holding a loan, and what the matched-group figures add.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "noncertificate_sold_share_pct",
+            "certificate_sold_share_pct",
+            "large_bank_sold_share_pct",
+            "small_bank_sold_share_pct"
+          ],
+          "claims": [
+            {
+              "id": "selling_is_funding",
+              "mode": "required",
+              "description": "The response connects selling the guaranteed portion to how the lender funds itself, saying a lender without deposits has to move the loan off its own balance sheet, and reads the split inside the matched banks as the same mechanism appearing by size."
+            }
+          ]
+        },
+        {
+          "query": "Look at the market's shape and at what the two cohorts did. Rank the sellers by how many sold loans each accounts for, breaking a tie by lender name in alphabetical order, and report the ten largest sellers' share of the sold loans and the single largest seller's share. Then report the loans whose status reads charged off as a percentage of the sold loans and as a percentage of the rest, counting every loan in each cohort rather than only those whose outcome the agency discloses. Explain what you would need to establish before reading the difference between those two percentages as a difference in how the two cohorts performed.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "top_ten_seller_share_pct",
+            "largest_seller_share_pct",
+            "sold_chargeoff_pct",
+            "retained_chargeoff_pct"
+          ],
+          "claims": [
+            {
+              "id": "the_comparison_is_confounded",
+              "mode": "required",
+              "description": "The response names a concrete reason the two charge-off percentages are not directly comparable, such as the outcome being withheld at different rates across the two cohorts or the cohorts differing systematically in loan structure and lender type."
+            },
+            {
+              "id": "performance_claim_needs_support",
+              "mode": "conditional",
+              "description": "If the response states that sold loans perform better than retained ones, it says what would have to hold in this file for that comparison to carry."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen privacy-reduced SBA 7(a) public loan records from the 2026-06-30 snapshot and frozen FDIC BankFind quarterly bank financials at 2025-12-31. The cohort split, the lender-type comparison and the concentration measures are analytic constructions rather than published agency statistics.",
+    "facts": [
+      "108,175 of the 293,909 disbursed loans carry the secondary-market indicator, 36.8056% of them. The field is positive-only: it reads Y on a sold loan and is absent everywhere else, so an absent value records no sale rather than a reported decision to retain. Counted by reported name the file holds 2,116 lenders, of which 1,465 sell none of their loans; counted by deposit-insurance certificate it holds 1,823, so the two keys give different lender counts.",
+      "The sold loans are the ones a buyer can price. Five of the 75,649 revolving lines were sold, against 49.5602% of the loans that are not revolving, and 98.2796% of the sold loans carry a variable rate against 74.5302% of those retained. A guaranteed strip is bought against a fixed repayment schedule and a floating coupon, neither of which a revolving line supplies.",
+      "The seller's funding model separates the cohorts more sharply than any loan feature. Lenders carrying no deposit-insurance certificate sell 70.9007% of what they disburse against 32.7004% for lenders that carry one. Among the matched lenders, the 111 above ten billion USD of total assets sell 16.0144% while the 1,711 below sell 55.9638%. No lender sits exactly on the threshold.",
+      "The ten largest sellers account for 45.3108% of the sold loans and BayFirst National Bank alone for 7.7957%. Charge-offs are 1.6464% of the sold loans against 2.7523% of the rest, which is not a clean performance comparison: the agency withholds the outcome on 78.8204% of the sold loans against 71.9507% of the retained, and the two cohorts also differ in structure, size and lender type."
+    ],
+    "known_overclaims": [
+      "Reading an absent secondary-market indicator as a reported decision to retain the loan, when the field records only sales.",
+      "Reading the lower charge-off share of the sold cohort as evidence that sold loans perform better, when their outcomes are withheld more often and the cohorts differ in structure and lender type.",
+      "Counting lenders by deposit-insurance certificate where the query counts them by reported name, which merges lenders the file names separately.",
+      "Treating the concentration of sales among a few lenders as a measure of the secondary market's total size, when the file records only whether a loan was sold and not at what price or to whom.",
+      "Explaining the sale pattern by loan risk alone, when the sharpest split in the file runs with how the lender funds itself."
+    ]
+  }
+}

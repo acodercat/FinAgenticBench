@@ -1,0 +1,99 @@
+model,error_class,nonthinking_per_1000,thinking_per_1000,relative_change
+DeepSeek V4 Pro,shared,38.524946,14.100444,-0.633992
+DeepSeek V4 Pro,other,67.245119,10.096614,-0.849854
+DeepSeek V4 Pro,unset,10.238612,5.396466,-0.47293
+DeepSeek V4 Pro,shape:far off >10%,38.177874,10.009574,-0.737817
+DeepSeek V4 Pro,shape:1-10% off,11.279826,2.959352,-0.737642
+DeepSeek V4 Pro,shape:near miss 0.1-1%,13.969631,2.437114,-0.825542
+DeepSeek V4 Pro,shape:near miss <0.1% (rounding/convention),19.175705,2.785273,-0.85475
+DeepSeek V4 Pro,shape:convention factor (12/4/360/252/2),8.850325,1.740796,-0.803307
+DeepSeek V4 Pro,shape:power-of-ten scale,2.429501,1.305597,-0.462607
+DeepSeek V4 Pro,shape:sign flip,0.780911,0.348159,-0.554163
+DeepSeek V4 Pro,shape:off by one (count),1.995662,0.783358,-0.60747
+DeepSeek V4 Pro,shape:small count diff (2-5),2.516269,0.261119,-0.896228
+DeepSeek V4 Pro,shape:string/token,4.164859,0.435199,-0.895507
+DeepSeek V4 Pro,shape:string: date,0.520607,0.435199,-0.164055
+DeepSeek V4 Flash,shared,48.820673,50.316648,0.030642
+DeepSeek V4 Flash,other,68.331599,39.299037,-0.424878
+DeepSeek V4 Flash,unset,15.522026,17.69758,0.140159
+DeepSeek V4 Flash,shape:far off >10%,47.519945,39.559296,-0.167522
+DeepSeek V4 Flash,shape:1-10% off,15.955602,8.24152,-0.483472
+DeepSeek V4 Flash,shape:near miss 0.1-1%,11.533125,7.373991,-0.360625
+DeepSeek V4 Flash,shape:near miss <0.1% (rounding/convention),11.706556,11.451375,-0.021798
+DeepSeek V4 Flash,shape:convention factor (12/4/360/252/2),7.80437,4.424395,-0.433088
+DeepSeek V4 Flash,shape:power-of-ten scale,8.151231,7.547497,-0.074067
+DeepSeek V4 Flash,shape:sign flip,1.387444,1.041034,-0.249675
+DeepSeek V4 Flash,shape:off by one (count),3.295179,1.995315,-0.394474
+DeepSeek V4 Flash,shape:small count diff (2-5),3.208463,2.168821,-0.324031
+DeepSeek V4 Flash,shape:string/token,4.075616,3.036349,-0.254996
+DeepSeek V4 Flash,shape:string: date,0.780437,1.301293,0.66739
+GPT-6 Luna,shared,29.587852,19.970478,-0.325045
+GPT-6 Luna,other,80.433839,11.982287,-0.851029
+GPT-6 Luna,unset,19.869848,6.946253,-0.650412
+GPT-6 Luna,shape:far off >10%,54.750542,13.545194,-0.752602
+GPT-6 Luna,shape:1-10% off,12.147505,4.862377,-0.599722
+GPT-6 Luna,shape:near miss 0.1-1%,11.106291,4.601893,-0.58565
+GPT-6 Luna,shape:near miss <0.1% (rounding/convention),8.763557,3.559955,-0.593777
+GPT-6 Luna,shape:convention factor (12/4/360/252/2),5.37961,2.257532,-0.580354
+GPT-6 Luna,shape:power-of-ten scale,2.863341,0.781454,-0.727083
+GPT-6 Luna,shape:sign flip,0.347072,0.086828,-0.749826
+GPT-6 Luna,shape:off by one (count),3.817787,1.041938,-0.727083
+GPT-6 Luna,shape:small count diff (2-5),3.470716,0.260485,-0.924948
+GPT-6 Luna,shape:string/token,3.991323,0.520969,-0.869475
+GPT-6 Luna,shape:string: date,1.735358,0.434141,-0.749826
+Claude Sonnet 5.5,shared,38.058084,35.466528,-0.068095
+Claude Sonnet 5.5,other,30.862592,17.950052,-0.418388
+Claude Sonnet 5.5,unset,5.895102,1.734305,-0.705806
+Claude Sonnet 5.5,shape:far off >10%,24.880798,19.424211,-0.219309
+Claude Sonnet 5.5,shape:1-10% off,5.721717,6.070066,0.060882
+Claude Sonnet 5.5,shape:near miss 0.1-1%,9.276116,9.62539,0.037653
+Claude Sonnet 5.5,shape:near miss <0.1% (rounding/convention),13.61075,7.544225,-0.445716
+Claude Sonnet 5.5,shape:convention factor (12/4/360/252/2),4.85479,3.555324,-0.267667
+Claude Sonnet 5.5,shape:power-of-ten scale,0.866927,0.780437,-0.099766
+Claude Sonnet 5.5,shape:sign flip,0.780234,0.17343,-0.77772
+Claude Sonnet 5.5,shape:off by one (count),1.820546,1.127298,-0.380791
+Claude Sonnet 5.5,shape:small count diff (2-5),2.947551,1.907735,-0.352773
+Claude Sonnet 5.5,shape:string/token,2.60078,1.99445,-0.233134
+Claude Sonnet 5.5,shape:string: date,0.866927,0.607007,-0.299818
+Qwen3.8 Flash,shared,27.001215,21.673169,-0.197326
+Qwen3.8 Flash,other,95.32905,31.12267,-0.673524
+Qwen3.8 Flash,unset,73.797534,21.326398,-0.711015
+Qwen3.8 Flash,shape:far off >10%,63.465879,23.840485,-0.624357
+Qwen3.8 Flash,shape:1-10% off,17.711408,7.542263,-0.574158
+Qwen3.8 Flash,shape:near miss 0.1-1%,12.068067,6.848721,-0.432492
+Qwen3.8 Flash,shape:near miss <0.1% (rounding/convention),5.55652,3.5544,-0.360319
+Qwen3.8 Flash,shape:convention factor (12/4/360/252/2),6.077444,3.90117,-0.35809
+Qwen3.8 Flash,shape:power-of-ten scale,3.299184,0.953619,-0.710953
+Qwen3.8 Flash,shape:sign flip,0.520924,0.173385,-0.667158
+Qwen3.8 Flash,shape:off by one (count),2.257336,0.953619,-0.577547
+Qwen3.8 Flash,shape:small count diff (2-5),3.386005,2.514088,-0.257506
+Qwen3.8 Flash,shape:string/token,4.514673,1.560468,-0.654356
+Qwen3.8 Flash,shape:string: date,1.823233,0.433463,-0.762256
+Qwen3.8-27B,shared,36.603348,30.434406,-0.168535
+Qwen3.8-27B,other,120.825744,68.49909,-0.433075
+Qwen3.8-27B,unset,50.221181,15.694095,-0.6875
+Qwen3.8-27B,shape:far off >10%,88.212334,50.203763,-0.430876
+Qwen3.8-27B,shape:1-10% off,19.342528,14.480187,-0.251381
+Qwen3.8-27B,shape:near miss 0.1-1%,11.449388,8.237232,-0.280553
+Qwen3.8-27B,shape:near miss <0.1% (rounding/convention),9.454419,6.41637,-0.321336
+Qwen3.8-27B,shape:convention factor (12/4/360/252/2),8.153352,7.456863,-0.085424
+Qwen3.8-27B,shape:power-of-ten scale,3.382774,2.948062,-0.128507
+Qwen3.8-27B,shape:sign flip,0.607165,0.693662,0.142461
+Qwen3.8-27B,shape:off by one (count),2.515396,0.953785,-0.620821
+Qwen3.8-27B,shape:small count diff (2-5),4.33689,1.994277,-0.54016
+Qwen3.8-27B,shape:string/token,5.984908,3.468308,-0.420491
+Qwen3.8-27B,shape:string: date,2.255183,1.040492,-0.538622
+POOLED,shared,36.43514,28.669376,-0.213139
+POOLED,other,77.164421,29.841031,-0.61328
+POOLED,unset,29.24932,11.470644,-0.607832
+POOLED,shape:far off >10%,52.830953,26.109094,-0.505799
+POOLED,shape:1-10% off,13.692094,7.36262,-0.462272
+POOLED,shape:near miss 0.1-1%,11.566711,6.523657,-0.435997
+POOLED,shape:near miss <0.1% (rounding/convention),11.378752,5.887203,-0.482614
+POOLED,shape:convention factor (12/4/360/252/2),6.853276,3.891051,-0.432235
+POOLED,shape:power-of-ten scale,3.49893,2.386704,-0.317876
+POOLED,shape:sign flip,0.737378,0.419481,-0.431118
+POOLED,shape:off by one (count),2.616968,1.142725,-0.56334
+POOLED,shape:small count diff (2-5),3.310971,1.518812,-0.541279
+POOLED,shape:string/token,4.22185,1.837039,-0.564873
+POOLED,shape:string: date,1.330172,0.708779,-0.467152

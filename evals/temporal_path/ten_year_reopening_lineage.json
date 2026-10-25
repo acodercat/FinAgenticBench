@@ -1,0 +1,99 @@
+{
+  "name": "ten_year_reopening_lineage",
+  "module": "evals.temporal_path.ten_year_reopening_lineage",
+  "task_family": "temporal_path",
+  "data_sources": [
+    "treasury_auctions",
+    "treasury_marketable_securities"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Trace the 2025 Treasury auction lineage for CUSIP 91282CMM0. Report how many 2025 auctions the lineage holds, the original non-reopening auction date, the reopening auction dates in chronological order, the distinct reported security-term labels in order of first appearance, the original issue date, the common maturity date and the common coupon rate. Carry the lineage forward and explain what ties these auctions to one security.",
+          "validator": "validate_auction_lineage",
+          "stores": [
+            "auction_count",
+            "original_auction_date",
+            "reopening_auction_dates",
+            "reported_security_terms",
+            "original_issue_date",
+            "maturity_date",
+            "coupon_rate_pct"
+          ],
+          "claims": [
+            {
+              "id": "lineage_evidence",
+              "description": "The response explains that the shared CUSIP, original-issue references and common maturity connect the original auction and reopenings even as their remaining-term labels shorten.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Bring in the 2025-04-30 Monthly Statement of the Public Debt detail for that CUSIP. Report how many issue-date rows it carries, the cumulative issued amount across those rows, and the CUSIP-level outstanding amount the statement reports. Carry these forward and explain how the issue-date rows relate to the auctions and how the outstanding amount is reported differently.",
+          "validator": "validate_debt_statement",
+          "stores": [
+            "mspd_issue_row_count",
+            "mspd_cumulative_issued_usd_billions",
+            "mspd_reported_outstanding_usd_billions"
+          ],
+          "claims": [
+            {
+              "id": "issued_flow_semantics",
+              "description": "The response explains that each debt-statement issue-date row corresponds to an auction issue date in the lineage and represents a separate issuance event.",
+              "mode": "required"
+            },
+            {
+              "id": "outstanding_stock_semantics",
+              "description": "The response explains that issued amounts are partitioned by issue date while the month-end outstanding balance is populated once for the CUSIP.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Return to the auction lineage and report its cumulative offering amount and cumulative total accepted amount, then report cumulative auction accepted minus the cumulative debt-statement issued amount you carried forward. Explain what the two source measures each count and how to read their difference.",
+          "validator": "validate_reconciliation",
+          "stores": [
+            "auction_offering_total_usd_billions",
+            "auction_accepted_total_usd_billions",
+            "accepted_minus_mspd_issued_usd_billions"
+          ],
+          "claims": [
+            {
+              "id": "cross_source_measure_boundary",
+              "description": "The response characterizes auction total accepted and debt-statement issued as related but distinct source measures with separate source definitions.",
+              "mode": "required"
+            },
+            {
+              "id": "reconciliation_inference_boundary",
+              "description": "If the response treats auction total accepted and debt-statement issued as an exact accounting identity or treats their difference as proof of a source error, it identifies that inference as unsupported by the two distinct source measures.",
+              "mode": "conditional"
+            },
+            {
+              "id": "market_inference_boundary",
+              "description": "If the response interprets demand, pricing, financing conditions or investment merit, it identifies that inference as not established by the lineage and stock totals alone.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "U.S. Treasury auction records and 2025-04-30 Monthly Statement of the Public Debt detail for CUSIP 91282CMM0",
+    "facts": [
+      "The CUSIP has an original auction on 2025-02-12 and reopenings on 2025-03-12 and 2025-04-09; reported terms are 10-Year, 9-Year 11-Month and 9-Year 10-Month.",
+      "The original issue date is 2025-02-18, maturity is 2035-02-15 and coupon is 4.625 percent; cumulative offering is 120.000 billion USD and auction total accepted is 138.708632 billion.",
+      "The 2025-04-30 MSPD detail has three matching issue-date rows, cumulative issued of 138.704271 billion USD and one reported CUSIP-level outstanding amount of 138.704271 billion.",
+      "Auction accepted minus MSPD issued is +0.004361 billion USD; the two source measures are not required to form an exact zero-residual identity.",
+      "A literal 10-Year auction filter keeps only the original auction; selecting only the original MSPD issue row reports 53.538670 billion issued rather than the cumulative amount."
+    ],
+    "known_overclaims": [
+      "Forcing auction accepted and MSPD issued to be identical or treating the small difference as proof of an error.",
+      "Inferring demand or investment merit from lineage totals alone."
+    ]
+  }
+}

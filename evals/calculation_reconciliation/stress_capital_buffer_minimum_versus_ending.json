@@ -1,0 +1,151 @@
+{
+  "name": "stress_capital_buffer_minimum_versus_ending",
+  "module": "evals.calculation_reconciliation.stress_capital_buffer_minimum_versus_ending",
+  "task_family": "calculation_reconciliation",
+  "data_sources": [
+    "fed_stress_tests",
+    "ffiec_nic_institutions",
+    "ffiec_call_reports_capital"
+  ],
+  "case_type": "baseline",
+  "difficulty": "hard",
+  "judge_reference": {
+    "source": "Federal Reserve supervisory stress test disclosures, the FFIEC National Information Center institution identifiers, and the FFIEC Call Report capital schedule.",
+    "facts": [
+      "The 2025 exercise publishes 23 severely adverse rows, of which 1 is an aggregate row carrying no identifier, leaving 22 named firms.",
+      "Their median starting common equity tier 1 ratio is 12.9500 percent, median minimum projected ratio 11.1000 and median ending ratio 12.8000, and on 17 of the 22 the minimum differs from the ending ratio.",
+      "Under 12 CFR 225.8(f)(2), the fall from the starting ratio to the lowest projected ratio is the stress capital decline component; planned common dividends are added and the result is compared with a 2.5 percent floor.",
+      "Median decline to the minimum is 1.9500 points against 1.1000 to the ending ratio, a median understatement of 0.4000 points, and the largest decline is 11.0000.",
+      "Four firms show a minimum projected CET1 ratio above their own starting ratio; the ratio result alone does not identify whether capital, risk-weighted assets, or both produced it.",
+      "Measured to the minimum, 12 of the 22 have a decline at or below the 2.5-point benchmark; measured to the ending ratio 16 do. These are decline-component counts, not assigned-SCB floor counts.",
+      "Across the four exercises, 109 named results include 55 minimum-based declines and 70 ending-based declines at or below the benchmark, with the 2022 exercise diverging most by 6 firms.",
+      "None of the 22 firms appears in the Call Report capital file: all 22 are identified in the institution file as holding companies, 15 financial holding companies, 6 intermediate holding companies and 1 savings and loan holding company, while a Call Report is filed by an insured depository subsidiary.",
+      "The files do not carry the planned-dividend add-on or enough information for any applicable averaging or subsequent adjustment, so what is computed here is the decline component rather than an assigned buffer."
+    ],
+    "known_overclaims": [
+      "Measuring the capital decline to the ending ratio and attributing ratio recovery solely to capital rebuilding rather than possible changes in capital, risk-weighted assets, or both.",
+      "Including the aggregate row for participating banks among the firms.",
+      "Presenting the computed figure as a firm's stress capital buffer when the dividend add-on is absent.",
+      "Describing the absence of Call Report matches as a data quality problem rather than as a consequence of the test applying to holding companies."
+    ]
+  },
+  "conversations": [
+    {
+      "turns": [
+        {
+          "query": "Using the Federal Reserve supervisory stress test results, take the 2025 Stress Test rows under the Supervisory Severely Adverse scenario. Report the row count, count without an institution identifier and remaining named-firm count. For named firms report median starting, minimum projected and ending common equity tier 1 ratios in percent, plus the count whose minimum differs from ending. Use linear interpolation for medians. Interpret the minimum-versus-ending comparison and its evidentiary limits.",
+          "validator": "validate_population_and_ratios",
+          "stores": [
+            "exercise_rows",
+            "aggregate_rows",
+            "named_firms",
+            "median_starting_ratio",
+            "median_trough_ratio",
+            "median_ending_ratio",
+            "trough_differs_from_ending"
+          ],
+          "claims": [
+            {
+              "id": "ratio_ordering",
+              "description": "The response interprets an ending ratio above the minimum as recovery in the projected CET1 ratio after its trough.",
+              "mode": "required"
+            },
+            {
+              "id": "ratio_driver_boundary",
+              "description": "If the response explains that recovery, it states that the disclosure shows neither whether numerator capital, nor denominator risk-weighted assets, nor both caused it.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "For the 22 named firms, compute starting-to-minimum and starting-to-ending CET1-ratio declines. Report both medians in percentage points, the median paired difference (minimum-based less ending-based), the largest minimum-based decline, and count with minimum above start. For each decline count firms at or below the 2.5-percentage-point benchmark. Use linear interpolation for medians. Which decline enters the SCB calculation? Interpret the comparison and what these counts establish about assigned buffers.",
+          "validator": "validate_decline_reference",
+          "stores": [
+            "median_decline_to_trough",
+            "median_decline_to_ending",
+            "median_decline_gap",
+            "maximum_decline",
+            "minimum_above_start_firms",
+            "decline_at_or_below_floor_by_minimum",
+            "decline_at_or_below_floor_by_ending"
+          ],
+          "claims": [
+            {
+              "id": "scb_boundary",
+              "description": "The response identifies the minimum-ratio decline as the stress capital decline component.",
+              "mode": "required",
+              "overlap_waiver": "The query names both declines and asks which one the buffer calculation uses; it does not say. The response must read the definition of the stress capital decline component off the two computed medians."
+            },
+            {
+              "id": "scb_assignment_boundary",
+              "description": "If the response calls a firm floor-bound or states its assigned SCB, it notes that the planned-dividend add-on and any applicable adjustments are absent.",
+              "mode": "conditional"
+            },
+            {
+              "id": "direction_of_error",
+              "description": "The response states that using an ending ratio above the projected minimum reduces the measured decline and can increase the count at or below the 2.5-point benchmark.",
+              "mode": "required"
+            },
+            {
+              "id": "ratio_mechanism_boundary",
+              "description": "The response treats a minimum ratio above the starting ratio as a ratio result.",
+              "mode": "required",
+              "overlap_waiver": "The query asks for the count of firms whose minimum exceeds their starting ratio and for the direction of the comparison. Reading that count as a ratio result rather than a capital increase is the response's own inference."
+            },
+            {
+              "id": "capital_generation_boundary",
+              "description": "If the response reads that ordering as capital generation or as the final SCB equalling the floor, it states that the ratio result establishes neither.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Check whether the comparison is particular to 2025. Restrict to the severely adverse scenario and to the four exercises named 2022 Stress Test, 2023 Stress Test, 2024 Stress Test and 2025 Stress Test, keeping only rows with an institution identifier. Report how many results those four hold in total, how many have a decline at or below the 2.5-point benchmark measured to the minimum, and how many measured to the ending ratio. Then, comparing the two counts within each exercise, report the name of the exercise where they diverge most and the size of that divergence in firms. State whether the direction of the count difference is consistent across exercises and note the panel-composition limitation.",
+          "validator": "validate_framework_pattern",
+          "stores": [
+            "framework_results",
+            "framework_decline_at_or_below_floor_by_minimum",
+            "framework_decline_at_or_below_floor_by_ending",
+            "widest_exercise",
+            "widest_exercise_gap"
+          ],
+          "claims": [
+            {
+              "id": "consistent_direction",
+              "description": "The response notes that the ending-ratio benchmark count exceeds the minimum-ratio benchmark count in each of the four exercises.",
+              "mode": "required"
+            },
+            {
+              "id": "panel_caveat",
+              "description": "The response notes that the panels overlap without being identical, so the counts are not a time series for a fixed set of firms.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Finally try to pair the 22 firms with their reported capital. Report how many of their institution identifiers appear as a filer identifier in the FFIEC Call Report capital schedule. Then look the same identifiers up in the FFIEC institution identifier file and report how many are found, how many carry the entity type for a financial holding company, how many the type for an intermediate holding company, and how many the type for a savings and loan holding company. Explain what the entity-type results imply about the legal-entity perimeter of this direct identifier match.",
+          "validator": "validate_entity_scope",
+          "stores": [
+            "call_report_matches",
+            "identified_firms",
+            "financial_holding_firms",
+            "intermediate_holding_firms",
+            "savings_loan_holding_firms"
+          ],
+          "claims": [
+            {
+              "id": "structural_reason",
+              "description": "The response explains that the stress-test identifiers in this population are holding-company entities while Call Report filers are insured depository institutions, so a direct same-identifier match crosses incompatible legal-entity perimeters.",
+              "mode": "required"
+            },
+            {
+              "id": "parent_subsidiary_bridge_boundary",
+              "description": "If the response presents the match as an entity bridge, it states that a same-identifier match is not a parent-subsidiary bridge.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

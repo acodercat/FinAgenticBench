@@ -1,0 +1,93 @@
+{
+  "name": "wti_dixit_operating_switching",
+  "module": "evals.scenario_analysis.wti_dixit_operating_switching",
+  "task_family": "scenario_analysis",
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "data_sources": [
+    "eia_bulk_wti_daily",
+    "treasury_yield_curve"
+  ],
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Estimate the diffusion volatility of geometric Brownian motion from EIA daily WTI spot quotes published in calendar 2024. Use consecutive published quotes wholly within that year, one step equal to 1/252 of a year, and exact conditional Gaussian log-increment maximum likelihood with unrestricted log drift. Retain the final published quote as the initial spot price for subsequent valuation. Set a hypothetical constant annual force of discount numerically equal to the U.S. Treasury ten-year constant-maturity yield quote for 2024-12-31. Report the increment count, annual diffusion volatility in percent and discount force in percent. Carry these parameters and the final spot quote forward, and assess the interpretation of the calibration inputs.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "increment_count",
+            "diffusion_volatility_pct",
+            "discount_force_pct"
+          ],
+          "claims": [
+            {
+              "id": "wti_dixit_operating_switching_t1_interpretation",
+              "description": "The response distinguishes diffusion estimation from a calibrated pricing-measure drift and treats the Treasury quote as the stipulated discount proxy, without interpreting it as a fitted zero-coupon term structure.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Consider a hypothetical active WTI producer under a pricing-measure geometric Brownian spot price with zero proportional drift and the carried diffusion volatility. While active it produces one barrel per year continuously and pays USD60 per barrel in operating costs. It can abandon permanently at any stopping time by immediately paying USD20; thereafter all production and cash flows cease. The horizon is perpetual, with no taxes, depletion, additional cash flows or production uncertainty. Maximize expected discounted net cash flow using the carried discount force. Report the optimal permanent-exit spot-price threshold in USD per barrel and the value of the active project at the carried initial spot price in USD. Carry the full abandonment model forward and interpret the shutdown decision.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "permanent_exit_price",
+            "permanent_active_value"
+          ],
+          "claims": [
+            {
+              "id": "wti_dixit_operating_switching_t2_interpretation",
+              "description": "The response relates the exit threshold to the value of waiting under uncertainty and the shutdown cost, rather than identifying the static operating break-even price as the optimal stopping threshold.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Replace permanent abandonment in the carried model with the Dixit costly-reversible entry-and-exit model. An idle project has no running cash flow and may enter or restart at any stopping time by paying USD200 immediately. An active project may become idle by paying the same USD20 shutdown cost. Every subsequent entry and exit incurs its respective cost, and the choices may repeat indefinitely. Preserve all other operating, price-process and discount conventions. Find the optimal switching policy and report its exit and entry spot-price thresholds in USD per barrel, together with the idle project value at the carried initial spot price in USD. Carry the complete optimal switching policy forward and assess how reversibility changes the operating decision.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "switching_exit_price",
+            "switching_entry_price",
+            "idle_project_value"
+          ],
+          "claims": [
+            {
+              "id": "wti_dixit_operating_switching_t3_interpretation",
+              "description": "The response interprets the separated switching thresholds as an inaction region and relates the changed exit threshold to the retained restart opportunity.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Start idle at the carried initial spot price and follow the complete preceding optimal switching policy forever. Report the expected cumulative operating time discounted continuously at the carried force, in years, and the expected present values in USD of all entry outlays and all shutdown outlays. Both outlay amounts are positive costs, including every future operating cycle. Assess how these quantities inform the interpretation of the preceding idle project value.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "discounted_operating_years",
+            "entry_outlay_pv",
+            "exit_outlay_pv"
+          ],
+          "claims": [
+            {
+              "id": "wti_dixit_operating_switching_t4_interpretation",
+              "description": "The response distinguishes the value of future net operating cash flows after recurring switching costs from either discounted operating time alone or a single entry-and-exit cycle.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen governed dataset_new and expressly stipulated financial scenario.",
+    "facts": [
+      "The response distinguishes diffusion estimation from a calibrated pricing-measure drift and treats the Treasury quote as the stipulated discount proxy, without interpreting it as a fitted zero-coupon term structure.",
+      "The response relates the exit threshold to the value of waiting under uncertainty and the shutdown cost, rather than identifying the static operating break-even price as the optimal stopping threshold.",
+      "The response interprets the separated switching thresholds as an inaction region and relates the changed exit threshold to the retained restart opportunity.",
+      "The response distinguishes the value of future net operating cash flows after recurring switching costs from either discounted operating time alone or a single entry-and-exit cycle."
+    ],
+    "known_overclaims": [
+      "Treating hypothetical preferences, a stochastic-control price or a discount proxy as a directly observed market object or causal estimate."
+    ]
+  }
+}

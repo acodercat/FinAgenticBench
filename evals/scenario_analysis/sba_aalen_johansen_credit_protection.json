@@ -1,0 +1,99 @@
+{
+  "name": "sba_aalen_johansen_credit_protection",
+  "module": "evals.scenario_analysis.sba_aalen_johansen_credit_protection",
+  "task_family": "scenario_analysis",
+  "data_sources": [
+    "sba_7a",
+    "nyfed_reference_rates"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Retrospectively estimate the Aalen\u2013Johansen competing-risk model for California SBA 7(a) approval-fiscal-year 2020\u20132022 public loan rows with a recorded first disbursement on or before 2024-12-31. Treat each reported row as one equally weighted subject. Loan age is actual days since first disbursement; the first dated charge-off or paid-in-full event is absorbing, with charge-off winning a same-row date tie. Administratively censor at 2024-12-31 and retain event-day subjects in the pre-event risk set, including same-day censors. Report cohort count, active and charge-off probabilities at day 730 and the ordinary case-weight infinitesimal-jackknife standard error of that charge-off probability. Carry the full estimated transition law forward and interpret the estimated credit risk, its uncertainty and its financial scope. Use unrounded states throughout.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "cohort_count",
+            "active_probability_day730",
+            "chargeoff_probability_day730",
+            "chargeoff_standard_error_day730"
+          ],
+          "claims": [
+            {
+              "id": "sba_aalen_johansen_credit_protection_t1_interpretation",
+              "description": "The response uses the estimated low charge-off frequency and its nonzero sampling uncertainty to distinguish infrequent losses from absence of credit risk.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Condition the carried transition law on being active at loan age 730 days. For ages strictly after 730 through and including 1460, report conditional charge-off and paid-in-full probabilities and restricted mean remaining active time in that interval. Carry this conditional law forward and interpret the seasoning assessment.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "conditional_chargeoff_probability",
+            "conditional_paid_probability",
+            "restricted_active_days"
+          ],
+          "claims": [
+            {
+              "id": "sba_aalen_johansen_credit_protection_t2_interpretation",
+              "description": "The response identifies paid-in-full as the dominant estimated exit over the seasoning interval and relates that dominance to the remaining active-time assessment.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Price a hypothetical credit-protection contract using the carried conditional event law as its actuarial probability law. Protection begins at age 730 and expires at 1460; it pays 60 percent of notional immediately at charge-off and nothing at paid-in-full. Premium accrues and is paid continuously while active, with Actual/365 year fractions and no separate event-date accrued-premium payment. Use a flat annual-effective discount rate equal to New York Fed SOFR on 2024-12-31, measured from inception at age 730. Report the fair annual premium spread and Macaulay duration of discounted default-benefit payments. Carry the contract and discount convention forward and discuss the pricing interpretation.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "fair_protection_spread_bp",
+            "default_payment_duration_years"
+          ],
+          "claims": [
+            {
+              "id": "sba_aalen_johansen_credit_protection_t3_interpretation",
+              "description": "The response treats the premium as an empirical actuarial scenario price and gives at least one material limitation on interpreting it as a traded credit spread.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "For the carried protection contract, apply a stress that multiplies each estimated charge-off hazard increment after day 730 by 1.5 while leaving the paid-in-full hazard increments unchanged. Keep inception active at day 730 and all contract, discount and horizon conventions fixed. Report the stressed conditional charge-off probability, fair annual premium spread and discounted default-payment Macaulay duration. Explain how the stressed hazard path feeds through to the premium and the timing of protection payments, and how far that link may be pushed.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "stressed_conditional_chargeoff_probability",
+            "stressed_spread_bp",
+            "stressed_payment_duration_years"
+          ],
+          "claims": [
+            {
+              "id": "sba_aalen_johansen_credit_protection_t4_interpretation",
+              "description": "The response links the higher fair premium and earlier default-payment timing to the repropagated competing-risk law.",
+              "mode": "required"
+            },
+            {
+              "id": "sba_aalen_johansen_credit_protection_t4_causal_boundary",
+              "description": "If the response makes a causal attribution, it distinguishes the stipulated hazard stress from an empirically identified causal effect.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen dataset_new and the specified named-model scenario.",
+    "facts": [
+      "The response uses the estimated low charge-off frequency and its nonzero sampling uncertainty to distinguish infrequent losses from absence of credit risk.",
+      "The response identifies paid-in-full as the dominant estimated exit over the seasoning interval and relates that dominance to the remaining active-time assessment.",
+      "The response treats the premium as an empirical actuarial scenario price and gives at least one material limitation on interpreting it as a traded credit spread.",
+      "The response links the higher fair premium and earlier default-payment timing to the repropagated competing-risk law."
+    ],
+    "known_overclaims": [
+      "Treating a hypothetical structural scenario as an observed price or identified causal effect."
+    ]
+  }
+}

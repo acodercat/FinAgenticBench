@@ -1,0 +1,197 @@
+{
+  "treasury_debt": {
+    "built_at": "2026-08-27T03:37:06.490054+00:00",
+    "window": [
+      "2019-01-01",
+      "2025-12-31"
+    ],
+    "tables": {
+      "debt_to_penny": {
+        "file": "treasury_debt/debt_to_penny.csv.gz",
+        "rows": 1756,
+        "columns": [
+          "record_date",
+          "debt_held_by_public_usd",
+          "intragovernmental_holdings_usd",
+          "total_public_debt_outstanding_usd"
+        ]
+      },
+      "marketable_securities": {
+        "file": "treasury_debt/marketable_securities.csv.gz",
+        "rows": 66915,
+        "columns": [
+          "record_date",
+          "security_class",
+          "security_identifier_or_total_label",
+          "series_code",
+          "interest_rate_pct",
+          "yield_pct",
+          "issue_date",
+          "maturity_date",
+          "issued_million_usd",
+          "inflation_adjustment_million_usd",
+          "redeemed_million_usd",
+          "outstanding_million_usd",
+          "source_line_number"
+        ]
+      }
+    }
+  },
+  "treasury_dts": {
+    "built_at": "2026-08-27T03:37:07.878078+00:00",
+    "window": [
+      "2019-01-01",
+      "2025-12-31"
+    ],
+    "tables": {
+      "operating_cash_balance": {
+        "file": "treasury_dts/operating_cash_balance.csv.gz",
+        "rows": 6199,
+        "columns": [
+          "record_date",
+          "account_type",
+          "today_amount_million_usd",
+          "month_to_date_amount_million_usd",
+          "fiscal_year_to_date_amount_million_usd",
+          "record_fiscal_year",
+          "record_fiscal_quarter",
+          "src_line_nbr"
+        ]
+      },
+      "public_debt_transactions": {
+        "file": "treasury_dts/public_debt_transactions.csv.gz",
+        "rows": 42271,
+        "columns": [
+          "record_date",
+          "transaction_type",
+          "security_market",
+          "security_type",
+          "security_type_desc",
+          "transaction_today_amount_million_usd",
+          "record_fiscal_year",
+          "record_fiscal_quarter",
+          "src_line_nbr"
+        ]
+      }
+    }
+  },
+  "noaa": {
+    "built_at": "2026-08-27T03:37:08.222061+00:00",
+    "window": [
+      "2019-01-01",
+      "2025-12-31"
+    ],
+    "tables": {
+      "details": {
+        "file": "noaa_storm_events/storm_event_details.csv.gz",
+        "rows": 478175,
+        "columns": [
+          "episode_id",
+          "event_id",
+          "state_name",
+          "state_usps",
+          "state_fips",
+          "event_type",
+          "county_zone_type",
+          "county_zone_fips",
+          "county_zone_name",
+          "begin_datetime",
+          "end_datetime",
+          "property_damage_source_token",
+          "property_damage_usd",
+          "crop_damage_source_token",
+          "crop_damage_usd",
+          "flood_cause",
+          "data_source",
+          "source_file"
+        ]
+      }
+    }
+  },
+  "dfast": {
+    "built_at": "2026-08-27T03:37:23.229222+00:00",
+    "window": [
+      "2019-01-01",
+      "2025-12-31"
+    ],
+    "tables": {
+      "results": {
+        "file": "fed_stress_tests/results.csv.gz",
+        "rows": 632,
+        "columns": [
+          "exercise_name",
+          "dt_exercise_quarter",
+          "id_rssd",
+          "disclosure_legal_name",
+          "scenario_name",
+          "common_equity_tier1_actual_rat",
+          "common_equity_tier1_end_rat",
+          "common_equity_tier1_min_rat",
+          "loss_total_loan_amt",
+          "loss_total_loan_rate",
+          "loss_dom_first_mtg_amt",
+          "loss_dom_first_mtg_rate",
+          "loss_comml_ind_loan_amt",
+          "loss_comml_ind_loan_rate",
+          "loss_dom_cre_loan_amt",
+          "loss_dom_cre_loan_rate",
+          "loss_credit_card_loan_amt",
+          "loss_credit_card_loan_rate",
+          "revenue_preprovision_net_amt",
+          "provision_amt",
+          "income_pretax_net_amt"
+        ],
+        "exercises": [
+          "2022 Stress Test",
+          "2023 Stress Test",
+          "2024 Stress Test",
+          "2025 Stress Test",
+          "DFAST 2013",
+          "DFAST 2014",
+          "DFAST 2015",
+          "DFAST 2016",
+          "DFAST 2017",
+          "DFAST 2018",
+          "DFAST 2019",
+          "DFAST 2020",
+          "DFAST 2021",
+          "December 2020 Stress Test"
+        ]
+      }
+    }
+  },
+  "fema": {
+    "built_at": "2026-08-27T10:31:29.622849+00:00",
+    "window": [
+      "2019-01-01",
+      "2025-12-31"
+    ],
+    "tables": {
+      "declaration_areas": {
+        "file": "fema_disasters/declaration_areas.csv.gz",
+        "rows": 19167,
+        "columns": [
+          "declaration_area_id",
+          "disaster_number",
+          "state_usps",
+          "declaration_type",
+          "declaration_date",
+          "incident_type",
+          "incident_begin_date",
+          "incident_end_date",
+          "tribal_request",
+          "fips_state_code",
+          "fips_county_code",
+          "designated_area",
+          "individuals_households_program_declared",
+          "individual_assistance_declared",
+          "public_assistance_declared",
+          "hazard_mitigation_declared",
+          "snapshot_last_refresh",
+          "county_fips",
+          "source_file"
+        ]
+      }
+    }
+  }
+}

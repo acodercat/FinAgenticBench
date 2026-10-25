@@ -1,0 +1,9 @@
+{
+  "schema": "finbench-validator-verdict-baseline-v1",
+  "policy": {
+    "ground_truth_is_accepted": true,
+    "single_output_mutations_are_rejected": true,
+    "scope_note": "This generic validator regression gate checks that every validator accepts its own ground truth and rejects a single mutated output. It is not evidence about financial wrong paths; those are measured per case and recorded in the case module docstring."
+  },
+  "exceptions": {}
+}

@@ -1,0 +1,98 @@
+{
+  "name": "jpm_branch_deposit_geography_bridge",
+  "module": "evals.calculation_reconciliation.jpm_branch_deposit_geography_bridge",
+  "task_family": "calculation_reconciliation",
+  "data_sources": [
+    "fdic_bankfind",
+    "fdic_sod"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "For JPMorgan Chase Bank, N.A. (FDIC certificate 628) at 2025-06-30, use FDIC BankFind quarterly financials to report total and domestic deposits, and derive the foreign-office amount between them. Carry these balances forward and explain how the foreign-office figure was obtained.",
+          "validator": "validate_reported_balances",
+          "stores": [
+            "bankfind_total_deposits_usd_billions",
+            "bankfind_domestic_deposits_usd_billions",
+            "derived_foreign_office_deposits_usd_billions"
+          ],
+          "claims": [
+            {
+              "id": "residual_derivation",
+              "description": "The response obtains the foreign-office amount as the residual between two reported balances rather than treating it as a separately reported line.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Independently aggregate all reported 2025 Summary of Deposits branch rows for that certificate. Report the branch-row count, the represented state-level-jurisdiction count, the aggregated branch deposits, and branch deposits minus the BankFind domestic balance you carried forward. Carry the branch population forward and explain which balance the branch sum reconciles to.",
+          "validator": "validate_branch_reconciliation",
+          "stores": [
+            "sod_branch_row_count",
+            "represented_branch_state_count",
+            "sod_branch_deposits_usd_billions",
+            "sod_minus_bankfind_domestic_usd_millions"
+          ],
+          "claims": [
+            {
+              "id": "domestic_branch_reconciliation_meaning",
+              "description": "The response explains that the exact SOD branch-sum reconciliation is to the domestic deposit balance, while the positive foreign-office residual remains outside the branch-state distribution and prevents treating it as a decomposition of total deposits.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Aggregate those branch deposits by branch-state USPS abbreviation, breaking an exact leadership tie alphabetically. Report the leading jurisdiction, its branch-row count and share of branch rows, its branch deposits and share of domestic deposits, and the state-level deposit HHI on the 0-to-10,000 scale. Explain what this concentration measures and what it does not represent.",
+          "validator": "validate_geographic_concentration",
+          "stores": [
+            "largest_branch_deposit_state_usps",
+            "largest_state_branch_row_count",
+            "largest_state_branch_row_share_pct",
+            "largest_state_branch_deposits_usd_billions",
+            "largest_state_share_of_domestic_deposits_pct",
+            "state_deposit_hhi"
+          ],
+          "claims": [
+            {
+              "id": "deposit_versus_branch_footprint",
+              "description": "The response distinguishes geographic deposit concentration from branch-footprint concentration: branch rows and branch deposits use different weights and need not imply the same geographic concentration.",
+              "mode": "required"
+            },
+            {
+              "id": "within_bank_state_concentration_meaning",
+              "description": "The response explains that the HHI measures the concentration of JPMorgan's own domestic branch deposits across state-level jurisdictions, rather than deposit-market concentration across competing banking institutions.",
+              "mode": "required"
+            },
+            {
+              "id": "market_definition_boundary",
+              "description": "If the response interprets the state HHI as a legally defined banking market or proof of anticompetitive effects, it qualifies that inference because state geography and SOD deposit shares do not by themselves establish the relevant antitrust market or competitive effect.",
+              "mode": "conditional"
+            },
+            {
+              "id": "funding_risk_boundary",
+              "description": "If the response infers deposit flows, liquidity stress or funding stability, it states that the aligned observations are balance-sheet and branch-deposit stocks at one date rather than transaction flows or a causal funding analysis.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "FDIC BankFind 2025-Q2 institution financials and FDIC 2025 Summary of Deposits branch snapshot",
+    "facts": [
+      "BankFind reports 2,669.161000 billion USD total deposits and 2,132.981000 billion domestic deposits, leaving a 536.180000 billion foreign-office residual.",
+      "The 5,000 SOD branch rows cover 49 state-level jurisdictions—48 states plus the District of Columbia—and sum to 2,132.981000 billion USD, exactly reconciling to domestic deposits with a 0.000 million residual.",
+      "New York leads with 577 branch rows, 11.5400 percent of rows, and 933.644201 billion USD of branch deposits, 43.7718 percent of domestic deposits. The state deposit HHI is 2364.9822."
+    ],
+    "known_overclaims": [
+      "Using total rather than domestic deposits as the denominator for the branch-state distribution.",
+      "Treating branch counts as deposit weights or calculating concentration at individual-branch rather than state grain.",
+      "Calling the state HHI a legally defined local-market concentration measure or treating one-date balances as deposit flows."
+    ]
+  }
+}

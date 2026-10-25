@@ -1,0 +1,139 @@
+{
+  "name": "shareholder_payout_tag_scope_composition",
+  "module": "evals.comparison_ranking.shareholder_payout_tag_scope_composition",
+  "task_family": "comparison_ranking",
+  "data_sources": [
+    "sec_companyfacts",
+    "sec_midas_security_exchange"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "turns": [
+        {
+          "query": "Company facts record cash-flow amounts with a start and an end date. Keep facts from annual reports on form 10-K whose reporting window runs between 350 and 380 days and whose end date falls in 2024, and where a company reports the same concept twice for such a window keep the value from the latest filing date. Build a population of companies reporting positive Net Income (Loss). Report how many companies that leaves and their combined Payments for Repurchase of Common Stock in USD billions, treating a company with no repurchase value as having repurchased nothing. Then report how many of those companies report Payments of Dividends, Common Stock, how many report the broader Payments of Dividends concept, and how many report both. Explain what the relationship between those three counts implies for anyone measuring dividends from this dataset, and why the duration filter matters for cash-flow facts.",
+          "validator": "validate_population_and_tags",
+          "stores": [
+            "profitable_filer_count",
+            "buyback_total_usd_billions",
+            "narrow_tag_filer_count",
+            "broad_tag_filer_count",
+            "both_tag_filer_count"
+          ],
+          "claims": [
+            {
+              "id": "partition_reasoning",
+              "description": "The response interprets the observed overlap between the two dividend concepts.",
+              "mode": "required"
+            },
+            {
+              "id": "dividend_absence_boundary",
+              "description": "If the response reads the absence of either concept as evidence about payments, it states that absence does not prove the company paid no dividend.",
+              "mode": "conditional"
+            },
+            {
+              "id": "window_restriction_boundary",
+              "description": "The response explains that restricting the duration prevents shorter-period cash-flow facts from being treated as full-year observations.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Measure what the concept choice costs. Compute total dividends two ways: first using only Payments of Dividends, Common Stock and treating its absence as zero, then using the broader Payments of Dividends concept where present and falling back to Payments of Dividends, Common Stock where the broader concept is absent. Report both totals in USD billions. Report total repurchases divided by each of those two dividend totals. Then report how many companies pay dividends under the second rule while reporting nothing under the first. Explain how the two readings differ in what they would let a reader conclude about how American companies return cash, and what an absent concept can and cannot establish about nonpayment.",
+          "validator": "validate_tag_scope_effect",
+          "stores": [
+            "narrow_dividend_total_usd_billions",
+            "combined_dividend_total_usd_billions",
+            "narrow_buyback_multiple",
+            "combined_buyback_multiple",
+            "misclassified_payer_count"
+          ],
+          "claims": [
+            {
+              "id": "conclusion_change_reasoning",
+              "description": "The response compares the conclusions supported by the two computed dividend totals and repurchase multiples without treating the concepts as semantically identical.",
+              "mode": "required"
+            },
+            {
+              "id": "missing_is_not_zero_boundary",
+              "description": "The response warns that an absent tag records what a company chose to label, not that the payment did not occur, so filling absences with zero without checking the alternative concept manufactures non-payers.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Describe how the population returns cash under the fuller reading. For each company take repurchases plus dividends over net income as a percent and report the median, and take repurchases over repurchases plus dividends as a percent, reporting the median across companies that returned anything. Report how many companies do both, how many pay dividends without repurchasing, how many repurchase without paying dividends and how many do neither. Report how many return more than their net income. Explain what a payout above one hundred percent of earnings means and why the four counts are a better description of behaviour than the medians alone.",
+          "validator": "validate_payout_composition",
+          "stores": [
+            "median_payout_ratio_pct",
+            "median_buyback_share_pct",
+            "both_channel_count",
+            "dividend_only_count",
+            "buyback_only_count",
+            "neither_count",
+            "payout_above_income_count"
+          ],
+          "claims": [
+            {
+              "id": "above_earnings_reasoning",
+              "description": "The response explains that a one-year payout can draw on opening cash, current cash generation or financing rather than only that year's net income.",
+              "mode": "required"
+            },
+            {
+              "id": "funding_source_boundary",
+              "description": "If the response names the funding source, it states that these facts identify none.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Name the extremes. Report the central index key of the company with the largest repurchases, its repurchases and its dividends under the broader-first reading in USD billions. Match that company to its ticker, then use SEC MIDAS daily security data to keep Stock rows dated in 2024 and report its mean reported trade volume, converting thousands of shares to millions of shares per day. Then report the central index key of the largest dividend payer under the same reading, its dividends and its repurchases in USD billions, and its 2024 mean daily stock volume on the same basis. Explain what the two companies together show about treating repurchasers and dividend payers as distinct groups, and what the trading-volume comparison can and cannot establish about payout policy.",
+          "validator": "validate_named_extremes",
+          "stores": [
+            "largest_repurchaser_cik",
+            "largest_repurchaser_buyback_usd_billions",
+            "largest_repurchaser_dividend_usd_billions",
+            "largest_repurchaser_mean_daily_volume_millions",
+            "largest_dividend_payer_cik",
+            "largest_dividend_payer_dividend_usd_billions",
+            "largest_dividend_payer_buyback_usd_billions",
+            "largest_dividend_payer_mean_daily_volume_millions"
+          ],
+          "claims": [
+            {
+              "id": "not_distinct_types_reasoning",
+              "description": "The response uses both companies' two payout amounts to assess whether repurchasers and dividend payers form distinct groups.",
+              "mode": "required"
+            },
+            {
+              "id": "market_context_boundary",
+              "description": "The response treats daily trading volume as liquidity context.",
+              "mode": "required"
+            },
+            {
+              "id": "volume_payout_relation_boundary",
+              "description": "If the response relates trading volume to payout policy, it states that the volume series explains no policy and establishes no causal relation.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen SEC company facts for 2024 annual reporting windows and the standardized financial statements",
+    "facts": [
+      "373 companies report positive net income for a full-year 2024 window. Their repurchases total 725.178604 billion USD. Within that population 177 use the common-stock dividend concept, 119 use the broader dividend concept and 4 use both.",
+      "Dividends total 286.700410 billion USD under the narrow concept alone and 552.370880 billion under the fallback rule, a difference of 265.670470 billion. Repurchases are 2.5294 times the first figure and 1.3128 times the second. 114 companies pay dividends under the fuller rule while reporting nothing under the narrow one.",
+      "Under the fuller rule the median payout ratio is 65.0342 percent and the median repurchase share of payout 37.4532 percent. 202 companies do both, 88 pay dividends only, 43 repurchase only and 40 do neither; 106 return more than their net income.",
+      "The largest repurchaser is central index key 320193 with 94.949000 billion USD of repurchases and 15.234000 billion of dividends against reported equity of 56.950000 billion, a payout of 193.4732 percent of equity. The largest dividend payer is 789019 with 21.771000 billion of dividends and 17.254000 billion of repurchases."
+    ],
+    "known_overclaims": [
+      "Measuring dividends from one concept and treating absences as companies that paid none.",
+      "Concluding that repurchases are two and a half times dividends without checking the second concept.",
+      "Describing repurchasers and dividend payers as separate kinds of company.",
+      "Reading a payout above book equity or above net income as a sign of distress."
+    ]
+  }
+}

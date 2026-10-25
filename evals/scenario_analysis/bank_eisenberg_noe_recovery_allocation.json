@@ -1,0 +1,98 @@
+{
+  "name": "bank_eisenberg_noe_recovery_allocation",
+  "module": "evals.scenario_analysis.bank_eisenberg_noe_recovery_allocation",
+  "task_family": "scenario_analysis",
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "data_sources": [
+    "fdic_bankfind",
+    "treasury_yield_curve"
+  ],
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Construct a hypothetical interbank settlement network for FDIC certificates 628, 3510 and 7213 using their 2023-12-31 BankFind total assets and total equity. Treat all funding other than reported total equity as nominal obligations. Of certificate 628's obligations, 12 percent is owed to 3510 and eight percent to 7213; for 3510, nine percent is owed to 628 and 21 percent to 7213; for 7213, 24 percent is owed to 628 and 16 percent to 3510. All remaining obligations are owed to outside creditors, who owe nothing back. There are no self-claims. Interbank claims are included in total assets at nominal face value; all remaining assets are external. Report each bank's external asset value and total obligations to outside creditors across the network. Carry the nominal network and external assets forward, and interpret the relationship between external and reported total assets, and discuss the evidentiary scope of this construction.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "external_assets_628_usd_bn",
+            "external_assets_3510_usd_bn",
+            "external_assets_7213_usd_bn",
+            "nominal_outside_liabilities_usd_bn"
+          ],
+          "claims": [
+            {
+              "id": "network_t1_interpretation",
+              "description": "The response explains that the reconstructed external asset values are below reported total assets because part of each bank's assets consists of claims on the other banks.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Use Treasury's ten-year par-yield change from 2021-12-31 to 2022-12-30 as a common shock to the carried external assets. Stipulate modified duration six years and a first-order duration price response with zero convexity for every external asset. Keep nominal obligations fixed. Under the Eisenberg-Noe proportional-clearing model with limited liability, absolute priority, equally ranked creditors and no bankruptcy costs or netting, report each bank's total creditor repayment fraction and aggregate nominal shortfall to outside creditors. Carry the stressed external assets and clearing state forward, and interpret the network recovery outcome.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "initial_recovery_628_pct",
+            "initial_recovery_3510_pct",
+            "initial_recovery_7213_pct",
+            "initial_outside_shortfall_usd_bn"
+          ],
+          "claims": [
+            {
+              "id": "network_t2_interpretation",
+              "description": "The response explains the different repayment outcomes, including full repayment at certificate 7213, through available external assets and interbank receipts.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Allocate a cash-grant budget equal to one percent of the three banks' combined original total assets. Grants are nonnegative, create no new liabilities and are fully distributed before settlement. With the carried stressed external assets and the same network and clearing model, choose grants to maximize the minimum total creditor repayment fraction across the three banks. Report the grant to each bank and the optimal minimum fraction. Carry the entire optimal grant allocation and recovery floor forward, and interpret the economic objective and the resulting allocation.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "injection_628_usd_bn",
+            "injection_3510_usd_bn",
+            "injection_7213_usd_bn",
+            "optimal_minimum_recovery_pct"
+          ],
+          "claims": [
+            {
+              "id": "network_t3_interpretation",
+              "description": "The response interprets the unequal grants as a max-min creditor-recovery allocation rather than an allocation proportional to bank size.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Freeze those grants. Apply an additional common proportional haircut, between zero and 50 percent inclusive, to the external assets remaining after the initial yield shock; grants and nominal obligations remain unchanged. Find the largest haircut for which every bank's recomputed creditor repayment fraction is at least 95 percent of the carried optimal minimum fraction. Report that haircut, the binding bank's certificate and total nominal shortfall to outside creditors at this boundary; break an exact binding-bank tie by ascending certificate string. Discuss what this funded stress capacity establishes and its material financial limitations.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "additional_haircut_pct",
+            "binding_certificate",
+            "terminal_outside_shortfall_usd_bn"
+          ],
+          "claims": [
+            {
+              "id": "network_t4_interpretation",
+              "description": "The response gives at least one material limitation of interpreting the funded stress boundary as a real bank resilience measure, such as stipulated bilateral exposures, equal creditor priority or uniform asset duration.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen governed dataset_new and explicitly stipulated named-model financial scenario.",
+    "facts": [
+      "{\"additional_haircut_pct\": 5.209195371529565, \"binding_certificate\": \"3510\", \"external_assets_3510_usd_bn\": 1925.13196, \"external_assets_628_usd_bn\": 2822.5505000000003, \"external_assets_7213_usd_bn\": 953.2211400000001, \"initial_outside_shortfall_usd_bn\": 118.11927066416465, \"initial_recovery_3510_pct\": 97.87453298168936, \"initial_recovery_628_pct\": 96.61477627782187, \"initial_recovery_7213_pct\": 100.0, \"injection_3510_usd_bn\": 12.106898116881865, \"injection_628_usd_bn\": 64.09262188311814, \"injection_7213_usd_bn\": 0.0, \"nominal_outside_liabilities_usd_bn\": 5002.4736, \"optimal_minimum_recovery_pct\": 98.74323730315895, \"terminal_outside_shortfall_usd_bn\": 287.53851339089647}",
+      "The response explains that the reconstructed external asset values are below reported total assets because part of each bank's assets consists of claims on the other banks.",
+      "The response explains the different repayment outcomes, including full repayment at certificate 7213, through available external assets and interbank receipts.",
+      "The response interprets the unequal grants as a max-min creditor-recovery allocation rather than an allocation proportional to bank size.",
+      "The response gives at least one material limitation of interpreting the funded stress boundary as a real bank resilience measure, such as stipulated bilateral exposures, equal creditor priority or uniform asset duration."
+    ],
+    "known_overclaims": [
+      "Presenting the hypothetical financial model as a causal finding, observed bilateral exposure or guaranteed forecast."
+    ]
+  }
+}

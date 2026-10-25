@@ -1,0 +1,95 @@
+{
+  "name": "fy2025_net_cost_budget_deficit_bridge",
+  "module": "evals.calculation_reconciliation.fy2025_net_cost_budget_deficit_bridge",
+  "task_family": "calculation_reconciliation",
+  "data_sources": [
+    "treasury_usfr_reconciliations",
+    "treasury_debt_to_penny"
+  ],
+  "difficulty": "hard",
+  "case_type": "trap",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Using the non-restated FY2025 U.S. Financial Report reconciliation published for 2025-09-30, reconcile signed net operating cost to the signed budget deficit. Report the starting net operating cost, the signed total for each intervening adjustment section in statement order, the calculated budget deficit, the reported budget deficit, and calculated minus reported. Carry the bridge forward and explain what the two endpoints measure differently.",
+          "validator": "validate_reconciliation_bridge",
+          "stores": [
+            "net_operating_cost_billion_usd",
+            "net_cost_excluded_components_billion_usd",
+            "budget_only_components_billion_usd",
+            "other_reconciling_items_billion_usd",
+            "calculated_budget_deficit_billion_usd",
+            "reported_budget_deficit_billion_usd",
+            "bridge_residual_billion_usd"
+          ],
+          "claims": [
+            {
+              "id": "accounting_basis_semantics",
+              "description": "The response distinguishes accrual-based federal net operating cost from the budget-basis deficit reconciled by the statement adjustments.",
+              "mode": "required"
+            },
+            {
+              "id": "statement_hierarchy_semantics",
+              "description": "If the response discusses line-item aggregation, it does not treat detail rows and their incorporating subtotals as independent adjustments.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Turn to Treasury Debt to the Penny and take the reported stocks dated 2024-09-30 and 2025-09-30 as the two fiscal-year-end endpoints, calculating every change as 2025-09-30 minus 2024-09-30. Report the changes in debt held by the public, intragovernmental holdings and total public debt outstanding, and the total change minus the two component changes. Carry these changes forward and explain what that last check establishes.",
+          "validator": "validate_debt_stocks",
+          "stores": [
+            "debt_held_by_public_change_billion_usd",
+            "intragovernmental_holdings_change_billion_usd",
+            "total_public_debt_change_billion_usd",
+            "debt_component_residual_billion_usd"
+          ],
+          "claims": [
+            {
+              "id": "debt_stock_identity_interpretation",
+              "description": "The response interprets the component check as an internal identity among the three Treasury stock series, separate from the comparison with the budget flow.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Report the total debt change minus the magnitude of the reported budget deficit you carried forward. Explain what this difference represents and what it does not.",
+          "validator": "validate_deficit_debt_link",
+          "stores": [
+            "total_debt_change_minus_deficit_magnitude_billion_usd"
+          ],
+          "claims": [
+            {
+              "id": "deficit_debt_measure_semantics",
+              "description": "The response characterizes the nonzero debt-change-minus-deficit amount as a descriptive stock-flow difference outside the zero-residual USFR accounting bridge.",
+              "mode": "required"
+            },
+            {
+              "id": "fiscal_inference_boundary",
+              "description": "If the response attributes the differences to a particular policy, agency, sustainability outcome or causal mechanism, it states that the two descriptive source tables alone do not establish that inference.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Treasury U.S. Financial Report FY2025 non-restated reconciliation and Debt to the Penny fiscal-year-end observations",
+    "facts": [
+      "The signed USFR bridge is -2,093.2 + 476.0 - 120.5 - 37.7 = -1,775.4 billion USD, matching the reported deficit with a zero residual.",
+      "Summing detail and subtotal rows together changes the section totals to 1,880.6, -241.0 and -75.4 billion USD, producing -529.0 billion and a +1,246.4 billion residual.",
+      "From 2024-09-30 to 2025-09-30, debt held by the public increases 1,970.4541 billion USD, intragovernmental holdings 202.4254 billion and total public debt 2,172.8796 billion; the debt-component residual rounds to zero.",
+      "Debt held by the public and total public debt increase by 195.1 billion and 397.5 billion more than the reported budget-deficit magnitude at the requested precision.",
+      "Using 2024-10-01 as the literal first day of FY2025 instead of the specified prior-year-end balance produces increases of 1,965.1374 billion USD for debt held by the public, 3.4687 billion for intragovernmental holdings and 1,968.6061 billion for total public debt.",
+      "Calendar-year endpoints instead produce increases of 2,009.7204 billion USD for debt held by the public and 2,295.4039 billion for total public debt."
+    ],
+    "known_overclaims": [
+      "Summing both detail rows and their subtotals as independent USFR adjustments.",
+      "Treating the budget deficit, debt held by the public change and total public debt change as interchangeable measures.",
+      "Using the descriptive differences alone to claim a specific policy cause or long-run fiscal condition."
+    ]
+  }
+}

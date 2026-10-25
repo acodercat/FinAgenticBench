@@ -1,0 +1,140 @@
+{
+  "name": "treasury_dns_inversion_forecast",
+  "module": "evals.temporal_path.treasury_dns_inversion_forecast",
+  "task_family": "temporal_path",
+  "data_sources": [
+    "treasury_yield_curve",
+    "nyfed_reference_rates"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Using dates observed in both the daily Treasury curve and the New York Fed SOFR series, select the date with the lowest reported 10-year-minus-2-year Treasury par-yield spread, breaking an exact tie by the earlier date. Report the eligible common-date count, selected date, its 2-year and 10-year yields, and SOFR. Carry the date forward and interpret the relationship between the two selected measures and its material limits.",
+          "validator": "validate_inversion_selection",
+          "stores": [
+            "common_date_count",
+            "selected_inversion_date",
+            "selected_two_year_yield_pct",
+            "selected_ten_year_yield_pct",
+            "selected_sofr_pct"
+          ],
+          "claims": [
+            {
+              "id": "curve_funding_configuration_meaning",
+              "description": "The response uses the signed outputs to explain how the selected negative term spread and positive SOFR-minus-10-year gap jointly locate overnight funding above the long yield while the 10-year yield is below the 2-year yield.",
+              "mode": "required"
+            },
+            {
+              "id": "inversion_prediction_overclaim",
+              "description": "If the response treats the selected inversion as deterministic proof of a later recession or bond return, it states that the snapshot alone does not establish that outcome.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Take the 252 Treasury curve observations ending on that selected date. At each date, linearly interpolate the reported 6-month, 1-, 2-, 3-, 5-, 7-, 10-, 20- and 30-year par yields onto the regular half-year grid through 30 years, sequentially bootstrap par instruments, and convert the resulting discount factors to continuously compounded zero yields. Estimate a Diebold-Li dynamic Nelson-Siegel panel with one shared positive decay parameter in [0.01, 5.00] per year and date-specific level, slope and curvature factors by global least squares, choosing the lower decay if an exact objective tie occurs. Report the window boundaries and count, fitted decay, panel zero-yield RMSE, the loading matrix's spectral (2-norm) condition number, and maximum bootstrap par-repricing residual. Carry the decay, loadings and factor history forward, and interpret the curve-fit and numerical diagnostics and the analytical status of the constructed curve.",
+          "validator": "validate_dns_panel_fit",
+          "stores": [
+            "dns_training_start_date",
+            "dns_training_end_date",
+            "dns_training_observation_count",
+            "dns_decay_lambda_per_year",
+            "dns_panel_rmse_pp",
+            "dns_loading_condition_number",
+            "maximum_bootstrap_repricing_residual_per100"
+          ],
+          "claims": [
+            {
+              "id": "dns_fit_error_meaning",
+              "description": "The response explains that the panel RMSE measures approximation error between the bootstrapped zero-yield panel and its three-factor representation.",
+              "mode": "required"
+            },
+            {
+              "id": "dns_conditioning_meaning",
+              "description": "The response distinguishes the loading condition number as a sensitivity or identification diagnostic rather than another measure of curve fit.",
+              "mode": "required"
+            },
+            {
+              "id": "dns_production_curve_overclaim",
+              "description": "If the response calls the fitted object Treasury's production zero curve, it states that the requested interpolation, bootstrap and factor fit define a benchmark construction instead.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Using the carried decay and selected-date factor vector, report the level, slope and curvature factors and the fitted continuous zero yields at 2, 10 and 30 years. From the same Nelson-Siegel curve, evaluate the instantaneous forward curve on the 0.25-year grid from 0.25 through 30 years and report its minimum maturity and rate, breaking an exact rate tie by the shorter maturity. Also report the maximum absolute unscaled OLS normal-equation moment max|X' residual| for the selected-date cross-section. Explain what the fitted factor values imply for the curve's shape at short, middle and long maturities, and what the forward low point does not prove.",
+          "validator": "validate_dns_selected_curve",
+          "stores": [
+            "selected_dns_level_pct",
+            "selected_dns_slope_pct",
+            "selected_dns_curvature_pct",
+            "selected_dns_fitted_two_year_pct",
+            "selected_dns_fitted_ten_year_pct",
+            "selected_dns_fitted_thirty_year_pct",
+            "selected_dns_minimum_forward_maturity_years",
+            "selected_dns_minimum_forward_rate_pct",
+            "selected_dns_maximum_ols_moment"
+          ],
+          "claims": [
+            {
+              "id": "dns_factor_shape_interpretation",
+              "description": "The response uses the selected factor signs and Nelson-Siegel loadings to explain the high fitted short end and depressed intermediate segment relative to the long-run level.",
+              "mode": "required"
+            },
+            {
+              "id": "forward_arbitrage_overclaim",
+              "description": "If the response labels the fitted forward-curve extremum a tradable arbitrage, it states that a fitted analytical forward shape alone does not establish executable arbitrage.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Estimate a full intercept-bearing VAR(1) on the carried 252-date DNS factor history and make a one-step factor forecast for the next available Treasury curve date. Report that date, the three forecast factors and the transition matrix's spectral radius. Reconstruct the forecast curve using the carried decay and compare its half-year-grid RMSE against the observed bootstrapped zero curve with the RMSE from a factor random-walk forecast; report both RMSEs and whether the VAR is lower. Interpret this single forecast comparison and its material coverage limits.",
+          "validator": "validate_dns_forecast",
+          "stores": [
+            "dns_next_curve_date",
+            "dns_forecast_level_pct",
+            "dns_forecast_slope_pct",
+            "dns_forecast_curvature_pct",
+            "dns_var_spectral_radius",
+            "dns_forecast_curve_rmse_pp",
+            "dns_random_walk_curve_rmse_pp",
+            "dns_forecast_beats_random_walk"
+          ],
+          "claims": [
+            {
+              "id": "single_forecast_scope",
+              "description": "The response treats the one-date comparison as a realized diagnostic rather than broad evidence of forecasting superiority.",
+              "mode": "required"
+            },
+            {
+              "id": "var_causality_overclaim",
+              "description": "If the response assigns a causal economic interpretation to the VAR coefficients, it states that the fitted time-series relation does not establish causality.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "The reference recomputes the common-date inversion selection, 252-curve bootstrap, shared-decay Diebold-Li panel fit, selected-date forward curve and full VAR(1) one-step comparison from the two governed sources. It treats bootstrap repricing and OLS moments as numerical diagnostics and does not infer causality, arbitrage or general forecast dominance from the selected episode.",
+    "facts": [
+      "Across 1,247 common Treasury/SOFR dates the most negative ten-year-minus-two-year spread is 2023-07-03 at -1.08 percentage points, with the two-year at 4.94 percent, the ten-year at 3.86 and SOFR at 5.06.",
+      "The shared Diebold-Li decay estimated by panel least squares over 252 trailing curves is 0.39049 per year, with a panel root-mean-square fitting error of 0.0939 percentage points, a loading condition number of 18.3813 and a maximum bootstrap repricing residual of zero at the scored precision.",
+      "On the selected date the fitted level, slope and curvature are 3.9642, 2.0719 and -2.5441 percent; the fitted two-, ten- and thirty-year yields are 4.8015, 3.8969 and 3.9239 percent, and the maximum conditional OLS moment is zero at the scored precision.",
+      "The implied forward curve reaches its minimum of 3.54998 percent at 4.75 years.",
+      "The VAR(1) forecast for 2023-07-05 has a spectral radius of 0.9848 and beats a factor random walk on curve error, 0.1152 against 0.1193 percentage points, an improvement of 0.004089."
+    ],
+    "known_overclaims": [
+      "Presenting the fitted curve as a no-arbitrage production curve; it is a retrospective analytical benchmark.",
+      "Reading the forecast improvement as evidence that inversion predicts returns.",
+      "Treating a spectral radius of 0.9848 as established stability; it is close to the unit circle on 252 observations.",
+      "Carrying rounded intermediate factors into the forecast comparison, when the pinned figures retain full precision."
+    ]
+  }
+}

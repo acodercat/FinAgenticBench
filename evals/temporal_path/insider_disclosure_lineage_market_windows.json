@@ -1,0 +1,122 @@
+{
+  "name": "insider_disclosure_lineage_market_windows",
+  "module": "evals.temporal_path.insider_disclosure_lineage_market_windows",
+  "task_family": "temporal_path",
+  "data_sources": [
+    "sec_insider",
+    "sec_midas_security_exchange"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Use the supplied SEC insider filings with document type exactly Form 4 filed during calendar 2024. Eligible entries are non-derivative sales coded S and disposed D, dated during calendar 2024, with positive reported shares and price per share. Among filings with a reported trading symbol and at least one eligible entry whose filing date is seven or more calendar days after its transaction date, select the filing with the largest aggregate reported value of all its eligible sale entries; break ties by accession ascending. Report its accession, aggregate sale value and largest calendar-day interval. Explain what the summed dollar figure does and does not tell you about the seller's take, and what the day gap alone can support.",
+          "stores": [
+            "selected_accession",
+            "sale_amount_usd",
+            "maximum_lag_days"
+          ],
+          "validator": "validate_sale_filing_selection",
+          "claims": [
+            {
+              "id": "reported_sale_measure",
+              "description": "The response distinguishes gross reported transaction value from the reporting owner’s gain or net cash proceeds.",
+              "mode": "required"
+            },
+            {
+              "id": "legal_delay_overclaim",
+              "description": "If a legal late-filing conclusion is asserted, the response supplies the applicable legal timing analysis rather than treating the calendar interval alone as sufficient.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "For that filing, take the eligible sale entries having the largest interval as a block. Search the supplied original Form 4 filings filed no later than 2024-12-31 for the earliest filing containing a matching block, breaking filing-date ties by accession ascending. A match requires the same issuer CIK, the same set of reporting-owner CIKs, and equality of transaction date, transaction code, acquisition/disposition indicator, security title, shares, price per share, post-transaction holdings and direct/indirect ownership for every entry in the block; retain repeated-entry multiplicity. Additional entries in the matching filing are permitted. Report the matching accession and filing date. Explain what finding another filing carrying the same entry details establishes about the reporting history of those facts, and what it leaves unresolved.",
+          "stores": [
+            "matched_accession",
+            "matched_filing_date"
+          ],
+          "validator": "validate_disclosure_lineage",
+          "claims": [
+            {
+              "id": "earlier_matching_disclosure",
+              "description": "The response recognizes that the chosen record repeats facts already present in the supplied archive.",
+              "mode": "required"
+            },
+            {
+              "id": "global_first_or_event_identity",
+              "description": "If global first publication or unique economic-trade identity is asserted, the response provides evidence beyond equality of the specified frozen-record fields.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Use the selected issuer's reported trading symbol and the MIDAS Stock observations available through 2024-12-31. For each of the matched filing and the originally selected filing, define the analysis availability date as the first observed trading date strictly after its filing date. A pre-window consists of the ten observed dates immediately before availability; a post-window starts on availability and includes the next nine observed dates. Report both availability dates, each window's available observation count capped at ten, and for each filing whether the full ten-before/ten-after pair is available. Assess the suitability of these windows for a complete before/after comparison.",
+          "stores": [
+            "matched_usable_date",
+            "matched_pre_days",
+            "matched_post_days",
+            "matched_complete_window",
+            "selected_usable_date",
+            "selected_pre_days",
+            "selected_post_days",
+            "selected_complete_window"
+          ],
+          "validator": "validate_market_window_coverage",
+          "claims": [
+            {
+              "id": "early_window_coverage",
+              "description": "The response recognizes that left-edge data coverage prevents estimating the planned balanced comparison for the earlier clock.",
+              "mode": "required"
+            },
+            {
+              "id": "availability_timestamp",
+              "description": "If actual intraday public availability is asserted, the response distinguishes the assumed next-observed-day clock from a verified release timestamp.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "For each of those two post-windows, report mean daily on-exchange share volume and the window-wide hidden-volume percentage under the MIDAS measure's applicable trading-volume denominator. Interpret the comparison of market activity and its evidentiary scope. Use every observed date in the established post-window and retain input precision until the final outputs.",
+          "stores": [
+            "matched_post_mean_shares",
+            "matched_post_hidden_pct",
+            "selected_post_mean_shares",
+            "selected_post_hidden_pct"
+          ],
+          "validator": "validate_post_window_activity",
+          "claims": [
+            {
+              "id": "market_scope",
+              "description": "The response gives at least one material limitation of interpreting these market-activity windows, such as venue coverage, information already disclosed, or lack of a causal counterfactual.",
+              "mode": "required"
+            },
+            {
+              "id": "return_or_causal_assertion",
+              "description": "If a return, trading-profit or causal disclosure effect is asserted, the response supplies evidence beyond the supplied trading-volume aggregates.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen SEC Forms 4 and SEC MIDAS daily security-level market activity through 2024-12-31",
+    "facts": [
+      "The selected filing is accession 0001883850-24-000012, with 15,163,200.00 USD aggregate eligible sale value and a maximum transaction-to-filing interval of 120 calendar days.",
+      "Accession 0001883850-24-000007, filed 2024-01-04, is the earliest original Form 4 in the supplied universe containing the specified matching sale block for the same issuer and reporting-owner set.",
+      "The matched and selected filing clocks map to 2024-01-05 and 2024-05-02. Their pre/post counts are 3/10 and 10/10, so only the selected-filing clock has a complete ten-before/ten-after pair.",
+      "The two post-windows have mean daily on-exchange volume of 238,754.5 and 216,937.6 shares and hidden-volume shares of 47.6949 and 51.7716 percent on the MIDAS applicable denominator."
+    ],
+    "known_overclaims": [
+      "Calling the 120-day interval a legal late filing without analyzing applicable filing obligations.",
+      "Treating the later matching filing as a new-information event without considering the earlier supplied matching record.",
+      "Computing a complete ten-day pre/post statistic for the earlier clock despite only three available pre-window observations.",
+      "Dividing hidden volume by all trade volume, averaging daily ratios, or inferring returns, profit or a causal disclosure response from volume aggregates."
+    ]
+  }
+}

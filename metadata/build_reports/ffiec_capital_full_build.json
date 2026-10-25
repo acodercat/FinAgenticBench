@@ -1,0 +1,50 @@
+{
+  "built_at": "2026-08-27T13:09:16.436148+00:00",
+  "bank_capital": {
+    "file": "ffiec_call_reports/bank_capital.csv.gz",
+    "rows": 31763,
+    "columns": [
+      "bank_id",
+      "report_date",
+      "bank_name",
+      "bank_state",
+      "filing_type",
+      "last_submission_update",
+      "standardized_risk_weighted_assets_thousand_usd",
+      "advanced_risk_weighted_assets_thousand_usd",
+      "common_equity_tier1_capital_thousand_usd",
+      "reported_standardized_cet1_ratio_pct",
+      "reported_advanced_cet1_ratio_pct",
+      "reported_tier1_leverage_ratio_pct",
+      "reported_supplementary_leverage_ratio_pct",
+      "cblr_election",
+      "capital_reporting_basis"
+    ],
+    "standardized_rwa_coverage": 0.6239020243679754
+  },
+  "bank_balance_sheets": {
+    "file": "ffiec_call_reports/bank_balance_sheets.csv.gz",
+    "rows": 31763,
+    "columns": [
+      "bank_rssd_id",
+      "report_date",
+      "fdic_certificate",
+      "bank_legal_name",
+      "bank_state",
+      "filing_type",
+      "last_submission_update",
+      "consolidated_total_assets_thousand_usd",
+      "domestic_office_total_assets_thousand_usd",
+      "consolidated_total_liabilities_thousand_usd",
+      "domestic_office_total_liabilities_thousand_usd",
+      "consolidated_total_equity_thousand_usd",
+      "domestic_office_total_equity_thousand_usd",
+      "source_archive",
+      "total_assets_thousand_usd",
+      "total_liabilities_thousand_usd",
+      "total_equity_thousand_usd",
+      "balance_reporting_basis"
+    ],
+    "total_assets_coverage": 1.0
+  }
+}

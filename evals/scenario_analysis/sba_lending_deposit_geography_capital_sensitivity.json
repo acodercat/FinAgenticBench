@@ -1,0 +1,87 @@
+{
+  "name": "sba_lending_deposit_geography_capital_sensitivity",
+  "module": "evals.scenario_analysis.sba_lending_deposit_geography_capital_sensitivity",
+  "task_family": "scenario_analysis",
+  "data_sources": ["sba_7a", "fdic_sod", "bls_qcew", "ffiec_call_reports_balance"],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [{
+    "id": "main",
+    "turns": [
+      {
+        "query": "Compare FY2024 SBA 7(a) lending geography with the same insured bank's 2025-06-30 Summary of Deposits geography across the 50 states and District of Columbia. Preserve every reported SBA row, use the canonical unpadded FDIC certificate to match lenders, and use SOD's state-abbreviation-to-state-FIPS correspondence for the 51-jurisdiction QCEW bridge. Retain lenders present in both sources with at least 500 FY2024 SBA rows. Within each lender form approval-dollar and branch-deposit-dollar state distributions, calculate total-variation distance as one half of the sum of absolute share differences, and rank descending with lender name and FDIC certificate ascending as tie-breakers. Define distribution overlap as the jurisdiction-wise sum of the smaller approval and deposit shares, equivalently one minus TVD. Report the eligible-lender count; leader name and certificate; its SBA row count, gross approvals, deposits, positive-approval and positive-deposit jurisdiction counts, TVD, distribution overlap, and TVD margin over the runner-up. Explain what the computed distance says about where this lender books loans versus where it gathers money, and what it cannot be stretched to show.",
+        "validator": "validate_geography_screen",
+        "stores": ["eligible_sba_sod_lender_count", "geography_mismatch_leader_bank_name", "geography_mismatch_leader_fdic_certificate", "leader_fy2024_sba_row_count", "leader_fy2024_gross_approval_usd_billions", "leader_sod_deposits_usd_billions", "leader_sba_approval_jurisdiction_count", "leader_sod_deposit_jurisdiction_count", "leader_geography_tvd_pct", "leader_geography_overlap_pct", "tvd_leader_margin_pp"],
+        "claims": [
+          {
+            "id": "approval_deposit_distribution_distinction",
+            "description": "The response uses the computed TVD and overlap to characterize the selected lender's project-state approval and branch-location deposit share mass as nearly disjoint.",
+            "mode": "required"
+          },
+          {
+            "id": "loan_depositor_tracing_boundary",
+            "description": "If the response claims that the two state distributions trace particular SBA loans to particular depositors, it qualifies that claim because the aggregate source tables contain no loan-to-depositor linkage.",
+            "mode": "conditional"
+          },
+          {
+            "id": "funding_liquidity_boundary",
+            "description": "If the response calls the geographic TVD a funding-liquidity mismatch measure, it qualifies that interpretation because branch-location deposits and project-state approvals do not measure the bank's full funding or liquidity position.",
+            "mode": "conditional"
+          }
+        ]
+      },
+      {
+        "query": "For that selected lender, identify its largest-approval jurisdiction and report its approvals, approval share, deposits and deposit share. Separately identify its largest-deposit jurisdiction and report its deposits, deposit share, approvals and approval share. Break any state-level tie by USPS abbreviation ascending. Explain which side of the two distributions drives the turn-1 distance result.",
+        "validator": "validate_geography_decomposition",
+        "stores": ["leader_largest_approval_state", "largest_approval_state_approval_usd_billions", "largest_approval_state_approval_share_pct", "largest_approval_state_deposits_usd_billions", "largest_approval_state_deposit_share_pct", "leader_largest_deposit_state", "largest_deposit_state_deposits_usd_billions", "largest_deposit_state_deposit_share_pct", "largest_deposit_state_approval_usd_billions", "largest_deposit_state_approval_share_pct"],
+        "claims": [{
+          "id": "distribution_support_result",
+          "description": "The response uses the selected state decomposition to show that the deposit distribution is geographically concentrated while the SBA approval distribution is broad, rather than attributing the high distance to a small rounding residual.",
+          "mode": "required"
+        }]
+      },
+      {
+        "query": "Overlay the preliminary retrospective 2025 QCEW private-employment vintage. For every one of the 51 jurisdictions, calculate 2024-to-2025 growth from annual-average employment levels and define the negative-growth set from the unrounded level calculation. Report the matched-jurisdiction count and negative-growth count. For the selected lender, report within that set the SBA row count, gross approvals, share of all its FY2024 approvals, gross approvals minus SBA-guaranteed approvals, SOD deposits and share of all its deposits. Also report the negative-growth jurisdiction with its largest approval dollars and that jurisdiction's calculated employment growth, breaking an approval tie by USPS abbreviation. Explain the grain and vintage limits of this macro overlay.",
+        "validator": "validate_employment_overlay",
+        "stores": ["matched_qcew_jurisdiction_count", "negative_private_employment_jurisdiction_count", "leader_negative_employment_state_sba_row_count", "leader_negative_employment_state_gross_approval_usd_billions", "leader_negative_employment_state_approval_share_pct", "leader_negative_employment_state_unguaranteed_approval_usd_billions", "leader_negative_employment_state_deposits_usd_billions", "leader_negative_employment_state_deposit_share_pct", "largest_negative_state_approval_state", "largest_negative_state_private_employment_growth_pct"],
+        "claims": [{
+          "id": "state_macro_loan_grain_boundary",
+          "description": "The response treats annual state private-employment growth as a jurisdiction-level retrospective screen and not as the economic path of each loan, borrower, branch or approval during its origination year.",
+          "mode": "required"
+        }]
+      },
+      {
+        "query": "Match the selected FDIC certificate to the 2024-12-31 Call Report and report the match count, RSSD ID, legal name and domestic-office total equity. Then run a sensitivity: assume a loss equal to 10% of the prior turn's gross-minus-guaranteed FY2024 approvals in negative-employment jurisdictions, hold everything else fixed, and report the loss, pro forma domestic-office equity, and loss as a percentage of reported equity. Explain what this calculation does and does not establish about the bank's credit loss and capital position.",
+        "validator": "validate_equity_sensitivity",
+        "stores": ["selected_bank_call_report_match_count", "selected_bank_rssd_id", "selected_bank_call_report_legal_name", "selected_bank_domestic_equity_usd_billions", "hypothetical_sba_loss_usd_billions", "hypothetical_pro_forma_equity_usd_billions", "hypothetical_equity_reduction_pct"],
+        "claims": [
+          {
+            "id": "approval_flow_equity_scenario_boundary",
+            "description": "The response characterizes the final calculation as a static assumption applied to approval flow against reported domestic-office equity and recognizes that approval flow is not retained exposure or realized loss.",
+            "mode": "required"
+          },
+          {
+            "id": "employment_credit_causality_boundary",
+            "description": "If the response attributes losses or borrower performance to the state employment screen, it qualifies that inference because the aggregate retrospective association does not establish a loan-level causal effect.",
+            "mode": "conditional"
+          }
+        ]
+      }
+    ]
+  }],
+  "judge_reference": {
+    "source": "Frozen SBA 7(a), 2025 SOD, preliminary retrospective QCEW and 2024-12-31 Call Report tables",
+    "facts": [
+      "Nineteen lenders qualify. Northeast Bank (FDIC 19690) has 2,552 SBA rows, 0.289033 billion USD approvals, 3.405883 billion USD deposits and 99.7440% TVD, 0.5975 point above the runner-up.",
+      "California has the largest approval amount and Maine has all reported branch deposits. Maine represents 100% of deposits but only 0.2560% of approvals.",
+      "Thirteen jurisdictions have negative calculated private-employment growth. They contain 738 Northeast SBA rows, 0.088294 billion USD approvals, 30.5479% of its approvals, 0.017450 billion USD unguaranteed approvals, and no reported SOD deposits.",
+      "The Call Report match is RSSD 468806, NORTHEAST BANK, with 0.444101 billion USD domestic-office equity. The 10% sensitivity loss is 0.001745 billion, reducing pro forma equity to 0.442356 billion, or 0.3929%."
+    ],
+    "known_overclaims": [
+      "Treating branch deposit geography as the actual funding source for specific SBA loans.",
+      "Treating state employment growth as a borrower-level condition or causal driver.",
+      "Treating FY2024 approvals as year-end retained credit exposure.",
+      "Calling the mechanical loss an observed loss or regulatory-capital calculation."
+    ]
+  }
+}

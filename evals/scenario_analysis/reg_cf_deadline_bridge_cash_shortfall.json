@@ -1,0 +1,113 @@
+{
+  "name": "reg_cf_deadline_bridge_cash_shortfall",
+  "module": "evals.scenario_analysis.reg_cf_deadline_bridge_cash_shortfall",
+  "task_family": "scenario_analysis",
+  "data_sources": [
+    "sec_form_c",
+    "nyfed_reference_rates"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "For Aquipor Technologies, Inc. (CIK 0001765489), compare Form C/A accessions 0001665160-25-000665 and 0001665160-25-001224 for the same Regulation Crowdfunding offering. Report the earlier and revised offering deadlines, and from the June 18, 2025 amendment report the target and maximum offering amounts, most-recent-fiscal-year cash and equivalents, and short-term debt. Explain what the cash and short-term debt figures pulled from this amendment actually tell you about the company's position on the day it was filed.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "prior_deadline",
+            "revised_deadline",
+            "reported_cash_usd",
+            "reported_short_debt_usd",
+            "target_offering_usd",
+            "maximum_offering_usd"
+          ],
+          "claims": [
+            {
+              "id": "filing_stock_scope",
+              "description": "The response identifies disclosed most-recent-fiscal-year cash and debt as historical filing figures, not verified June 18 cash and debt balances.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Use the carried June 18 amendment's reported cash and short-term debt as hypothetical opening June 18 balances. From June 18 onward, assume daily net operating cash use of USD3,000, including both June 18 and the applicable deadline. The short debt stays outstanding at SOFR plus 300 basis points, simple ACT/360. At each calendar day's 9 a.m. New York reset, use the latest SOFR fixing already published; an effective-date fixing becomes available on its next SOFR publication day, and the latest available rate carries over nonpublication days. Interest and principal are due on the applicable deadline whether or not the offering closes. Assume the prior amendment's deadline had remained in force and no new funds were received. Calculate cash immediately after paying the short debt on that prior deadline. Say what the cash left on that earlier date shows about covering the burn and the loan, given the branch's assumptions.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "prior_close_cash_usd"
+          ],
+          "claims": [
+            {
+              "id": "prior_liquidity",
+              "description": "The response interprets the calculated prior-date cash position as a hypothetical ability to meet the stipulated operating use and debt payment, without claiming an actual offering close.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Now carry the same opening state to the revised deadline, with the same daily operating use. Assume investor subscriptions cannot be used before a successful closing on that deadline; no earlier closing, cash inflow or bridge funding occurs in this branch. Report the operating cash deficit immediately before subscriptions become available and the first date operating cash turns negative. Explain how the money expected at closing lines up in time with the gap that opens before it, for this branch.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "preclose_shortfall_usd",
+            "first_negative_cash_date"
+          ],
+          "claims": [
+            {
+              "id": "escrow_timing",
+              "description": "The response explains that a prospective closing subscription cannot fund the calculated pre-closing operating shortfall.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "For the revised-deadline branch, arrange one bridge draw before August 31 operating cash use, its principal being the pre-closing operating deficit carried from the previous turn. Charge the bridge SOFR under the carried 9 a.m. published-fixing reset convention plus 500 basis points, simple ACT/360, August 31 through the closing day inclusive; pay its principal and interest at close along with the original short debt and interest. Assume subscription funds become available at close, a 10% cash intermediary fee on the gross subscription, no other fees, and a USD50,000 post-close cash reserve. The offered common shares cost USD2.93 each and subscriptions are in whole shares; the disclosed target must be reached and maximum cannot be exceeded. Report the minimum feasible gross subscription share count. Interpret the relation between the filing's target and this funding plan.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "minimum_subscription_shares"
+          ],
+          "claims": [
+            {
+              "id": "target_vs_required",
+              "description": "The response distinguishes the filing's subscription target from the calculated amount required to repay obligations and leave the stated cash reserve.",
+              "mode": "required"
+            },
+            {
+              "id": "financing_scope",
+              "description": "If the response asserts that the bridge or subscription was actually funded, it identifies that statement as hypothetical rather than a reported transaction.",
+              "mode": "conditional"
+            }
+          ]
+        },
+        {
+          "query": "Return to the same June 18 opening state and revised closing date. Starting September 1, increase daily operating cash use by 15% from the earlier plan, including September 1 and October 16; keep the August 31 bridge timing, debt terms, share price, subscription terms and post-close reserve unchanged. Report the revised minimum bridge principal and minimum feasible gross subscription share count. Assess whether the previous subscription plan still meets the reserve.",
+          "validator": "validate_turn_5",
+          "stores": [
+            "stressed_bridge_usd",
+            "stressed_subscription_shares"
+          ],
+          "claims": [
+            {
+              "id": "stressed_funding",
+              "description": "The response concludes from the calculations that the original share commitment fails the changed cash constraint, including the extra bridge carry.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Aquipor's two 2025 SEC Form C/A filings and governed New York Fed SOFR fixings used after morning publication; all forward operating burn, loan terms and exact cash intermediary fee are stipulated scenario assumptions.",
+    "facts": [
+      "The June amendment extends the offering deadline and reports a target, maximum, fiscal-year-end cash and short-term debt.",
+      "The SEC primary document identifies common stock at USD2.93 per share, accepts oversubscriptions subject to issuer allocation, and discloses a 7%-13% cash intermediary fee range; 10% is a scenario point within that range.",
+      "The cash-flow scenario separates pre-closing liquidity from money released on successful closing, with a whole-share subscription boundary."
+    ],
+    "known_overclaims": [
+      "Equating net loss with cash burn or fiscal-year-end cash with an observed June 18 balance.",
+      "Treating the target or maximum as cash already received, or treating commitments as usable before the specified successful closing.",
+      "Ignoring bridge interest, the cash fee or whole-share subscription units; claiming an actual financing transaction or future outcome."
+    ]
+  }
+}

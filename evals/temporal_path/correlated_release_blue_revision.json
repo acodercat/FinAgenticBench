@@ -1,0 +1,161 @@
+{
+  "name": "correlated_release_blue_revision",
+  "module": "evals.temporal_path.correlated_release_blue_revision",
+  "task_family": "temporal_path",
+  "data_sources": [
+    "philadelphia_fed_rtdsm",
+    "fed_z1_vintages"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "In the Philadelphia Fed real-time data, take the real-GDP annualized-percent series through 2020:Q4 and keep quarters that have first, second, third, and most-recent values. Treat the first three releases as three correlated additive measurements of one latent terminal value. Estimate each release's measurement-error bias as its release value minus most recent, and estimate the 3-by-3 sample error covariance with the usual n-minus-one denominator. Report the complete-quarter count, three error means, three error correlations, and covariance-matrix 2-norm condition number. Explain how estimated dependence affects the information gained from combining releases, discuss the evidentiary status of the most-recent value as the calibration target, and carry the fitted error model forward.",
+          "validator": "validate_gdp_error_model",
+          "stores": [
+            "gdp_training_quarter_count",
+            "gdp_first_release_error_mean_pp",
+            "gdp_second_release_error_mean_pp",
+            "gdp_third_release_error_mean_pp",
+            "gdp_first_second_error_correlation",
+            "gdp_first_third_error_correlation",
+            "gdp_second_third_error_correlation",
+            "gdp_error_covariance_condition_number"
+          ],
+          "claims": [
+            {
+              "id": "correlated_measurement_boundary",
+              "description": "The response explains that estimated cross-release error dependence means the releases do not contribute independent information, so a diagonal model can overstate information gain.",
+              "mode": "required"
+            },
+            {
+              "id": "terminal_proxy_boundary",
+              "description": "The response identifies most recent as the frozen terminal proxy used for calibration, not unknowable economic truth.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Using the carried bias vector, fit two minimum-variance linear unbiased estimators: one with the full covariance matrix and one with only its diagonal. Do not impose nonnegative weights. Evaluate both against most-recent values over the 12 complete quarters from 2021:Q1 through 2023:Q4, select the architecture with lower RMSE, and choose full covariance on an exact tie. Report validation count, both RMSEs, and the selected architecture. Using that selected architecture, for 2024:Q2 report the three GLS/BLUE weights, absolute weight-sum residual, estimate, correlated-measurement standard error, most-recent value, and third-release-minus-most-recent error. Interpret the fitted weighting pattern and the fitted standard error relative to the frozen most-recent realization, then carry the selected covariance architecture forward as the governed model choice.",
+          "validator": "validate_gdp_blue",
+          "stores": [
+            "gdp_validation_quarter_count",
+            "gdp_full_covariance_validation_rmse_pp",
+            "gdp_diagonal_covariance_validation_rmse_pp",
+            "gdp_selected_covariance_model",
+            "gdp_blue_first_weight",
+            "gdp_blue_second_weight",
+            "gdp_blue_third_weight",
+            "gdp_blue_weight_sum_residual",
+            "gdp_blue_estimate_pct",
+            "gdp_blue_standard_error_pp",
+            "gdp_most_recent_pct",
+            "gdp_third_release_error_pp"
+          ],
+          "claims": [
+            {
+              "id": "blue_derivation",
+              "description": "The response derives covariance-aware BLUE weights that sum to one after bias correction rather than averaging releases.",
+              "mode": "required"
+            },
+            {
+              "id": "blue_uncertainty_scope",
+              "description": "The response distinguishes model-implied measurement standard error from guaranteed coverage of one realized revision path.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Test whether the covariance architecture selected in turn 2 transfers to a multiplicative correlated-measurement model for Financial Accounts household and nonprofit net worth, series FL152090005.Q in table b101. The seven vintage dates in ascending order are the release stages. Use the 31 complete positive quarters from 2015-Q1 through 2022-Q3 to fit log measurement errors for the first three vintages relative to the seventh-vintage value. Evaluate both the transferred architecture and its full-versus-diagonal alternative on the four complete quarters from 2022-Q4 through 2023-Q3, using terminal-log-error RMSE in basis points; select the lower-RMSE Z.1 architecture and choose the transferred architecture on an exact tie. Report training and validation counts, transferred architecture, its RMSE, alternative RMSE, Z.1-selected architecture, and whether it agrees with the GDP selection. Then report the training mean log errors in basis points, three error correlations, selected-architecture unconstrained log-BLUE weights, and log-estimator standard error in basis points. Explain the role of the log specification for this positive level and interpret the fitted weights and the cross-system model-selection evidence.",
+          "validator": "validate_z1_error_model",
+          "stores": [
+            "z1_training_quarter_count",
+            "z1_validation_quarter_count",
+            "z1_transferred_covariance_model",
+            "z1_transferred_model_validation_rmse_bp",
+            "z1_alternative_model_validation_rmse_bp",
+            "z1_selected_covariance_model",
+            "z1_selection_agrees_with_gdp",
+            "z1_first_vintage_log_error_mean_bp",
+            "z1_second_vintage_log_error_mean_bp",
+            "z1_third_vintage_log_error_mean_bp",
+            "z1_first_second_error_correlation",
+            "z1_first_third_error_correlation",
+            "z1_second_third_error_correlation",
+            "z1_blue_first_weight",
+            "z1_blue_second_weight",
+            "z1_blue_third_weight",
+            "z1_blue_log_standard_error_bp"
+          ],
+          "claims": [
+            {
+              "id": "multiplicative_error_theory",
+              "description": "The response explains that log errors express revisions proportionally and exponentiation returns a positive level estimate.",
+              "mode": "required"
+            },
+            {
+              "id": "weight_interpretation_boundary",
+              "description": "The response explains that BLUE weights are statistical coefficients determined by the selected error-covariance architecture rather than portfolio positions or economic shares.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Apply the carried log-error model to the 2023-Q4 net-worth readings. Report its first-, second-, and third-vintage levels; the exponentiated bias-corrected log-BLUE terminal estimate; and the endpoints obtained by adding and subtracting 1.96 fitted log standard errors before exponentiation. Then report the seventh-vintage level and third-minus-seventh error, all levels in millions of USD. Interpret the retrospective comparison and discuss the evidentiary limits of both the seventh-vintage calibration target and the fitted interval.",
+          "validator": "validate_z1_blue",
+          "stores": [
+            "z1_target_first_vintage_usd_millions",
+            "z1_target_second_vintage_usd_millions",
+            "z1_target_third_vintage_usd_millions",
+            "z1_blue_terminal_estimate_usd_millions",
+            "z1_blue_lower_95_usd_millions",
+            "z1_blue_upper_95_usd_millions",
+            "z1_newest_vintage_usd_millions",
+            "z1_third_vintage_error_usd_millions"
+          ],
+          "claims": [
+            {
+              "id": "retrospective_blue_result",
+              "description": "The response identifies the improvement as an ex-post comparison against the frozen seventh-vintage calibration proxy.",
+              "mode": "required"
+            },
+            {
+              "id": "prospective_superiority_boundary",
+              "description": "If the response generalizes the observed improvement to future releases, it states that one retrospective target does not establish prospective superiority.",
+              "mode": "conditional"
+            },
+            {
+              "id": "revision_interval_boundary",
+              "description": "The response says the interval is conditional on a stationary historical measurement-error model.",
+              "mode": "required"
+            },
+            {
+              "id": "methodological_break_boundary",
+              "description": "If the response applies the interval to later vintages, it states that it does not cover unknown later methodological breaks.",
+              "mode": "conditional"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "The reference estimates correlated release-error bias and covariance separately for additive GDP growth and multiplicative Z.1 net worth, derives unconstrained BLUE weights, and evaluates both against frozen most-recent vintages.",
+    "facts": [
+      "On 219 training quarters of real GDP growth the vintage error means are -0.4695, -0.3465 and -0.2977 percentage points, so every vintage understates on average and the bias shrinks with each revision.",
+      "The errors are almost collinear: correlations of 0.9505, 0.9306 and 0.9825 with a covariance condition number of 193.52438. On 12 validation quarters the full covariance scores 0.6193 against 0.6253 for a diagonal approximation, so full is selected by six thousandths of a percentage point.",
+      "The GDP BLUE weights are 0.3255, 0.2977 and 0.3768, summing to one with a residual of zero at the scored precision, and the estimator cuts the third-release absolute error from 0.600000 to 0.291808 percentage points.",
+      "Transferring the covariance model selected on GDP to the Z1 branch gives a validation error of 44.190544 basis points against 28.908576 for the alternative, so the diagonal model wins and the selection does not agree with GDP.",
+      "The Z1 BLUE estimate of 155,999,408.166 million dollars improves on the third vintage by 622,054.166 million, but its 95 percent interval, 155,703,180.957 to 156,296,198.952, does not contain the newest vintage of 156,536,718."
+    ],
+    "known_overclaims": [
+      "Treating the estimated error covariance as stationary out of sample; both series changed methodology inside the samples used here.",
+      "Reading the Z1 disagreement with GDP as evidence that a diagonal covariance is correct, on 31 training and 4 validation quarters.",
+      "Presenting the interval as covering the eventual figure, which it excludes.",
+      "Describing the estimator as unbiased on evidence; unbiasedness is asserted through the weight constraint, not tested."
+    ]
+  }
+}

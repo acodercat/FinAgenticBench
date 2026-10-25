@@ -1,0 +1,94 @@
+{
+  "name": "treasury_leland_structural_debt_recapitalization",
+  "module": "evals.scenario_analysis.treasury_leland_structural_debt_recapitalization",
+  "task_family": "scenario_analysis",
+  "data_sources": [
+    "treasury_yield_curve"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Calibrate a normalized Leland (1994) structural-debt scenario with initial unlevered asset value 100, constant asset volatility 25 percent per square root year, corporate tax rate 21 percent and bankruptcy loss equal to 50 percent of asset value at default. Use unprotected perpetual debt, endogenous equity-optimal bankruptcy, absolute priority, zero net asset payouts and full interest deductibility while solvent; coupon payments are equity-financed. The flat continuously compounded risk-free rate is stipulated to be numerically equal to Treasury's 30-year par yield on 2024-12-31. Find the smallest positive annual coupon giving debt market value 60, and report that coupon. Also report the coupon maximizing debt value within the initially solvent domain. Carry the calibrated coupon and model forward and discuss the calibration's financial scope.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "calibrated_coupon_per_year",
+            "debt_capacity_coupon_per_year"
+          ],
+          "claims": [
+            {
+              "id": "treasury_leland_structural_debt_recapitalization_t1_interpretation",
+              "description": "The response gives at least one financially material limitation of treating the normalized calibration as an issuer credit valuation.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "For the carried calibrated debt, report the endogenous asset-value bankruptcy barrier, the risk-neutral probability of first bankruptcy within five years, and the present value of recoveries paid immediately on bankruptcy within those five years. Retain the full default model and interpret the probability and recovery measures.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "endogenous_barrier",
+            "five_year_default_probability",
+            "five_year_recovery_pv"
+          ],
+          "claims": [
+            {
+              "id": "treasury_leland_structural_debt_recapitalization_t2_interpretation",
+              "description": "The response explains why the five-year recovery present value is small relative to the recovery paid conditional on hitting the barrier.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Apply an immediate 25 percent reduction in the carried initial asset value and a 50 percent relative increase in its volatility. Preserve the calibrated coupon, tax, bankruptcy-loss and risk-free-rate assumptions, allowing equity holders to choose the endogenous bankruptcy barrier under the stressed model. Report the new barrier, debt and equity market values, and risk-neutral probability of first bankruptcy within five years from the stress date. Carry this stressed capital structure forward and interpret the barrier and credit-risk changes.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "stressed_barrier",
+            "stressed_debt_value",
+            "stressed_equity_value",
+            "stressed_default_probability"
+          ],
+          "claims": [
+            {
+              "id": "treasury_leland_structural_debt_recapitalization_t3_interpretation",
+              "description": "The response explains how a lower endogenous bankruptcy barrier coexists with a higher five-year default probability after the joint stress.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "At the carried stressed asset value and volatility, find the nonnegative perpetual coupon maximizing total levered firm value under the same Leland model, with endogenous bankruptcy and initial solvency. Report the optimal coupon, debt-to-total-firm market leverage and credit spread over the risk-free rate. Report the total firm-value gain relative to the carried stressed capital structure. Say what would stand in the way of actually putting this model-optimal coupon and leverage in place at a real firm.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "optimal_coupon_per_year",
+            "optimal_market_leverage_pct",
+            "optimal_credit_spread_bp",
+            "recapitalization_value_gain"
+          ],
+          "claims": [
+            {
+              "id": "treasury_leland_structural_debt_recapitalization_t4_interpretation",
+              "description": "The response gives at least one material limitation on turning the firm-value-maximizing recapitalization into an implementable restructuring.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen governed data and the named-model scenario.",
+    "facts": [
+      "The response gives at least one financially material limitation of treating the normalized calibration as an issuer credit valuation.",
+      "The response explains why the five-year recovery present value is small relative to the recovery paid conditional on hitting the barrier.",
+      "The response explains how a lower endogenous bankruptcy barrier coexists with a higher five-year default probability after the joint stress.",
+      "The response gives at least one material limitation on turning the firm-value-maximizing recapitalization into an implementable restructuring."
+    ],
+    "known_overclaims": [
+      "Presenting the hypothetical model as an observed issuer or traded-loan valuation."
+    ]
+  }
+}

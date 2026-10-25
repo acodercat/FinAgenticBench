@@ -1,0 +1,128 @@
+{
+  "name": "form_d_indefinite_offering_and_placement_cost",
+  "module": "evals.calculation_reconciliation.form_d_indefinite_offering_and_placement_cost",
+  "task_family": "calculation_reconciliation",
+  "data_sources": [
+    "sec_form_d",
+    "sec_filings"
+  ],
+  "difficulty": "hard",
+  "case_type": "trap",
+  "judge_reference": {
+    "source": "SEC Form D notices of exempt offering and the periodic-report filing index, as frozen in the runtime layer. Form D permits an issuer to leave the total offering amount unstated, and an amendment restates the cumulative amount sold rather than reporting an increment.",
+    "facts": [
+      "34,717 Form D notices were originally filed in 2025. 10,152 of them state no total offering amount and 24,556 state a positive one; nine more state a zero offering and are excluded from the stated population because they would otherwise count as fully subscribed and unsold at the same time, moving that count from 12,704 to 12,713.",
+      "The stated offerings total USD832.467540 billion offered against USD316.407218 billion sold, a subscription share of 38.008355 percent. On every one of them the source identity holds exactly: offered equals sold plus remaining.",
+      "The notices stating no offering amount sold USD364.657063 billion, more than the stated ones did. Carrying their sales into the numerator while only the stated offerings supply the denominator reports 81.812713 percent instead of 38.008355, an overstatement of 43.804358 points.",
+      "The three outcomes partition the stated offerings exactly: 12,704 fully subscribed, 8,130 partly subscribed, 3,722 with no sales yet, summing to 24,556.",
+      "Summing every 2025 filing rather than the originals reports USD11,557.813107 billion sold against USD681.064281 billion, 16.9702 times too much, because amendments restate cumulative figures.",
+      "3,086 originals report paying an intermediary: 2,649 a sales commission only, 214 a finder's fee only and 223 both. Across all originals the commissions total USD5.602919 billion and the finder's fees USD0.264248 billion. Over the 2,130 notices reporting a commission against a positive amount sold, commission is 2.1341 percent of the amount sold, while the typical such notice reports 5 percent.",
+      "Only 8.27 percent of originals report any sales commission at all, so the great majority of this market is placed without an intermediary.",
+      "784 originals were filed by issuers that appear in the periodic-report file. They sold 79.907441 percent of what they offered against 36.162780 percent for everyone else, left only 9.3112 percent of their offerings unstated against 29.7026 percent, and paid 4.1985 percent of the amount sold in commission against 1.7619 percent.",
+      "Pooled investment funds are 59.3 percent of all Form D notices and leave 47.8263 percent of their offerings unstated; among the periodic-report issuers the leading industries are technology, biotechnology and pharmaceuticals.",
+      "742 notices report a sales commission against no sales at all, so the commission rate is measured over the 2,130 that report both a commission and a positive amount sold, out of 2,872 reporting a commission."
+    ],
+    "known_overclaims": [
+      "Measuring the subscription share with every notice's sales in the numerator; the notices that state no offering amount cannot enter either side of that ratio.",
+      "Summing amendments together with originals; a Form D amendment restates the cumulative amount sold and double counts it.",
+      "Reading the amount sold on an original notice as the money the offering ultimately raised. The notice is due within fifteen days of the first sale, so it records an early figure and later amendments carry the rest.",
+      "Treating an unstated offering amount as a missing value to be imputed or set to zero; declining to state a size is a choice the form allows.",
+      "Reading the commission rate as the full cost of placing private capital; the notice reports commissions and finder's fees only, not legal, audit or fund management charges.",
+      "Putting every reporting notice's commission over only the sales that exist; 742 notices report a commission against no sales, and carrying them into the numerator alone reports 6.2882 percent instead of 2.1341, and 6.6142 instead of 1.7619 for the issuers outside the periodic-report file."
+    ]
+  },
+  "conversations": [
+    {
+      "turns": [
+        {
+          "query": "An issuer selling securities without registering them files a notice of the offering. Take the notices originally filed in 2025, setting amendments aside because an amendment restates a cumulative figure rather than adding to it. Report how many there are and how many leave the total offering amount blank rather than stating a figure. Then report the total amount offered by the notices that state a positive one, in billions of dollars, and the amount sold by those leaving it blank. Explain what a notice that leaves the offering amount unstated tells you and what it withholds.",
+          "validator": "validate_offering_population",
+          "stores": [
+            "original_filing_count",
+            "indefinite_offering_filing_count",
+            "stated_offering_usd_billions",
+            "indefinite_offering_amount_sold_usd_billions"
+          ],
+          "claims": [
+            {
+              "id": "unstated_size_is_a_choice",
+              "mode": "required",
+              "description": "Leaving the size blank is permitted rather than an omission, and it is the funds gathering commitments over time that most often do it, so those notices record money raised without ever fixing a target."
+            },
+            {
+              "id": "amendment_restatement",
+              "mode": "required",
+              "description": "A later filing on the same offering repeats the running total instead of the new money, so adding the two together counts the same dollars twice."
+            }
+          ]
+        },
+        {
+          "query": "Staying with the same original notices but keeping only those stating a positive offering amount, report what share of the amount they offered has been sold, in percent. Then, among those same notices, report how many have nothing left to sell, how many have sold something and still have more to sell, and how many report no sales at all. Explain what the share does and does not establish about how much capital this market absorbed in the year.",
+          "validator": "validate_subscription",
+          "stores": [
+            "subscription_share_pct",
+            "fully_subscribed_filing_count",
+            "partially_subscribed_filing_count",
+            "no_sales_yet_filing_count"
+          ],
+          "claims": [
+            {
+              "id": "ratio_needs_both_sides",
+              "mode": "required",
+              "description": "A rate of completion can only be built from notices that supply both halves of it, and the ones without a target contribute sales that no denominator matches."
+            },
+            {
+              "id": "early_snapshot_boundary",
+              "mode": "conditional",
+              "description": "If the response reads the share as how much these offerings finally raised, it should note the notice is due within days of the first sale and records an early figure."
+            }
+          ]
+        },
+        {
+          "query": "Now look at what the issuers paid to place the securities. Across the same original notices, report how many report a sales commission, a finder's fee or both, the total sales commission and the total finder's fee in billions of dollars, and total commission divided by total amount sold across the notices that report both a commission and a sale, in percent. Explain what the rate covers and what it leaves out.",
+          "validator": "validate_placement_cost",
+          "stores": [
+            "intermediary_paying_filing_count",
+            "sales_commission_usd_billions",
+            "finders_fee_usd_billions",
+            "commission_rate_pct"
+          ],
+          "claims": [
+            {
+              "id": "most_placements_are_unintermediated",
+              "mode": "required",
+              "description": "Only a small minority report paying anyone to sell the securities, so the market as a whole is placed directly rather than through agents."
+            },
+            {
+              "id": "cost_scope_boundary",
+              "mode": "conditional",
+              "description": "If the response calls the rate the cost of raising private capital, it should note that only selling compensation appears on this form."
+            }
+          ]
+        },
+        {
+          "query": "Finally split the issuers by whether they also file annual or quarterly reports, treating an issuer as a reporting company when it appears in the periodic-report file. Report how many original notices they filed, their share of the amount offered that has been sold, their commission as a percent of amount sold on that same basis, and the same rate for every other issuer. Explain what the gap between the two rates says about who is selling these securities.",
+          "validator": "validate_issuer_split",
+          "stores": [
+            "public_issuer_filing_count",
+            "public_subscription_share_pct",
+            "public_commission_rate_pct",
+            "private_commission_rate_pct"
+          ],
+          "claims": [
+            {
+              "id": "agent_versus_self_placement",
+              "mode": "required",
+              "description": "The companies that already report to the market pay roughly twice as much of each dollar raised, which fits a round sold by a hired agent against one filled by a manager from investors already committed to it."
+            },
+            {
+              "id": "selection_boundary",
+              "mode": "conditional",
+              "description": "If the response reads the gap as the price of being public, it should note the two groups differ in size, industry and offering structure as well."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

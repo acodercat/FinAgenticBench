@@ -1,0 +1,126 @@
+{
+  "name": "pension_contribution_basis_state_preservation",
+  "module": "evals.scenario_analysis.pension_contribution_basis_state_preservation",
+  "task_family": "scenario_analysis",
+  "data_sources": [
+    "dol_form5500_financials",
+    "dol_form5500_schedule_sb",
+    "treasury_yield_curve"
+  ],
+  "difficulty": "hard",
+  "case_type": "baseline",
+  "conversations": [
+    {
+      "id": "main",
+      "turns": [
+        {
+          "query": "Establish four hypothetical pension books from matched Form 5500 plan-financial and Schedule SB filings that both record successful receipt, have plan-year end 2024-12-31 and Schedule SB valuation date 2024-01-01, and were received by 2025-12-31. Plan identity is sponsor EIN, official plan number and plan-year end. Select the latest such matched filing per identity, breaking a receipt-date tie by greatest filing identifier; then retain only records with positive, nonmissing current-value assets, actuarial-value assets, funding target and total expenses. Select the four largest funding targets, breaking ties by ascending filing identifier. For the original funding program, initialize assets at Schedule SB current values and use reported funding targets as liability proxies. Report the eligible count before selecting four, the largest target’s filing identifier and the aggregate funded ratio. Assess aggregate funding in relation to the individual plans. Use unrounded inputs and state throughout.",
+          "validator": "validate_turn_1",
+          "stores": [
+            "eligible_plan_count",
+            "largest_target_filing",
+            "original_aggregate_funded_pct"
+          ],
+          "claims": [
+            {
+              "id": "pension_contribution_basis_state_preservation_t1_interpretation",
+              "description": "The response interprets aggregate underfunding as compatible with a surplus in an individual selected book.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Commit an initial cash injection equal to four percent of the four books’ combined original funding target. Fully distribute it as nonnegative grants among the books to maximize their minimum post-injection funded ratio; targets remain fixed and no assets are transferred between books. Report the optimal minimum ratio, the filing identifier receiving the largest grant, and that grant amount; break a largest-grant tie by ascending filing identifier. Retain the full committed allocation. Explain the relationship between the resulting weakest-plan and aggregate funding.",
+          "validator": "validate_turn_2",
+          "stores": [
+            "original_maxmin_funded_pct",
+            "largest_grant_filing",
+            "largest_grant_million"
+          ],
+          "claims": [
+            {
+              "id": "pension_contribution_basis_state_preservation_t2_interpretation",
+              "description": "The response explains how the weakest-book funded ratio can remain below full funding even after aggregate assets exceed the combined target, given the allocation objective and retained book-specific surpluses.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "As a separate asset-basis comparison, initialize the same four books at their reported actuarial-value assets and optimize a fresh allocation of the same injection budget under the same max-min objective and constraints. Report the comparison’s optimal minimum funded ratio and its grant to the filing that received the largest original grant. Explain what starting from reported actuarial assets does to the attainable floor and to where the money goes, given the budget is unchanged.",
+          "validator": "validate_turn_3",
+          "stores": [
+            "actuarial_maxmin_funded_pct",
+            "actuarial_grant_to_original_leader_million"
+          ],
+          "claims": [
+            {
+              "id": "pension_contribution_basis_state_preservation_t3_interpretation",
+              "description": "The response relates the higher attainable floor and changed grant to the asset-basis comparison rather than to a larger injection budget.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Introduce a five-year projection protocol for comparing the programs. The first year’s expense withdrawal for each book equals its matched plan-financial total expenses; withdrawals grow three percent annually and occur at each year-end. Funding targets grow two percent annually, net of all liability cash-flow effects. Treat the Treasury five-year par yield for 2024-12-31 as a stipulated constant annual-effective benchmark asset return. For the actuarial-basis comparison with its own initial grants and no later contributions, report the fifth-year minimum funded ratio and combined plan-by-plan funding shortfall, with surpluses unavailable to offset another book’s gap. Explain what drives the five-year path of the funded position, weighing the yearly cash going out against the assumed return and the growing obligation.",
+          "validator": "validate_turn_4",
+          "stores": [
+            "actuarial_year5_min_funded_pct",
+            "actuarial_year5_shortfall_million"
+          ],
+          "claims": [
+            {
+              "id": "pension_contribution_basis_state_preservation_t4_interpretation",
+              "description": "The response relates the comparison’s deteriorating funding to recurring expense withdrawals alongside the specified asset and target growth.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Now stress the original committed funding program: its annual asset return is 150 basis points below the benchmark throughout the same projection. Retain the expense and target-growth protocol, with no contributions after its initial allocation. Report its fifth-year minimum funded ratio and combined plan-by-plan shortfall. Explain what separates this stressed program from the earlier projection, covering both the starting balances and allocations carried in and the return assumed.",
+          "validator": "validate_turn_5",
+          "stores": [
+            "original_stress_year5_min_funded_pct",
+            "original_stress_year5_shortfall_million"
+          ],
+          "claims": [
+            {
+              "id": "pension_contribution_basis_state_preservation_t5_interpretation",
+              "description": "The response recognizes that the stress/comparator difference reflects their retained asset and grant states as well as their different asset-return assumptions.",
+              "mode": "required"
+            }
+          ]
+        },
+        {
+          "query": "Budget an additional restoration reserve for the original stressed program. At each year-end, after the expense withdrawal, contribute the minimum cash needed to bring each individual book to at least full funding, retaining any surplus; later investment returns apply to these contributions too. Report the date-zero present value of the five years of additional contributions discounted at the benchmark rate, the largest annual total call and its one-based year, breaking a tie by the earlier year. Explain what the present value set aside is actually paying for across the five years, and why the largest call lands in the year it does.",
+          "validator": "validate_turn_6",
+          "stores": [
+            "restoration_reserve_pv_million",
+            "largest_restoration_call_million",
+            "largest_restoration_call_year"
+          ],
+          "claims": [
+            {
+              "id": "pension_contribution_basis_state_preservation_t6_interpretation",
+              "description": "The response interprets the reserve as funding repeated book-specific restoration calls, rather than merely discounting the fifth-year terminal shortfall.",
+              "mode": "required"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "judge_reference": {
+    "source": "Frozen governed dataset_new and the explicitly stipulated hypothetical financial contract.",
+    "facts": [
+      "The response interprets aggregate underfunding as compatible with a surplus in an individual selected book.",
+      "The response explains how the weakest-book funded ratio can remain below full funding even after aggregate assets exceed the combined target, given the allocation objective and retained book-specific surpluses.",
+      "The response relates the higher attainable floor and changed grant to the asset-basis comparison rather than to a larger injection budget.",
+      "The response relates the comparison’s deteriorating funding to recurring expense withdrawals alongside the specified asset and target growth.",
+      "The response recognizes that the stress/comparator difference reflects their retained asset and grant states as well as their different asset-return assumptions.",
+      "The response interprets the reserve as funding repeated book-specific restoration calls, rather than merely discounting the fifth-year terminal shortfall."
+    ],
+    "known_overclaims": [
+      "Treating hypothetical prices, asset bases, funding policies or return proxies as observed executable contracts, statutory requirements or guaranteed forecasts."
+    ]
+  }
+}
