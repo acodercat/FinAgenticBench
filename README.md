@@ -14,12 +14,14 @@ is never parsed for numbers.
 Because every answer is a checked value, the runs also show whether two agents computed the same wrong number,
 which reading of the data produced it, and whether a model's wrong answer changes when it reasons longer.
 
-![Overview of FinAgenticBench](assets/overview.png)
+![Overview of FinAgenticBench](assets/fig1_overview.png)
 
-*(a) The 85 tables from 44 official sources, in six groups. (b) Each task runs over several turns; in each turn the
-model writes code that a Python runtime executes on the task's tables, and the turn ends with saved values and a
-written response. (c) Programmatic verification compares each saved value with a reference recomputed from the same
-data; claim coverage checks the response against pre-registered claims.*
+*(a) The 85 tables from 44 official sources, in six groups. (b) Each task runs over two to six turns, and state
+carries into later turns; in each turn the model writes code that a Python runtime executes on the task's tables,
+and the turn ends with saved values and a written response. (c) Programmatic verification compares each saved value
+with a reference recomputed from the same data; claim coverage checks the written response against pre-registered
+claims without seeing the reference. In this illustrative example the response states the method and is marked as
+covering its claim, while the value it reports is wrong.*
 
 ## The benchmark
 
@@ -30,7 +32,8 @@ later turn uses it for a new computation.
 
 | | |
 |---|---|
-| Tasks | 213 (212 join two or more sources; 188 run four or more turns) |
+| Tasks | 213 (212 join two or more sources) |
+| Turns | 858, two to six per task (four on average) |
 | Scored outputs | 3,845 output variables across all turns |
 | Data | 85 runtime tables from 44 official sources, cut off at 2025-12-31 |
 | Task families | retrieval, calculation and reconciliation, comparison and ranking, temporal path and vintage, risk screening, scenario analysis |
@@ -46,6 +49,12 @@ recomputed twice, independently, before the task entered the benchmark. The full
 
 We evaluated eight models, six of them both with and without a reasoning mode ("thinking"), giving fourteen
 configurations. Each configuration attempted every task three times, 8,946 runs in total.
+
+![Task coverage and accuracy](assets/fig2_tasks_and_accuracy.png)
+
+*(a) Financial domains of the 213 tasks (a task can belong to several). (b) Task accuracy of each model with and
+without thinking; mean of three runs, 95% task-resampled bootstrap intervals, gain from thinking in percentage
+points.*
 
 | Model | Non-thinking (%) | Thinking (%) | Gain (pp) |
 |---|---:|---:|---:|
@@ -157,7 +166,7 @@ docs/             data release, scoring design, the generated task catalog and c
 experiments/      run artifacts, unzipped from FinAgenticBench-runs.zip (see experiments/README.md)
 analysis/         scripts, tables and logs that reproduce the paper (see analysis/README.md)
 tests/            the test suite (see tests/README.md)
-assets/           the overview figure used in this README
+assets/           the figures used in this README
 config.py         repository paths
 models.toml.example   template for model and judge endpoints
 ```
