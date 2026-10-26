@@ -17,7 +17,8 @@ experiments/<configuration>/
 ```
 
 `<configuration>` names the model, its reasoning mode and the date the study started; `<model>` is the API model
-identifier the runs were sent to.
+identifier the runs were sent to. The Claude Sonnet 5.5 runs are stored under `claude-sonnet-5-*` and
+`claude-sonnet-5`.
 
 A judge panel is named by its sorted `--judge` names joined by `+`. The paper's three claim-coverage judges
 each scored alone:
