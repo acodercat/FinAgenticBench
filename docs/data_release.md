@@ -16,7 +16,11 @@ The tables the tasks read are distributed as `FinAgenticBench-data.zip` (about 1
 - `datasets/dataset_new/<source>/schema.json`: the storage contract of each table.
 
 The archive holds the runtime layer only. The source-native downloads and the intermediate normalized layer are
-not distributed; the catalog records their hashes so that a rebuild can be checked against them.
+not distributed; the catalog records their hashes so that a rebuild can be checked against them. The tables of
+three sources are not in the archive either, because their publishers' terms do not grant, or do not state, a
+right to redistribute them (see [Sources not in the archive](#sources-not-in-the-archive)); their `sources.json`
+and `schema.json` are included so that they can be rebuilt. `NOTICE.md` in the archive carries the notices the
+other publishers require.
 
 All data end on or before 31 December 2025, and every table is the full population for its declared window. Two
 sources cover shorter windows than 2019–2025 because their bulk endpoints reject scripted retrieval:
@@ -35,19 +39,48 @@ tables, and a task sees only the tables it declares.
 
 ## Licences
 
-The code licence ([MIT](../LICENSE)) does not cover the data. Each of the 44 sources keeps its own terms,
-recorded in `metadata/dataset_licenses.json`:
+The code licence ([MIT](../LICENSE)) does not cover the data. Each of the 44 sources keeps its own terms. They
+were read on 26 October 2026 and are quoted, with their URLs, in `metadata/dataset_licenses.json`:
 
-| Basis | Sources |
-|---|---|
-| Work of the US Government (17 U.S.C. 105), not subject to copyright | 39 sources from the SEC, Federal Reserve Board, Treasury, FDIC, FFIEC, NCUA, BLS, BEA, Census Bureau, CFTC, EIA, FEMA, NOAA, SBA, Department of Labor, CFPB and other federal agencies |
-| BIS terms of use: free reproduction with acknowledgement of the source | `bis` |
-| FINRA terms of use | `finra_short_volume` |
-| Kenneth R. French Data Library: research and educational use, with citation | `ken_french` |
-| Federal Reserve Bank of New York terms of use | `nyfed_rates` |
-| Federal Reserve Bank of Philadelphia Real-Time Data Set: research use, with citation | `rtdsm` |
+| Source | Terms | In the archive |
+|---|---|---|
+| 39 federal sources (SEC, Federal Reserve Board, Treasury, FDIC, FFIEC, NCUA, CFPB, BLS, Census Bureau, CFTC, Department of Labor, EIA, FEMA, FHFA, NOAA, OFR, SBA) | Works of the US Government (17 U.S.C. § 105), not subject to copyright | yes |
+| `nyfed_rates` | [New York Fed Terms of Use](https://www.newyorkfed.org/privacy/termsofuse): licence to copy and distribute, with attribution, the same terms passed on, and a prescribed notice for reference-rate data | yes, with the notice in `NOTICE.md` |
+| `bis` | [Terms of permitted use of BIS statistics](https://data.bis.org/help/legal): use is unrestricted provided the BIS is cited as the source | yes, cited in `NOTICE.md` |
+| `finra_short_volume` | [FINRA Terms of Use](https://www.finra.org/terms-of-use): personal non-commercial use only; distribution requires FINRA's written consent | no |
+| `ken_french` | [Kenneth R. French Data Library](https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/data_library.html): a copyright line and no terms of use | no |
+| `rtdsm` | [Philadelphia Fed Real-Time Data Set](https://www.philadelphiafed.org/surveys-and-data/real-time-data-research/real-time-data-set-for-macroeconomists): research use; redistribution not addressed | no |
 
-If you use these tables, please cite the original sources as well as FinAgenticBench.
+If you use these tables, cite the original sources as well as FinAgenticBench; the Philadelphia Fed asks for
+Croushore and Stark, *Journal of Econometrics* 105 (2001), 111–130.
+
+## Sources not in the archive
+
+The three sources above that are not in the archive are read by 27 of the 213 tasks (`finra_short_volume` 3,
+`ken_french` 20, `rtdsm` 4). Until they are rebuilt, `build_dataset_layers --check` reports them as not
+installed, the tests that read them are skipped, and a run of one of those tasks fails with a message naming the
+source. To rebuild them from the publishers (the first downloads about 500 daily files, the other two a few):
+
+```bash
+# FINRA daily short sale volume, 2024–2025  ->  finra_short_volume.daily
+uv run python -m scripts.ingest.fetch.fetch_full_population --only finra_short_volume
+uv run python -m scripts.ingest.build.build_full_population_small_sources --only finra_short_volume.daily
+uv run python -m scripts.ingest.build.build_dataset_layers --table finra_short_volume.daily
+
+# Kenneth French daily factors and 10-industry portfolios  ->  ken_french.daily_factors, ken_french.daily_industry_returns
+uv run python -m scripts.ingest.fetch.fetch_ken_french
+uv run python -m scripts.ingest.build.build_dataset_layers --table ken_french.daily_factors --table ken_french.daily_industry_returns
+
+# Philadelphia Fed real-time data set  ->  rtdsm.revisions
+uv run python -m scripts.ingest.fetch.fetch_expansion --stage 1 --only rtdsm
+uv run python -m scripts.ingest.build.build_expansion_runtime --only rtdsm
+uv run python -m scripts.ingest.build.build_dataset_layers --table rtdsm.revisions
+```
+
+Each `--table` step cleans the staging table into `datasets/dataset_new/<source>/runtime/` and records its new
+hash in the catalog. The publishers revise these files (the French library in particular), so a rebuild can
+differ from the tables the paper's runs used; `sources.json` records the hashes of the original downloads, and
+the paper's reference values for the affected tasks were computed from the original tables.
 
 ## Checking an installation
 
@@ -56,7 +89,8 @@ uv run python -m scripts.ingest.build.build_dataset_layers --check   # catalog, 
 uv run --group dev python -m pytest -m runtime_data                   # tests that read the tables
 ```
 
-Adding `--skip-hashes` skips the hash comparison for a faster check.
+Adding `--skip-hashes` skips the hash comparison for a faster check. A source with no runtime table installed
+is reported, not treated as an error; `--require-all-sources` makes it one.
 
 ## Rebuilding from source
 

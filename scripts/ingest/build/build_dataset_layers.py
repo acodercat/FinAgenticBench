@@ -5,7 +5,9 @@ from __future__ import annotations
 import argparse
 
 from core.dataset_assets import build_asset_layers, validate_asset_layers
-from core.dataset_layers import build_layers, build_selected_layers, validate_layers
+from core.dataset_layers import (
+    build_layers, build_selected_layers, uninstalled_sources, validate_layers,
+)
 
 
 def main() -> None:
@@ -26,6 +28,11 @@ def main() -> None:
         "--table", action="append", default=[],
         help="rebuild only this governed table against the existing catalog; repeatable",
     )
+    parser.add_argument(
+        "--require-all-sources", action="store_true",
+        help="treat a source with no runtime table installed as an error (the distributed "
+             "archive omits the sources that cannot be redistributed)",
+    )
     args = parser.parse_args()
     if args.check and args.table:
         parser.error("--check cannot be combined with --table")
@@ -40,11 +47,20 @@ def main() -> None:
                 f"built {catalog['table_count']} governed tables and indexed "
                 f"{catalog['asset_count']} assets across {catalog['source_count']} sources"
             )
-    errors = validate_layers(verify_hashes=not args.skip_hashes)
+    errors = validate_layers(
+        verify_hashes=not args.skip_hashes, require_all_sources=args.require_all_sources,
+    )
     errors.extend(validate_asset_layers(require_raw=args.require_raw))
     if errors:
         raise SystemExit("\n".join(errors))
-    print("dataset layers valid")
+    missing = uninstalled_sources()
+    if missing:
+        print(
+            f"dataset layers valid; sources not installed: {', '.join(missing)} "
+            "(rebuild from the publisher, see docs/data_release.md)"
+        )
+    else:
+        print("dataset layers valid")
 
 
 if __name__ == "__main__":

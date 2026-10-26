@@ -671,6 +671,25 @@ def load_catalog(catalog_path: Path = CATALOG_PATH) -> dict[str, Any]:
     return json.loads(catalog_path.read_text(encoding="utf-8"))
 
 
+class RuntimeTableNotInstalled(FileNotFoundError):
+    """A catalogued runtime table whose file is absent from this installation.
+
+    The distributed data archive omits the sources whose terms do not allow
+    redistribution; ``docs/data_release.md`` says how to rebuild each of them
+    from its publisher.
+    """
+
+
+def uninstalled_sources(datasets_dir: Path = DATASETS_DIR) -> list[str]:
+    """Sources none of whose runtime tables is present, in catalog order."""
+    catalog = load_catalog(datasets_dir / "catalog.json")
+    present: dict[str, list[bool]] = {}
+    for metadata in catalog["tables"].values():
+        path = datasets_dir / metadata["layers"]["runtime"]["path"]
+        present.setdefault(metadata["source_id"], []).append(path.is_file())
+    return [source for source, flags in present.items() if not any(flags)]
+
+
 def load_runtime_table(
     table_id: str, *, datasets_dir: Path = DATASETS_DIR,
     catalog_path: Path | None = None,
@@ -681,6 +700,13 @@ def load_runtime_table(
         metadata = catalog["tables"][table_id]
     except KeyError as error:
         raise KeyError(f"unknown governed runtime table: {table_id}") from error
+    path = datasets_dir / metadata["layers"]["runtime"]["path"]
+    if not path.is_file():
+        raise RuntimeTableNotInstalled(
+            f"runtime table {table_id} is not installed: {path} is absent. Its source "
+            f"({metadata['source_id']}) is not in the distributed data archive and must be "
+            "rebuilt from the publisher; see docs/data_release.md"
+        )
     dtype_map = {}
     for column in metadata["columns"]:
         dtype_map[column["name"]] = {
@@ -691,21 +717,25 @@ def load_runtime_table(
             "boolean": "boolean",
         }[column["storage_type"]]
     return pd.read_csv(
-        datasets_dir / metadata["layers"]["runtime"]["path"],
-        dtype=dtype_map, keep_default_na=False, na_values=[""], low_memory=False,
+        path, dtype=dtype_map, keep_default_na=False, na_values=[""], low_memory=False,
     )
 
 
 def validate_layers(
     datasets_dir: Path = DATASETS_DIR, *, verify_hashes: bool = True,
-    build_dir: Path | None = None,
+    build_dir: Path | None = None, require_all_sources: bool = False,
 ) -> list[str]:
     """Validate either a full maintainer install or the runtime-only release.
 
     Normalized tables live in ``build_dir`` when a maintainer build is present.
     The distributed ``dataset_new`` ZIP intentionally omits that layer; a
     completely absent normalized layer is therefore valid, while a partial one
-    remains an error.
+    remains an error. The same rule applies per source to the runtime layer:
+    the archive omits the tables of the sources whose terms do not allow
+    redistribution, so a source with no runtime table at all is reported by
+    :func:`uninstalled_sources` rather than as an error, unless
+    ``require_all_sources`` is set; a source with some tables missing is an
+    error either way.
     """
     errors: list[str] = []
     catalog_path = datasets_dir / "catalog.json"
@@ -735,11 +765,16 @@ def validate_layers(
     if any(normalized_present) and not all(normalized_present):
         errors.append("normalized layer is only partially materialized")
     layers = ("normalized", "runtime") if all(normalized_present) else ("runtime",)
+    not_installed = set(uninstalled_sources(datasets_dir))
+    if not_installed and require_all_sources:
+        errors.append(f"runtime tables not installed for sources: {sorted(not_installed)}")
     for table_id, metadata in tables.items():
         for layer in layers:
             info = metadata["layers"][layer]
             path = (build_dir if layer == "normalized" else datasets_dir) / info["path"]
             if not path.is_file():
+                if layer == "runtime" and metadata["source_id"] in not_installed:
+                    continue
                 errors.append(f"{table_id}: missing {layer} file {info['path']}")
                 continue
             if path.stat().st_size != info["bytes"]:

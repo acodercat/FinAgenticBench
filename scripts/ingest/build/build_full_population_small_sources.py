@@ -235,21 +235,40 @@ def build_finra_daily() -> int:
     return len(rows)
 
 
+BUILDERS = {
+    "treasury_rates.yield_curve": build_treasury_yield_curve,
+    "cftc_cot.financial_futures": build_cftc,
+    "bis": build_bis,
+    "fdic.bank_financials": build_fdic_financials,
+    "fdic_sod.branches": build_fdic_sod,
+    "ncua_call_reports.institutions": build_ncua,
+    "finra_short_volume.daily": build_finra_daily,
+}
+
+
 def main() -> None:
-    rows = {
-        "treasury_rates.yield_curve": build_treasury_yield_curve(),
-        "cftc_cot.financial_futures": build_cftc(),
-        **{f"bis.{k}": v for k, v in build_bis().items()},
-        "fdic.bank_financials": build_fdic_financials(),
-        "fdic_sod.branches": build_fdic_sod(),
-        "ncua_call_reports.institutions": build_ncua(),
-        "finra_short_volume.daily": build_finra_daily(),
-    }
-    REPORT.parent.mkdir(parents=True, exist_ok=True)
-    REPORT.write_text(json.dumps({
-        "built_at": datetime.now(timezone.utc).isoformat(), "cutoff": "2025-12-31",
-        "window_start": "2019-01-01", "rows": rows,
-    }, indent=2) + "\n")
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Build the full-population staging tables.")
+    parser.add_argument(
+        "--only", nargs="*", choices=sorted(BUILDERS), default=None,
+        help="build only these tables (bis builds every BIS table); the report is written "
+             "only by a full build",
+    )
+    args = parser.parse_args()
+    rows: dict[str, int] = {}
+    for name in args.only or list(BUILDERS):
+        result = BUILDERS[name]()
+        if name == "bis":
+            rows.update({f"bis.{k}": v for k, v in result.items()})
+        else:
+            rows[name] = result
+    if not args.only:
+        REPORT.parent.mkdir(parents=True, exist_ok=True)
+        REPORT.write_text(json.dumps({
+            "built_at": datetime.now(timezone.utc).isoformat(), "cutoff": "2025-12-31",
+            "window_start": "2019-01-01", "rows": rows,
+        }, indent=2) + "\n")
     print(json.dumps(rows, indent=2))
 
 

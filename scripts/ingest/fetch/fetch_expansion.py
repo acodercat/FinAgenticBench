@@ -535,6 +535,10 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--stage", choices=("1", "2", "all"), default="all")
     parser.add_argument("--workers", type=int, default=4)
+    parser.add_argument(
+        "--only", nargs="*", default=None, metavar="DATASET",
+        help="fetch only these dataset directories (for example rtdsm)",
+    )
     args = parser.parse_args()
     selected = {1, 2} if args.stage == "all" else {int(args.stage)}
 
@@ -542,6 +546,8 @@ def main() -> None:
     if 2 in selected:
         downloads.extend(_discover_ftd())
         downloads.extend(_finra_daily())
+    if args.only:
+        downloads = [item for item in downloads if item.dataset in set(args.only)]
 
     records: dict[str, list[dict]] = {}
     failures: dict[str, list[dict]] = {}
@@ -570,6 +576,8 @@ def main() -> None:
 
     if 1 in selected:
         for dataset, fetcher in (("hmda", _fetch_hmda), ("fdic_bankfind", _fetch_fdic)):
+            if args.only and dataset not in args.only:
+                continue
             extra_records, extra_failures = fetcher()
             records.setdefault(dataset, []).extend(extra_records)
             failures.setdefault(dataset, []).extend(extra_failures)

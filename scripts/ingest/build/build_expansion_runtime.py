@@ -825,24 +825,30 @@ def build_manifest() -> None:
     print(f"wrote {report_path.relative_to(PROJECT_ROOT)}")
 
 
+BUILDERS = {
+    "rtdsm": build_rtdsm, "stress_tests": build_stress_tests, "nmfp": build_nmfp,
+    "nport": build_nport, "hmda": build_hmda, "sec_notes": build_sec_notes,
+    "rates_and_auctions": build_rates_and_auctions, "form_c": build_form_c,
+    "form_d": build_form_d, "bis_and_fdic": build_bis_and_fdic, "bdc": build_bdc,
+    "sba": build_sba, "cftc": build_cftc, "fhfa": build_fhfa,
+    "treasury_tic": build_treasury_tic, "treasury_dts": build_treasury_dts,
+}
+
+
 def main() -> None:
-    build_rtdsm()
-    build_stress_tests()
-    build_nmfp()
-    build_nport()
-    build_hmda()
-    build_sec_notes()
-    build_rates_and_auctions()
-    build_form_c()
-    build_form_d()
-    build_bis_and_fdic()
-    build_bdc()
-    build_sba()
-    build_cftc()
-    build_fhfa()
-    build_treasury_tic()
-    build_treasury_dts()
-    build_manifest()
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Build the expansion staging tables.")
+    parser.add_argument(
+        "--only", nargs="*", choices=sorted(BUILDERS), default=None,
+        help="build only these groups (for example rtdsm); the manifest is written only "
+             "by a full build",
+    )
+    args = parser.parse_args()
+    for name in args.only or list(BUILDERS):
+        BUILDERS[name]()
+    if not args.only:
+        build_manifest()
 
 
 if __name__ == "__main__":

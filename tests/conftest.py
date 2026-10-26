@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 
 from config import DATASETS_DIR
-from core.dataset_layers import RAW_DIR
+from core.dataset_layers import RAW_DIR, RuntimeTableNotInstalled
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -141,6 +141,24 @@ def _requires_runtime(item) -> bool:
     will run, and fail, in a code-only checkout.
     """
     return Path(item.path).name in RUNTIME_TEST_FILES
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    """A test that reads a runtime table absent from this installation is skipped.
+
+    The distributed archive omits the sources whose terms do not allow
+    redistribution; until they are rebuilt, the tests that read them skip
+    with the loader's message instead of failing.
+    """
+    outcome = yield
+    report = outcome.get_result()
+    if (
+        report.when == "call" and report.failed and call.excinfo is not None
+        and call.excinfo.errisinstance(RuntimeTableNotInstalled)
+    ):
+        report.outcome = "skipped"
+        report.longrepr = (str(item.fspath), None, f"skipped: {call.excinfo.value}")
 
 
 def pytest_collection_modifyitems(config, items):

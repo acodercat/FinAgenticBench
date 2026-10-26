@@ -117,7 +117,7 @@ Two archives are distributed separately on Google Drive; download them and unzip
 
 | Archive | Unzips to | Contents |
 |---|---|---|
-| [`FinAgenticBench-data.zip`](https://drive.google.com/file/d/1oXdaz0lpf24xoBBAWhdlyTnasH2FUC2C/view?usp=drive_link) (1.3 GB) | `datasets/dataset_new/` | the runtime tables the tasks read, with `catalog.json`, per-source `schema.json` and `sources.json` |
+| [`FinAgenticBench-data.zip`](https://drive.google.com/file/d/1oXdaz0lpf24xoBBAWhdlyTnasH2FUC2C/view?usp=drive_link) (1.2 GB) | `datasets/dataset_new/` | the runtime tables the tasks read, with `catalog.json`, per-source `schema.json` and `sources.json`; three sources whose terms do not allow redistribution are rebuilt from the publishers instead (see below) |
 | [`FinAgenticBench-runs.zip`](https://drive.google.com/file/d/1pT193gRyY6eUVtKgGAv9CH6limrxHtvu/view?usp=drive_link) (546 MB) | `experiments/`, `analysis/final_20261012/inputs/` | the paper's 8,946 runs with transcripts and scores, and one pre-revision input of the analysis |
 
 With the data in place, check the installation and run the full test suite:
@@ -128,7 +128,10 @@ uv run --group dev python -m pytest
 ```
 
 [`docs/data_release.md`](docs/data_release.md) describes the data artifact, its provenance and licences, and the
-rebuild-from-source path under `scripts/ingest/`.
+rebuild-from-source path under `scripts/ingest/`. The tables of `finra_short_volume`, `ken_french` and `rtdsm`
+(read by 27 tasks) are not in the archive because their publishers' terms do not grant redistribution; the
+document gives the three commands that rebuild each from its publisher. Until then the check reports them as not
+installed and the tests that read them are skipped.
 
 ## Running a model
 
