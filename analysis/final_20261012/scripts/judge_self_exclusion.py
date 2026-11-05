@@ -1,12 +1,13 @@
 """The judge comparisons without self-judging: each judge's verdicts on its own vendor's configurations removed.
 
 Every judge comes from a vendor whose models are also tested (DeepSeek V4 Flash judges DeepSeek configurations,
-GPT-6 Luna judges GPT-6 Luna configurations, GLM-5.3 Flash judges GLM-5.3), in both judged channels. For every judge and channel, all configurations and then only the configurations of other
-vendors: the area under the curve for a verified pass (claim coverage: the turn's mean coverage over its claims, as
-cc_vs_pv.py; response quality: the overall score, as rq_vs_pv.py) against all other turns and against wrong-value
-turns, each with a 95% interval from 1,000 task resamples; for claim coverage also the pass rate of verified and of
-shared-wrong turns, the Spearman correlation of configuration-level coverage with task accuracy, and the pass rate of
-the least and the most accurate remaining configuration. Writes tables/judge_self_exclusion.csv.
+GPT-6 Luna judges GPT-6 Luna configurations, GLM-5.3 Flash judges GLM-5.3); GLM-5.3 Flash judged claim coverage
+only. For every judge and channel, all configurations and then only the configurations of other vendors: the area
+under the curve for a verified pass (claim coverage: the turn's mean coverage over its claims, as cc_vs_pv.py;
+response quality: the overall score, as rq_vs_pv.py) against all other turns and against wrong-value turns, each
+with a 95% interval from 1,000 task resamples; for claim coverage also the pass rate of verified and of shared-wrong
+turns, the Spearman correlation of configuration-level coverage with task accuracy, and the pass rate of the least
+and the most accurate remaining configuration. Writes tables/judge_self_exclusion.csv.
 """
 import collections
 import glob

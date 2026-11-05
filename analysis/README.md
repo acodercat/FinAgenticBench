@@ -2,8 +2,8 @@
 
 `final_20261012/` rebuilds every table and log behind the paper from the run archive: fourteen configurations,
 213 tasks, three runs each, as scored on 2026-10-12. All results use programmatic verification except the
-two judge comparisons: `cc_vs_pv.py` reads the three judges' claim-coverage files and `rq_vs_pv.py` the two
-judges' response-quality files.
+judge comparisons: `cc_vs_pv.py` reads the three judges' claim-coverage files, `rq_vs_pv.py` the two judges'
+response-quality files, and `judge_self_exclusion.py` both.
 
 ```text
 final_20261012/

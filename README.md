@@ -78,19 +78,19 @@ for explains 27.8% of the variance in correctness, which configuration answers i
 one model, shared wrong values show no detectable clustering by vendor; sharing rises by 15 points for every 10 points of a pair's
 accuracy.
 
-**More accurate agents keep the errors that others make.** Where a strong and a weak configuration both erred on
-an output, the strong one gave the other configurations' most common wrong value 52% of the time and the weak one
-37%. Holding the model fixed, its wrong values matched the other models' more often with thinking on (by 7 points
-pooled). Both contrasts hold when the model's other mode, or its whole vendor, is left out of the comparison. From the
-weak to the strong tier, unshared wrong values fall by 88% and shared ones by 46%, and 65% of strong-tier wrong
-values are shared.
+**More accurate agents keep the errors that others make.** Where a strong and a weak configuration both erred on an
+output, the strong one gave the other configurations' most common wrong value 52% of the time and the weak one 37%.
+Holding the model fixed, its wrong values matched the other models' more often with thinking on (by 7 points
+pooled). The tier contrast holds when the model's other mode, or its whole vendor, is left out of the consensus.
+From the weak to the strong tier, unshared wrong values fall by 88% and shared ones by 46%, and 65% of strong-tier
+wrong values are shared.
 
 **Shared errors lie in conventions and in the meaning of data rows.** We read the code behind the 307 outputs on
 which five or more configurations gave the same wrong value. The two largest sources were statistical conventions
 (23.8% of these wrong attempts), mostly stated in the task, and data-model semantics (22.1%): a filer is its SEC
-identifier (CIK) and not its name, a file carries a total row beside the detail rows. Capability clearly reduced
-most classes but not data-model semantics. Rewording four tasks removed the shared readings it targeted and raised
-passes from 80 to 122 of 168 runs.
+identifier (CIK) and not its name, a file carries a total row beside the detail rows. Capability reduced six of the
+nine classes; for data-model semantics no reduction was detectable. Rewording four tasks removed the shared readings
+it targeted and raised passes from 80 to 122 of 168 runs.
 
 **Agreement passes the errors agents share.** Among thinking configurations, two runs of one model that agreed on
 a value were correct 98.3% of the time and one run each from two vendors 99.2%. Of the wrong values two vendors
