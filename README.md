@@ -70,50 +70,39 @@ points.*
 cannot switch thinking off. The four leading configurations did not differ from one another (paired 95% intervals included zero). Below, the
 strong tier is the configurations at 78% or above and the weak tier those below 60%.*
 
-**Errors are shared across models.** Of all wrong values, 39% were a value that at least three of the fourteen
-configurations gave (we call these shared, and the rest unshared); among the four most accurate configurations the
-share was 65%. Which output is asked for predicts correctness much better than which model answers it: the
-output explains 27.8% of the variance in correctness, the configuration 2.4%.
+**Errors converge on the same values.** If each configuration erred independently at its own rate on each task,
+1,433 of the 3,669 outputs attempted by all fourteen would have escaped every error and 364 would have been failed by
+six or more configurations; 1,902 and 529 did. Of all wrong values, 39% were a value that at least three of the
+fourteen configurations gave on the same output (we call these shared, and the rest unshared). Which output is asked
+for explains 27.8% of the variance in correctness, which configuration answers it 2.4%. Apart from the two modes of
+one model, shared wrong values show no detectable clustering by vendor; sharing rises by 15 points for every 10 points of a pair's
+accuracy.
 
-**Errors concentrate on the same outputs far beyond what independent errors would give.** If each configuration
-erred independently at its own rate on each task, 1,433 of the 3,669 outputs attempted by all fourteen would have
-escaped every error and 364 would have been failed by six or more configurations; 1,902 and 529 did. Shared wrong
-values do not cluster by vendor: at the same accuracy, two models of one vendor share no more of their wrong values
-than two models of different vendors (adjusted difference +0.8 points, 95% CI −3.3 to +4.4), while sharing rises
-by 15 points for every 10 points of the pair's accuracy.
+**More accurate agents keep the errors that others make.** Where a strong and a weak configuration both erred on
+an output, the strong one gave the other configurations' most common wrong value 52% of the time and the weak one
+37%. Holding the model fixed, its wrong values matched the other models' more often with thinking on (by 7 points
+pooled). Both contrasts hold when the model's other mode, or its whole vendor, is left out of the comparison. From the
+weak to the strong tier, unshared wrong values fall by 88% and shared ones by 46%, and 65% of strong-tier wrong
+values are shared.
 
-**Shared errors come more from reading the data than from missing financial knowledge.** We read the code behind
-the 307 outputs on which five or more configurations gave the same wrong value. The two largest causes were
-statistical conventions (23.8% of these wrong attempts: which order statistic a stated percentile rule selects,
-whether a covariance divides by N or N−1, whether a drawdown's running peak includes the starting value; most were
-stated in the task) and the meaning of data fields (22.1%: a filer is its CIK and not its changeable name, a total
-row beside the detail rows, a filing's first-reported value versus its latest). Accounting standards, market
-calendars and contract mechanics together accounted for 19.6%. On the four tasks reworded during the study, the
-shared errors the rewording addressed disappeared and passes rose from 80 to 122 of 168 runs.
+**Shared errors lie in conventions and in the meaning of data rows.** We read the code behind the 307 outputs on
+which five or more configurations gave the same wrong value. The two largest sources were statistical conventions
+(23.8% of these wrong attempts), mostly stated in the task, and data-model semantics (22.1%): a filer is its SEC
+identifier (CIK) and not its name, a file carries a total row beside the detail rows. Capability clearly reduced
+most classes but not data-model semantics. Rewording four tasks removed the shared readings it targeted and raised
+passes from 80 to 122 of 168 runs.
 
-**Stronger models and thinking remove unshared errors faster than shared ones.** From the weak to the strong
-tier, unshared wrong values fall by 88% and shared ones by 46%; with thinking, by 62% and 23%. The composition of
-what remains reverses: 71% of weak-tier wrong values are unshared, and 65% of strong-tier wrong values are shared.
-When both modes of a model were wrong on the same output, the thinking mode's value matched the other models' most
-common wrong value more often, in each of the six paired models (by 7 points pooled).
-
-**Agreement across vendors is a better check than agreement within one model.** Among thinking configurations,
-two runs of one model that agreed on a value were correct 98.3% of the time, one run each from two vendors 99.2%,
-and from three vendors 99.7%: agreement across two vendors left about half the error of agreement within one
-model. A strong model that is wrong tends to give the same wrong value on every run, so its runs agree with each
-other even when they are wrong.
+**Agreement passes the errors agents share.** Among thinking configurations, two runs of one model that agreed on
+a value were correct 98.3% of the time and one run each from two vendors 99.2%. Of the wrong values two vendors
+agreed on, 79% were also given by configurations of other vendors, against 48% of wrong values overall.
 
 **Judging the written response says little about whether the numbers are right.** Three judges from different
-vendors checked each turn's response against its pre-registered claims, without seeing the reference values. Claim
-coverage separated correct from incorrect turns with an AUC of 0.52–0.53, close to chance, and under every judge
-the least accurate configuration covered the claims on more of its turns than the most accurate. A second channel
-that scored each turn on a quality rubric with the recomputed reference values in view separated verified turns
-from wrong ones with an AUC of 0.88 and 0.86; the two channels also differ in rubric and judges.
+vendors checked each turn's response against its pre-registered claims, without the reference values. Claim
+coverage separated correct from incorrect turns with an AUC of 0.52–0.53, also without each judge's own vendor,
+and under every judge the least accurate configuration passed more often than the most accurate.
 
-In short, capable agents make fewer errors but the same ones, and a check that shares those errors cannot catch
-them. Because every output is checked by a
-program, the tasks could also provide verifiable rewards for reinforcement learning (RLVR); the paper discusses
-this use but does not test it.
+Because every output is checked by a program, the tasks could also provide verifiable rewards for reinforcement
+learning (RLVR); the paper discusses this use but does not test it.
 
 ## Installation
 

@@ -1,0 +1,18 @@
+rule,measure,n,estimate,lo_or_mid,hi_or_weak,n_slots
+self,tier share,strong/mid/weak,0.61401,0.442799,0.282923,
+self,Spearman with accuracy,,0.920879,,,
+self,within slot strong - weak,562,0.150546,0.082894,0.216566,
+self,within slot strong - mid,548,0.028586,-0.026712,0.081891,
+self,within slot mid - weak,1142,0.067837,0.038276,0.098067,
+sibling,tier share,strong/mid/weak,0.581844,0.410722,0.261116,
+sibling,Spearman with accuracy,,0.912088,,,
+sibling,within slot strong - weak,562,0.123629,0.05606,0.192406,
+sibling,within slot strong - mid,548,0.01783,-0.036685,0.071948,
+sibling,within slot mid - weak,1142,0.057221,0.027819,0.086234,
+vendor,tier share,strong/mid/weak,0.573981,0.399058,0.240159,
+vendor,Spearman with accuracy,,0.876923,,,
+vendor,within slot strong - weak,562,0.13002,0.065227,0.193397,
+vendor,within slot strong - mid,548,0.029157,-0.02212,0.084007,
+vendor,within slot mid - weak,1142,0.059902,0.031669,0.088192,
+sibling,"slot FE: accuracy, per 10 points",7341,0.060474,0.037532,0.081184,1403
+sibling,"slot FE: thinking, within model",7341,0.082033,0.040857,0.116735,1403

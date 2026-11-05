@@ -1,0 +1,15 @@
+[self] wrong value = consensus error: strong 61.4%, mid 44.3%, weak 28.3%; Spearman with accuracy 0.92
+   within slot strong - weak: +15.1% [+8.3%, +21.7%] slots 562
+   within slot strong - mid: +2.9% [-2.7%, +8.2%] slots 548
+   within slot mid - weak: +6.8% [+3.8%, +9.8%] slots 1142
+[sibling] wrong value = consensus error: strong 58.2%, mid 41.1%, weak 26.1%; Spearman with accuracy 0.91
+   within slot strong - weak: +12.4% [+5.6%, +19.2%] slots 562
+   within slot strong - mid: +1.8% [-3.7%, +7.2%] slots 548
+   within slot mid - weak: +5.7% [+2.8%, +8.6%] slots 1142
+[vendor] wrong value = consensus error: strong 57.4%, mid 39.9%, weak 24.0%; Spearman with accuracy 0.88
+   within slot strong - weak: +13.0% [+6.5%, +19.3%] slots 562
+   within slot strong - mid: +2.9% [-2.2%, +8.4%] slots 548
+   within slot mid - weak: +6.0% [+3.2%, +8.8%] slots 1142
+slot fixed effects, sibling rule, accuracy, per 10 points: +6.0 points [+3.8, +8.1] (7341 configuration-slot rows on 1403 slots)
+slot fixed effects, sibling rule, thinking, within model: +8.2 points [+4.1, +11.7] (7341 configuration-slot rows on 1403 slots)
+-> analysis/final_20261012/tables/convergence_robust.csv

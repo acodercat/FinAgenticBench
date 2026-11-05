@@ -1,0 +1,19 @@
+three-vendor configurations (most accurate thinking configuration per vendor, chosen on these results): Claude Sonnet 5.5, DeepSeek V4 Pro, Gemini 3.8 Flash, GLM-5.3, GPT-6 Luna, Qwen3.8 Flash
+same model, 2 runs agree (thinking)      agreeing  83266 | wrong  1451 | shared among wrong 83.0% [73.6%,89.5%] | P(wrong|agree) 1.74%: shared 1.45% [0.92%,2.12%], unshared 0.30% [0.18%,0.44%]
+2 vendors agree (1 run each, thinking)   agreeing  89678 | wrong   728 | shared among wrong 92.3% [82.5%,97.0%] | P(wrong|agree) 0.81%: shared 0.75% [0.36%,1.27%], unshared 0.06% [0.03%,0.11%]
+3 vendors agree                          agreeing  67635 | wrong   175 | shared among wrong 98.9% [93.6%,100.0%] | P(wrong|agree) 0.26%: shared 0.26% [0.05%,0.60%], unshared 0.00% [0.00%,0.01%]
+3 runs identical (thinking)              agreeing  26633 | wrong   295 | shared among wrong 88.1% [78.0%,94.9%] | P(wrong|agree) 1.11%: shared 0.98% [0.55%,1.52%], unshared 0.13% [0.05%,0.25%]
+2 vendors vs same model, shared   part of P(wrong|agree): -48.2% [-65.8%, -33.2%]
+2 vendors vs same model, unshared part of P(wrong|agree): -78.9% [-91.1%, -58.2%]
+
+agreed wrong values also given by >= 2 configurations outside the agreeing set (circularity-free):
+  same model, 2 runs agree (thinking)      1246/1451 = 85.9%
+  2 vendors agree (1 run each, thinking)   655/728 = 90.0%
+  3 vendors agree                          174/175 = 99.4%
+  3 runs identical (thinking)              268/295 = 90.8%
+agreed wrong values also given by >= 2 configurations of vendors outside the agreeing set (strictest):
+  same model, 2 runs agree (thinking)      1186/1451 = 81.7%
+  2 vendors agree (1 run each, thinking)   575/728 = 79.0%
+  base rate, one thinking wrong value, same rule: 2447/5062 = 48.3%
+base rate: shared share of all thinking-configuration wrong values 2524/5062 = 49.9%
+-> analysis/final_20261012/tables/agreement_residual.csv

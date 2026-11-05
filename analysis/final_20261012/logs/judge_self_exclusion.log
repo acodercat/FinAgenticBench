@@ -1,0 +1,17 @@
+claim coverage   deepseek-v4-flash-oneapi   all configurations   turns  34516 | AUC pass vs rest 0.526 [0.510, 0.543] | pass vs wrong value 0.520 [0.503, 0.540]
+                                                                 CC pass: verified 95.3%, shared wrong 90.0% | Spearman 0.22 | least accurate Qwen3.8 Flash N 97.1% vs most accurate DeepSeek V4 Pro T 95.1%
+claim coverage   deepseek-v4-flash-oneapi   excluding deepseek   turns  24541 | AUC pass vs rest 0.528 [0.512, 0.548] | pass vs wrong value 0.523 [0.505, 0.543]
+                                                                 CC pass: verified 95.3%, shared wrong 89.2% | Spearman -0.01 | least accurate Qwen3.8 Flash N 97.1% vs most accurate Gemini 3.8 Flash T 96.6%
+claim coverage   glm-5.3-flash              all configurations   turns  34521 | AUC pass vs rest 0.533 [0.516, 0.553] | pass vs wrong value 0.529 [0.509, 0.548]
+                                                                 CC pass: verified 86.4%, shared wrong 80.0% | Spearman 0.24 | least accurate Qwen3.8 Flash N 89.9% vs most accurate DeepSeek V4 Pro T 85.7%
+claim coverage   glm-5.3-flash              excluding zhipu      turns  32019 | AUC pass vs rest 0.534 [0.516, 0.553] | pass vs wrong value 0.529 [0.509, 0.549]
+                                                                 CC pass: verified 86.0%, shared wrong 79.5% | Spearman 0.22 | least accurate Qwen3.8 Flash N 89.9% vs most accurate DeepSeek V4 Pro T 85.7%
+claim coverage   gpt-6-luna-nonthinking     all configurations   turns  34460 | AUC pass vs rest 0.518 [0.495, 0.540] | pass vs wrong value 0.511 [0.489, 0.533]
+                                                                 CC pass: verified 78.3%, shared wrong 73.2% | Spearman 0.25 | least accurate Qwen3.8 Flash N 81.1% vs most accurate DeepSeek V4 Pro T 79.7%
+claim coverage   gpt-6-luna-nonthinking     excluding openai     turns  29461 | AUC pass vs rest 0.516 [0.496, 0.536] | pass vs wrong value 0.508 [0.488, 0.532]
+                                                                 CC pass: verified 80.1%, shared wrong 74.8% | Spearman 0.38 | least accurate Qwen3.8 Flash N 81.1% vs most accurate DeepSeek V4 Pro T 79.7%
+response quality deepseek-v4-flash-oneapi   all configurations   turns  34818 | AUC pass vs rest 0.875 [0.860, 0.891] | pass vs wrong value 0.896 [0.879, 0.912]
+response quality deepseek-v4-flash-oneapi   excluding deepseek   turns  24757 | AUC pass vs rest 0.882 [0.865, 0.896] | pass vs wrong value 0.904 [0.889, 0.919]
+response quality gpt-6-luna-nonthinking     all configurations   turns  34836 | AUC pass vs rest 0.856 [0.839, 0.871] | pass vs wrong value 0.876 [0.859, 0.892]
+response quality gpt-6-luna-nonthinking     excluding openai     turns  29788 | AUC pass vs rest 0.855 [0.836, 0.871] | pass vs wrong value 0.871 [0.853, 0.886]
+-> analysis/final_20261012/tables/judge_self_exclusion.csv

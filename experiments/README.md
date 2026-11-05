@@ -32,8 +32,10 @@ each scored alone:
 Claim coverage was scored on 2026-10-12 by all three judges. Response quality was scored earlier, on 2026-10-10
 (DeepSeek V4 Flash) and 2026-10-11 (GPT-6 Luna), before four tasks were reworded and their 168 runs re-executed on
 2026-10-12; those runs received programmatic verification and claim coverage only, which is why 168 runs have no
-response-quality file. Response quality was piloted and is not used in the paper. The claim-coverage comparison
-is `analysis/final_20261012/scripts/cc_vs_pv.py` (Supplementary Table 17).
+response-quality file. Response quality was a pilot; the paper uses it only to ask how far a judge that sees the reference values tracks
+verification (`rq_vs_pv.py`, Supplementary Table 26), never to compare the agents. The claim-coverage comparison is
+`cc_vs_pv.py` (Supplementary Table 17), and both are repeated without each judge's own vendor in
+`judge_self_exclusion.py` (Supplementary Table 31); the scripts are in `analysis/final_20261012/scripts/`.
 
 Code that reads a judged channel names the panel: `core.results.channel_path(run, "claim_coverage", panel)`
 refuses a judged channel without one, `scripts.run_stats --judge-panel <panel>` reports one panel (without it,

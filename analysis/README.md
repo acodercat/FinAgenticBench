@@ -48,6 +48,12 @@ uv run python $S/slot_example.py        # Supplementary Table 19: one slot, all 
 for s in pair_sharing null_models rewording_effect rq_vs_pv predict_convergence; do
   uv run python $S/$s.py | tee analysis/final_20261012/logs/$s.log
 done
+# 7. What agreement lets through, the change by knowledge class with intervals, convergence with related
+#    configurations left out of the consensus and a slot fixed-effects model, and the judge comparisons without
+#    each judge's own vendor (Supplementary Tables 28-31)
+for s in agreement_residual knowledge_change_ci convergence_robust judge_self_exclusion; do
+  uv run python $S/$s.py | tee analysis/final_20261012/logs/$s.log
+done
 ```
 
 `final_20261012/scripts/groups.py` is the single definition of the configuration groups: reasoning mode, model pairs, vendors,

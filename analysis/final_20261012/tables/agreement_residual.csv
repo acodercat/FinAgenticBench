@@ -1,0 +1,15 @@
+signal,n_agree,n_agree_wrong,n_agree_wrong_shared,shared_share,shared_share_lo,shared_share_hi,p_wrong,p_wrong_lo,p_wrong_hi,p_wrong_shared,p_wrong_shared_lo,p_wrong_shared_hi,p_wrong_unshared,p_wrong_unshared_lo,p_wrong_unshared_hi
+"same model, 2 runs agree (thinking)",83266,1451,1204,0.829773,0.736223,0.894737,0.017426,0.011889,0.024485,0.01446,0.009191,0.021205,0.002966,0.001834,0.004414
+"2 vendors agree (1 run each, thinking)",89678,728,672,0.923077,0.824723,0.97,0.008118,0.004169,0.013351,0.007493,0.00356,0.01267,0.000624,0.000264,0.001122
+3 vendors agree,67635,175,173,0.988571,0.93617,1.0,0.002587,0.000484,0.006074,0.002558,0.000472,0.006036,3e-05,0.0,7.6e-05
+3 runs identical (thinking),26633,295,260,0.881356,0.779528,0.949206,0.011076,0.0067,0.016837,0.009762,0.005486,0.015238,0.001314,0.000544,0.002453
+"relative change, 2 vendors vs same model, shared part",,,,-0.481768,-0.657986,-0.332346,,,,,,,,,
+"relative change, 2 vendors vs same model, unshared part",,,,-0.78949,-0.910562,-0.581563,,,,,,,,,
+"outside-set convergence: same model, 2 runs agree (thinking)",,1451,1246,0.858718,,,,,,,,,,,
+"outside-set convergence: 2 vendors agree (1 run each, thinking)",,728,655,0.899725,,,,,,,,,,,
+outside-set convergence: 3 vendors agree,,175,174,0.994286,,,,,,,,,,,
+outside-set convergence: 3 runs identical (thinking),,295,268,0.908475,,,,,,,,,,,
+"outside-vendor convergence: same model, 2 runs agree (thinking)",,1451,1186,0.817367,,,,,,,,,,,
+"outside-vendor convergence: 2 vendors agree (1 run each, thinking)",,728,575,0.789835,,,,,,,,,,,
+outside-vendor base rate: thinking wrong values,,5062,2447,0.483406,,,,,,,,,,,
+base rate: shared share of thinking wrong values,,5062,2524,0.498617,,,,,,,,,,,
