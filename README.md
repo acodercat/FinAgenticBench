@@ -1,6 +1,6 @@
 # FinAgenticBench
 
-**Convergent errors in language model agents for financial analysis**
+**Capable language model agents make fewer errors but the same ones**
 
 [Paper](#citation) (link to be added) · [Data and runs](#data-and-run-artifacts) · [Reproducing the paper](#reproducing-the-paper)
 
@@ -18,10 +18,9 @@ which reading of the data produced it, and whether a model's wrong answer change
 
 *(a) The 85 tables from 44 official sources, in six groups. (b) Each task runs over two to six turns, and state
 carries into later turns; in each turn the model writes code that a Python runtime executes on the task's tables,
-and the turn ends with saved values and a written response. (c) Programmatic verification compares each saved value
-with a reference recomputed from the same data; claim coverage checks the written response against pre-registered
-claims without seeing the reference. In this illustrative example the response states the method and is marked as
-covering its claim, while the value it reports is wrong.*
+and the turn ends with saved values and a written response. (c) Saved values are checked against a reference
+recomputed from the same data; the written response is checked against pre-registered claims. The example is
+illustrative.*
 
 ## The benchmark
 
@@ -68,37 +67,51 @@ points.*
 | Qwen3.8-27B | 47.9 | 62.3 | +14.4 |
 
 *Task accuracy: share of the 213 tasks with every turn correct, mean of three runs. Gemini 3.8 Flash and GLM-5.3
-cannot switch thinking off. The four leading configurations are statistically indistinguishable. Below, the
+cannot switch thinking off. The four leading configurations did not differ from one another (paired 95% intervals included zero). Below, the
 strong tier is the configurations at 78% or above and the weak tier those below 60%.*
 
 **Errors are shared across models.** Of all wrong values, 39% were a value that at least three of the fourteen
-configurations gave (we call these shared, and the rest other); among the four most accurate configurations the
+configurations gave (we call these shared, and the rest unshared); among the four most accurate configurations the
 share was 65%. Which output is asked for predicts correctness much better than which model answers it: the
 output explains 27.8% of the variance in correctness, the configuration 2.4%.
 
+**Errors concentrate on the same outputs far beyond what independent errors would give.** If each configuration
+erred independently at its own rate on each task, 1,433 of the 3,669 outputs attempted by all fourteen would have
+escaped every error and 364 would have been failed by six or more configurations; 1,902 and 529 did. Shared wrong
+values do not cluster by vendor: at the same accuracy, two models of one vendor share no more of their wrong values
+than two models of different vendors (adjusted difference +0.8 points, 95% CI −3.3 to +4.4), while sharing rises
+by 15 points for every 10 points of the pair's accuracy.
+
 **Shared errors come more from reading the data than from missing financial knowledge.** We read the code behind
 the 307 outputs on which five or more configurations gave the same wrong value. The two largest causes were
-statistical conventions (23.8% of these wrong attempts: sample versus regression standard deviation, log versus
-simple return, which end of a window is included) and the meaning of data fields (22.1%: a filer versus its
-holding rows, a published total row beside the detail rows, a first-reported versus a latest value). Accounting
-standards, market calendars and contract mechanics together accounted for 19.6%.
+statistical conventions (23.8% of these wrong attempts: which order statistic a stated percentile rule selects,
+whether a covariance divides by N or N−1, whether a drawdown's running peak includes the starting value; most were
+stated in the task) and the meaning of data fields (22.1%: a filer is its CIK and not its changeable name, a total
+row beside the detail rows, a filing's first-reported value versus its latest). Accounting standards, market
+calendars and contract mechanics together accounted for 19.6%. On the four tasks reworded during the study, the
+shared errors the rewording addressed disappeared and passes rose from 80 to 122 of 168 runs.
 
-**Stronger models and thinking remove shared errors more slowly than other errors.** From the weak to the strong
-tier, the other wrong values fall by 88% and the shared ones by 46%; with thinking, by 62% and 23%. When both
-modes of a model were wrong on the same output, the thinking mode's value matched the other models' most common
-wrong value more often, in each of the six paired models (by 7 points pooled).
+**Stronger models and thinking remove unshared errors faster than shared ones.** From the weak to the strong
+tier, unshared wrong values fall by 88% and shared ones by 46%; with thinking, by 62% and 23%. The composition of
+what remains reverses: 71% of weak-tier wrong values are unshared, and 65% of strong-tier wrong values are shared.
+When both modes of a model were wrong on the same output, the thinking mode's value matched the other models' most
+common wrong value more often, in each of the six paired models (by 7 points pooled).
 
 **Agreement across vendors is a better check than agreement within one model.** Among thinking configurations,
 two runs of one model that agreed on a value were correct 98.3% of the time, one run each from two vendors 99.2%,
-and from three vendors 99.7%. A strong model that is wrong tends to give the same wrong value on every run, so its
-runs agree with each other even when they are wrong.
+and from three vendors 99.7%: agreement across two vendors left about half the error of agreement within one
+model. A strong model that is wrong tends to give the same wrong value on every run, so its runs agree with each
+other even when they are wrong.
 
 **Judging the written response says little about whether the numbers are right.** Three judges from different
 vendors checked each turn's response against its pre-registered claims, without seeing the reference values. Claim
 coverage separated correct from incorrect turns with an AUC of 0.52–0.53, close to chance, and under every judge
-the least accurate configuration covered the claims on more of its turns than the most accurate.
+the least accurate configuration covered the claims on more of its turns than the most accurate. A second channel
+that scored each turn on a quality rubric with the recomputed reference values in view separated verified turns
+from wrong ones with an AUC of 0.88 and 0.86; the two channels also differ in rubric and judges.
 
-In short, higher accuracy alone does not make agent errors independent. Because every output is checked by a
+In short, capable agents make fewer errors but the same ones, and a check that shares those errors cannot catch
+them. Because every output is checked by a
 program, the tasks could also provide verifiable rewards for reinforcement learning (RLVR); the paper discusses
 this use but does not test it.
 

@@ -1,0 +1,25 @@
+tier,matched_on,n_slots,mean_distinct_values
+strong,2 attempts,104,1.2596
+strong,3 attempts,93,1.2581
+strong,4 attempts,32,2.0
+strong,5 attempts,34,1.8529
+strong,6 attempts,13,2.1538
+mid,2 attempts,278,1.5036
+mid,3 attempts,139,1.9065
+mid,4 attempts,131,2.458
+mid,5 attempts,84,2.6071
+mid,6 attempts,54,3.3333
+weak,2 attempts,249,1.51
+weak,3 attempts,191,2.0995
+weak,4 attempts,154,2.3636
+weak,5 attempts,149,3.1342
+weak,6 attempts,129,4.3876
+strong,2 configurations,112,1.4286
+strong,3 configurations,48,1.7917
+strong,4 configurations,12,1.0833
+mid,2 configurations,294,1.585
+mid,3 configurations,226,1.9381
+mid,4 configurations,158,2.8734
+weak,2 configurations,394,1.6168
+weak,3 configurations,306,2.4085
+weak,4 configurations,241,3.0041

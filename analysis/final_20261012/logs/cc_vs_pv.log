@@ -1,22 +1,22 @@
 
-DeepSeek V4 Flash: scored turns 34642 | AUC(mean coverage -> PV pass) 0.526 | config rank corr CC vs PV task accuracy 0.22
-   CC pass among PV pass                           95.4%  (n=28732)
+DeepSeek V4 Flash: scored turns 34516 | AUC(mean coverage -> PV pass) 0.526 | config rank corr CC vs PV task accuracy 0.22
+   CC pass among PV pass                           95.3%  (n=28615)
    CC pass among PV wrong value, other             92.1%  (n=2868)
-   CC pass among PV wrong value, shared            90.1%  (n=2392)
-   CC pass among PV unanswered or other failure    81.1%  (n=650)
+   CC pass among PV wrong value, shared            90.0%  (n=2387)
+   CC pass among PV unanswered or other failure    81.0%  (n=646)
 
-GPT-6 Luna: scored turns 34586 | AUC(mean coverage -> PV pass) 0.518 | config rank corr CC vs PV task accuracy 0.27
-   CC pass among PV pass                           78.3%  (n=28673)
+GPT-6 Luna: scored turns 34460 | AUC(mean coverage -> PV pass) 0.518 | config rank corr CC vs PV task accuracy 0.24
+   CC pass among PV pass                           78.3%  (n=28556)
    CC pass among PV wrong value, other             77.1%  (n=2870)
-   CC pass among PV wrong value, shared            73.2%  (n=2389)
-   CC pass among PV unanswered or other failure    65.4%  (n=654)
+   CC pass among PV wrong value, shared            73.2%  (n=2384)
+   CC pass among PV unanswered or other failure    65.2%  (n=650)
 
-GLM-5.3 Flash: scored turns 34647 | AUC(mean coverage -> PV pass) 0.533 | config rank corr CC vs PV task accuracy 0.24
-   CC pass among PV pass                           86.5%  (n=28741)
+GLM-5.3 Flash: scored turns 34521 | AUC(mean coverage -> PV pass) 0.533 | config rank corr CC vs PV task accuracy 0.24
+   CC pass among PV pass                           86.4%  (n=28624)
    CC pass among PV wrong value, other             82.0%  (n=2867)
-   CC pass among PV wrong value, shared            80.0%  (n=2385)
-   CC pass among PV unanswered or other failure    74.2%  (n=654)
+   CC pass among PV wrong value, shared            80.0%  (n=2380)
+   CC pass among PV unanswered or other failure    74.0%  (n=650)
 
-three judges agree on turn-level CC pass: 79.4% of 34539 turns
+three judges agree on turn-level CC pass: 79.3% of 34413 turns
 -> analysis/final_20261012/tables/cc_by_config.csv
 -> analysis/final_20261012/tables/cc_vs_pv.csv

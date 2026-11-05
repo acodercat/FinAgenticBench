@@ -9,7 +9,8 @@ wrong value among the OTHER configurations, counted only when at least two of th
 - within_slot: on slots where configurations of two tiers both erred, each tier's convergence to the crowd value,
   paired by slot, with a case-resampled interval on the difference.
 - thinking: for each paired model, on slots where both its modes erred, thinking minus non-thinking convergence
-  to the crowd (crowd = the other 12 configurations); pooled with a case bootstrap; by knowledge class.
+  to the crowd (crowd = the other 12 configurations); pooled with a case bootstrap, over all six and over the
+  models whose sampling parameters do not change with the switch; by knowledge class.
 - flips: slots where one mode was correct in all three runs and the other mode erred; share of the erring mode's
   values that equal the crowd value, by direction.
 - dose: probability that a configuration's wrong value equals the value most other configurations gave, by the
@@ -22,7 +23,7 @@ import random
 import statistics
 
 from common import load, write_csv
-from groups import PAIRS, STUDIES, task_accuracy, tiers
+from groups import PAIRS, SAME_SAMPLING_PAIRS, STUDIES, task_accuracy, tiers
 
 cases, turns, vars_ = load()
 acc = task_accuracy(turns); T = tiers(acc)
@@ -127,7 +128,7 @@ write_csv("convergence_within_slot.csv", ["higher_tier", "lower_tier", "higher_r
 # ---- within model: thinking vs non-thinking -------------------------------------------------------------------
 kc = json.load(open("analysis/final_20261012/knowledge_classification_20261012.json"))
 slot_class = {(e["case"], sl): e["primary"] for e in kc for sl in e["slots"]}
-rows = []; pooled = collections.defaultdict(list); byclass = collections.defaultdict(lambda: collections.defaultdict(list))
+rows = []; pooled = collections.defaultdict(list); pooled_same = collections.defaultdict(list); byclass = collections.defaultdict(lambda: collections.defaultdict(list))
 for model, (Ts, Ns) in PAIRS.items():
     diffs = collections.defaultdict(list)
     for k, m in S.items():
@@ -141,6 +142,8 @@ for model, (Ts, Ns) in PAIRS.items():
                 r[s] = statistics.mean(x["value"] == val for x in w)
         if len(r) == 2:
             d = r[Ts] - r[Ns]; diffs[k[0]].append(d); pooled[k[0]].append(d)
+            if model in SAME_SAMPLING_PAIRS:
+                pooled_same[k[0]].append(d)
             cls = slot_class.get((k[0], k[2]))
             if cls:
                 byclass[cls][k[0]].append(d)
@@ -150,6 +153,9 @@ for model, (Ts, Ns) in PAIRS.items():
 mean, lo_, hi_, n = case_boot(pooled)
 print(f"thinking minus non-thinking convergence, pooled            {mean:+.1%} [{lo_:+.1%}, {hi_:+.1%}] slots {n}")
 rows.append(("POOLED", round(mean, 6), round(lo_, 6), round(hi_, 6), n))
+mean, lo_, hi_, n = case_boot(pooled_same)
+print(f"thinking minus non-thinking convergence, pooled, same sampling in both modes {mean:+.1%} [{lo_:+.1%}, {hi_:+.1%}] slots {n}")
+rows.append(("POOLED_SAME_SAMPLING", round(mean, 6), round(lo_, 6), round(hi_, 6), n))
 for cls in sorted(byclass, key=lambda c: -sum(len(v) for v in byclass[c].values())):
     m_, l_, h_, n_ = case_boot(byclass[cls], seed=1)
     rows.append((f"CLASS:{cls}", round(m_, 6), round(l_, 6), round(h_, 6), n_))

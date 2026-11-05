@@ -1,0 +1,15 @@
+slots attempted by all 14 configurations: 3669 (rates for null A use all 3838 slots, as shared_errors.py)
+observed: never-wrong slots 1902, slots with >=3 failing configurations 972, with >=6 529
+A: one rate per configuration: expected never-wrong 382 [343, 416], >=3 failing 1232 [1176, 1287], >=6 failing 31 [21, 42]
+B: rate per configuration within task family and turn: expected never-wrong 782 [737, 823], >=3 failing 1137 [1094, 1178], >=6 failing 148 [128, 167]
+C: rate per configuration within the task, slot left out: expected never-wrong 1433 [1398, 1470], >=3 failing 1120 [1091, 1146], >=6 failing 364 [342, 386]
+-> analysis/final_20261012/tables/null_models.csv
+mean distinct wrong values on slots where the tier produced exactly n wrong attempts (slots in parentheses):
+  strong n=2: 1.26 (104)  n=3: 1.26 (93)  n=4: 2.00 (32)  n=5: 1.85 (34)  n=6: 2.15 (13)
+  mid    n=2: 1.50 (278)  n=3: 1.91 (139)  n=4: 2.46 (131)  n=5: 2.61 (84)  n=6: 3.33 (54)
+  weak   n=2: 1.51 (249)  n=3: 2.10 (191)  n=4: 2.36 (154)  n=5: 3.13 (149)  n=6: 4.39 (129)
+mean distinct modal wrong values on slots where exactly c configurations of the tier erred:
+  strong c=2: 1.43 (112)  c=3: 1.79 (48)  c=4: 1.08 (12)
+  mid    c=2: 1.59 (294)  c=3: 1.94 (226)  c=4: 2.87 (158)
+  weak   c=2: 1.62 (394)  c=3: 2.41 (306)  c=4: 3.00 (241)
+-> analysis/final_20261012/tables/wrong_value_diversity.csv

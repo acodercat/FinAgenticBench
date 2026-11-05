@@ -28,6 +28,7 @@ thinking minus non-thinking convergence, Claude Sonnet 5.5  +9.0% [-2.4%, +20.2%
 thinking minus non-thinking convergence, Qwen3.8 Flash      +10.7% [-0.3%, +22.3%] slots 297
 thinking minus non-thinking convergence, Qwen3.8-27B        +8.0% [+3.1%, +13.5%] slots 529
 thinking minus non-thinking convergence, pooled            +7.0% [+2.9%, +11.2%] slots 1839
+thinking minus non-thinking convergence, pooled, same sampling in both modes +5.6% [+0.5%, +11.3%] slots 1130
    by class K4: +11.6% [+1.2%, +20.4%] slots 246
    by class K5: +17.3% [+0.0%, +31.7%] slots 187
    by class K6: +11.3% [+5.5%, +16.8%] slots 137

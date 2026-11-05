@@ -19,6 +19,8 @@ from groups import MODEL, PAIRS, STUDIES, TIER_THRESHOLDS, task_accuracy
 REPINNED = {"bank_year_to_date_flow_derivation", "pension_discount_rate_remeasurement",
             "nfip_compound_poisson_stoploss_capacity", "bis_currency_credit_cointegration_branch"}
 K9 = {"leverage_definition_and_goodwill_location", "treasury_delivery_basket_ctd_switch", "nmfp_bridge_facility_state_preservation"}
+# K4 root causes whose convention the query does not state (inputs/k4_statement_check.csv)
+UNSTATED = {"industry_beta_crisis_prediction_failure", "bank_securities_concentration_outcome_channels"}
 
 
 def tiers_at(acc, strong, mid):
@@ -110,7 +112,8 @@ sub = lambda excl: ([t for t in turns if t["case"] not in excl], [v for v in var
 rows.append(evaluate("excluding 4 re-pinned cases", cases, *sub(REPINNED)))
 rows.append(evaluate("excluding 3 K9 cases", cases, *sub(K9)))
 rows.append(evaluate("excluding both sets", cases, *sub(REPINNED | K9)))
-pre = Path("analysis/final_20261012/inputs/final_data_prerevision_20261011.json")   # ships with the run archive
+rows.append(evaluate("excluding 3 K9 and 2 unstated-convention cases", cases, *sub(K9 | UNSTATED)))
+pre = Path("analysis/final_20261012/inputs/final_data_prerevision_20261011.json")
 if pre.exists():
     d = json.loads(pre.read_text())
     own = {(c, i + 1, v) for c, info in d["cases"].items() for i, st in enumerate(info["turn_stores"]) for v in st}

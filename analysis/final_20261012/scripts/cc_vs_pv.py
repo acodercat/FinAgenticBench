@@ -3,7 +3,7 @@
 The CC judge sees the conversation, the pre-registered claims and the agent's final prose, never the reference
 values. A turn is CC-passed when no required claim is missed. For each judge: CC pass rate by PV outcome of the
 same turn (pass / wrong value / wrong value that is a shared wrong value / unanswered), the AUC of the turn's mean
-required-claim coverage as a predictor of PV pass, and the rank correlation between configuration-level CC and PV
+coverage over its claims as a predictor of PV pass, and the rank correlation between configuration-level CC and PV
 task accuracy. Also the three judges' agreement on turn-level CC pass. Writes tables/cc_vs_pv.csv.
 """
 import collections
@@ -18,6 +18,16 @@ from groups import task_accuracy
 JUDGES = {"DeepSeek V4 Flash": "deepseek-v4-flash-oneapi", "GPT-6 Luna": "gpt-6-luna-nonthinking", "GLM-5.3 Flash": "glm-5.3-flash"}
 cases, turns, vars_ = load()
 T = {(t["study"], t["case"], t["run_id"], t["turn"]): t for t in turns}
+# turns with at least one required claim, from the case specifications; turns without one are not scored
+reg = json.load(open("benchmarks.json")); reg = reg.get("cases", reg)
+REQUIRED = set()
+for case, entry in reg.items():
+    spec = json.load(open(entry if isinstance(entry, str) else entry["path"]))
+    convs = spec.get("conversations") or [{"turns": [{"claims": spec.get("claims", [])}]}]
+    for conv in convs:
+        for i, turn in enumerate(conv["turns"]):
+            if any(c.get("mode") == "required" for c in turn.get("claims", [])):
+                REQUIRED.add((case, i + 1))
 modal = modal_shared(vars_)
 shared_turn = set()
 for v in vars_:
@@ -64,7 +74,7 @@ for jname, panel in JUDGES.items():
         d = json.load(open(f))
         for c in d["conversations"]:
             for t in c["turns"]:
-                if t.get("status") != "scored":
+                if t.get("status") != "scored" or (case, t["turn"]) not in REQUIRED:
                     continue
                 c_ = t["claim_coverage"]; rates = c_.get("coverage_rate") or {}
                 if not rates:

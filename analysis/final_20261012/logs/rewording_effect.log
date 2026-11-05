@@ -1,0 +1,29 @@
+slot                                                                  wrong attempts   modal value configs   shared   (before -> after)
+  bank_year_to_date_flow_derivation/1/cumulative_income_usd_billions            24 ->   0   10 ->  0   1 -> 0
+  bis_currency_credit_cointegration_branch/4/dynamic_conditional_prediction_rmse_log_points  12 ->   2    4 ->  1   1 -> 0
+  bis_currency_credit_cointegration_branch/4/largest_conditional_prediction_error_log_points  11 ->   2    4 ->  1   1 -> 0
+  bis_currency_credit_cointegration_branch/4/no_change_benchmark_rmse_log_points       11 ->   0    5 ->  0   1 -> 0
+  nfip_compound_poisson_stoploss_capacity/1/severity_second_moment_million             6 ->   0    5 ->  0   1 -> 0
+  nfip_compound_poisson_stoploss_capacity/4/capacity_exhaustion_probability            4 ->   3    3 ->  2   1 -> 0
+  nfip_compound_poisson_stoploss_capacity/4/capacity_frequency                         5 ->   4    3 ->  2   1 -> 0
+  pension_discount_rate_remeasurement/1/rate_filer_count                           7 ->  10    2 ->  4   0 -> 1
+  pension_discount_rate_remeasurement/2/below_treasury_count                       8 ->   9    3 ->  4   1 -> 1
+  pension_discount_rate_remeasurement/2/tracking_count                            21 ->  14   10 ->  4   1 -> 1
+  pension_discount_rate_remeasurement/3/gain_filer_count                           7 ->  10    2 ->  4   0 -> 1
+  pension_discount_rate_remeasurement/3/median_implied_duration_years             10 ->  14    2 ->  5   0 -> 1
+  pension_discount_rate_remeasurement/4/funded_filer_count                         8 ->  10    2 ->  4   0 -> 1
+  pension_discount_rate_remeasurement/4/median_start_funded_ratio                  8 ->  11    2 ->  5   0 -> 1
+  pension_discount_rate_remeasurement/4/negative_return_count                      8 ->  10    2 ->  4   0 -> 1
+  pension_discount_rate_remeasurement/4/negative_return_improved_count             9 ->  10    2 ->  5   0 -> 1
+four tasks, wrong attempts: 223 -> 173
+four tasks, shared-wrong attempts: 77 -> 48
+four tasks, shared-wrong attempts, strong tier: 23 -> 9
+four tasks, shared-wrong attempts, mid tier: 20 -> 32
+four tasks, shared-wrong attempts, weak tier: 34 -> 7
+four tasks, shared slots: 9 -> 9
+task passes out of 42, bank_year_to_date_flow_derivation: 16 -> 37
+task passes out of 42, pension_discount_rate_remeasurement: 14 -> 20
+task passes out of 42, nfip_compound_poisson_stoploss_capacity: 27 -> 35
+task passes out of 42, bis_currency_credit_cointegration_branch: 23 -> 30
+task passes, four tasks: 80 -> 122
+-> analysis/final_20261012/tables/rewording_effect.csv

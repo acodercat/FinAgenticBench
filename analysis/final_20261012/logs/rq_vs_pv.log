@@ -1,0 +1,4 @@
+runs with a response-quality file: deepseek-v4-flash-oneapi 8,778, gpt-6-luna-nonthinking 8,778
+deepseek-v4-flash-oneapi: turns 34818; mean overall score PV pass 4.19 (n=28908), PV wrong value, other 2.93 (n=2862), PV wrong value, shared 2.90 (n=2391), PV unanswered or other failure 3.32 (n=657); AUC for a verified pass 0.875 (vs wrong values only 0.896); config rank correlation with task accuracy 0.42
+gpt-6-luna-nonthinking: turns 34836; mean overall score PV pass 3.44 (n=28923), PV wrong value, other 2.46 (n=2862), PV wrong value, shared 2.49 (n=2394), PV unanswered or other failure 2.76 (n=657); AUC for a verified pass 0.856 (vs wrong values only 0.876); config rank correlation with task accuracy 0.45
+-> analysis/final_20261012/tables/rq_vs_pv.csv

@@ -2,7 +2,8 @@
 
 `final_20261012/` rebuilds every table and log behind the paper from the run archive: fourteen configurations,
 213 tasks, three runs each, as scored on 2026-10-12. All results use programmatic verification except the
-claim-coverage comparison, which reads the three judges' claim-coverage files.
+two judge comparisons: `cc_vs_pv.py` reads the three judges' claim-coverage files and `rq_vs_pv.py` the two
+judges' response-quality files.
 
 ```text
 final_20261012/
@@ -41,6 +42,12 @@ done
 uv run python $S/shared_wrong_slots.py
 uv run python $S/knowledge_by_tier.py
 uv run python $S/slot_example.py        # Supplementary Table 19: one slot, all 42 runs
+# 6. Pair sharing by vendor class, independence nulls and wrong-value diversity, the four reworded tasks before
+#    and after, the judges shown the reference values, and convergence predicted from accuracy
+#    (Supplementary Tables 21-27)
+for s in pair_sharing null_models rewording_effect rq_vs_pv predict_convergence; do
+  uv run python $S/$s.py | tee analysis/final_20261012/logs/$s.log
+done
 ```
 
 `final_20261012/scripts/groups.py` is the single definition of the configuration groups: reasoning mode, model pairs, vendors,
@@ -54,7 +61,12 @@ before the rewording and cannot be rebuilt from the current archive:
 - `inputs/shared_wrong_prerevision_20261011.json`, the shared-wrong slot set the knowledge classification was first
   made on, which `shared_wrong_slots.py` compares against;
 - `inputs/final_data_prerevision_20261011.json` (71 MB, shipped in the run archive), used by `sensitivity.py` for
-  the scenario on the runs from before the rewording; without it that scenario is skipped.
+  the scenario on the runs from before the rewording and by `rewording_effect.py`; without it that scenario is
+  skipped and `rewording_effect.py` cannot run.
+
+`inputs/k4_statement_check.csv` is the hand check of the sixteen statistical-convention root causes, recording
+whether the query states the convention (Supplementary Table 25); `sensitivity.py` reads the two it marks as not
+stated.
 
 `inputs/knowledge_classification_prerefix.json` is the reader's classification of those slots.
 `knowledge_by_tier.py` merges it with `knowledge_added_20261012.json` and writes

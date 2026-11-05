@@ -41,6 +41,9 @@ PAIRS = {
     "Qwen3.8 Flash": ("qwen3.8-flash-thinking-20261006", "qwen3.8-flash-nonthinking-20261006"),
     "Qwen3.8-27B": ("qwen3.8-27b-thinking-20261008", "qwen3.8-27b-nonthinking-20261008"),
 }
+# Paired models whose sampling parameters are the same in both modes (Supplementary Table 20): GPT-6 Luna
+# (1.0 thinking, 0.1 non-thinking) and Qwen3.8-27B (vendor presets per mode) change sampling with the switch.
+SAME_SAMPLING_PAIRS = {"DeepSeek V4 Pro", "DeepSeek V4 Flash", "Claude Sonnet 5.5", "Qwen3.8 Flash"}
 
 # Model family: the lab's product line. Six vendors, eight families.
 FAMILY = {

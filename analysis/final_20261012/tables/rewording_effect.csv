@@ -1,0 +1,62 @@
+case,turn,var,wrong_before,wrong_after,modal_n_before,modal_n_after,modal_configs_before,modal_configs_after,shared_before,shared_after
+bank_year_to_date_flow_derivation,1,cumulative_income_usd_billions,24,0,24,0,10,0,1,0
+bank_year_to_date_flow_derivation,1,panel_banks,1,0,1,0,1,0,0,0
+bank_year_to_date_flow_derivation,3,median_return_annualized,2,0,2,0,1,0,0,0
+bank_year_to_date_flow_derivation,3,median_return_from_cumulative,2,0,2,0,1,0,0,0
+bank_year_to_date_flow_derivation,3,median_return_on_risk_weighted,0,1,0,1,0,1,0,0
+bank_year_to_date_flow_derivation,3,median_risk_weight_share,1,2,1,1,1,1,0,0
+bank_year_to_date_flow_derivation,4,banks_gap_above_five,2,1,2,1,2,1,0,0
+bank_year_to_date_flow_derivation,4,median_efficiency_from_cumulative,1,1,1,1,1,1,0,0
+bank_year_to_date_flow_derivation,4,median_efficiency_from_quarter,2,1,1,1,1,1,0,0
+bank_year_to_date_flow_derivation,4,median_efficiency_gap,2,1,1,1,1,1,0,0
+bis_currency_credit_cointegration_branch,1,selected_real_eer_change_pct,0,1,0,1,0,1,0,0
+bis_currency_credit_cointegration_branch,1,selected_real_eer_start,0,1,0,1,0,1,0,0
+bis_currency_credit_cointegration_branch,2,long_run_residual_std,3,0,2,0,2,0,0,0
+bis_currency_credit_cointegration_branch,2,residual_adf_coefficient,4,4,4,3,2,2,0,0
+bis_currency_credit_cointegration_branch,2,residual_adf_t_stat,3,3,3,2,2,2,0,0
+bis_currency_credit_cointegration_branch,3,dynamic_current_loan_change_coefficient,1,1,1,1,1,1,0,0
+bis_currency_credit_cointegration_branch,3,dynamic_intercept,1,1,1,1,1,1,0,0
+bis_currency_credit_cointegration_branch,3,dynamic_lag_state_coefficient,1,1,1,1,1,1,0,0
+bis_currency_credit_cointegration_branch,3,dynamic_lagged_loan_change_coefficient,0,1,0,1,0,1,0,0
+bis_currency_credit_cointegration_branch,3,dynamic_model_observation_count,1,1,1,1,1,1,0,0
+bis_currency_credit_cointegration_branch,3,dynamic_model_r_squared,1,2,1,1,1,1,0,0
+bis_currency_credit_cointegration_branch,4,conditional_prediction_beats_no_change,2,0,2,0,2,0,0,0
+bis_currency_credit_cointegration_branch,4,dynamic_conditional_prediction_rmse_log_points,12,2,7,1,4,1,1,0
+bis_currency_credit_cointegration_branch,4,largest_conditional_prediction_error_log_points,11,2,6,1,4,1,1,0
+bis_currency_credit_cointegration_branch,4,no_change_benchmark_rmse_log_points,11,0,10,0,5,0,1,0
+bis_currency_credit_cointegration_branch,4,same_quarter_real_eer_change_pct,7,4,2,2,1,1,0,0
+nfip_compound_poisson_stoploss_capacity,1,severity_second_moment_million,6,0,6,0,5,0,1,0
+nfip_compound_poisson_stoploss_capacity,2,aggregate_es99_thousand,3,4,1,2,1,2,0,0
+nfip_compound_poisson_stoploss_capacity,2,aggregate_mean_thousand,2,1,1,1,1,1,0,0
+nfip_compound_poisson_stoploss_capacity,2,aggregate_var99_thousand,1,0,1,0,1,0,0,0
+nfip_compound_poisson_stoploss_capacity,3,retained_mean_thousand,2,1,1,1,1,1,0,0
+nfip_compound_poisson_stoploss_capacity,3,stoploss_present_value_thousand,3,0,1,0,1,0,0,0
+nfip_compound_poisson_stoploss_capacity,4,capacity_exhaustion_probability,4,3,3,2,3,2,1,0
+nfip_compound_poisson_stoploss_capacity,4,capacity_frequency,5,4,3,2,3,2,1,0
+pension_discount_rate_remeasurement,1,invalid_rate_count,2,5,1,4,1,2,0,0
+pension_discount_rate_remeasurement,1,median_rate_change_bp,1,4,1,4,1,2,0,0
+pension_discount_rate_remeasurement,1,rate_filer_count,7,10,3,5,2,4,0,1
+pension_discount_rate_remeasurement,2,below_treasury_count,8,9,5,5,3,4,1,1
+pension_discount_rate_remeasurement,2,median_end_rate_pct,1,3,1,3,1,2,0,0
+pension_discount_rate_remeasurement,2,median_spread_bp,2,4,1,4,1,2,0,0
+pension_discount_rate_remeasurement,2,tracking_count,21,14,13,5,10,4,1,1
+pension_discount_rate_remeasurement,3,gain_filer_count,7,10,3,5,2,4,0,1
+pension_discount_rate_remeasurement,3,median_implied_duration_years,10,14,3,6,2,5,0,1
+pension_discount_rate_remeasurement,3,negative_gain_count,4,5,2,3,1,2,0,0
+pension_discount_rate_remeasurement,3,negative_gain_obligation_fell_count,4,5,2,3,1,2,0,0
+pension_discount_rate_remeasurement,4,funded_filer_count,8,10,3,5,2,4,0,1
+pension_discount_rate_remeasurement,4,median_end_funded_ratio,2,5,1,3,1,2,0,0
+pension_discount_rate_remeasurement,4,median_start_funded_ratio,8,11,3,6,2,5,0,1
+pension_discount_rate_remeasurement,4,negative_return_count,8,10,3,5,2,4,0,1
+pension_discount_rate_remeasurement,4,negative_return_improved_count,9,10,3,6,2,5,0,1
+ALL,,wrong attempts,223,173,,,,,,
+ALL,,shared-wrong attempts,77,48,,,,,,
+ALL,,"shared-wrong attempts, strong tier",23,9,,,,,,
+ALL,,"shared-wrong attempts, mid tier",20,32,,,,,,
+ALL,,"shared-wrong attempts, weak tier",34,7,,,,,,
+ALL,,shared slots,9,9,,,,,,
+bank_year_to_date_flow_derivation,,task passes of 42,16,37,,,,,,
+pension_discount_rate_remeasurement,,task passes of 42,14,20,,,,,,
+nfip_compound_poisson_stoploss_capacity,,task passes of 42,27,35,,,,,,
+bis_currency_credit_cointegration_branch,,task passes of 42,23,30,,,,,,
+ALL,,task passes of 168,80,122,,,,,,

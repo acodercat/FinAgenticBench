@@ -1,0 +1,92 @@
+study_a,study_b,config_a,config_b,category,mean_accuracy,accuracy_gap,n_attempt_pairs,p_identical_attempts,n_slots_both_wrong,p_identical_slots
+deepseek-v4-pro-0813-thinking-20261006,gemini-3.8-flash-thinking-20261007,DeepSeek V4 Pro T,Gemini 3.8 Flash T,cross vendor,0.836463,0.007825,137,0.737226,29,0.896552
+deepseek-v4-pro-0813-thinking-20261006,gpt-6-luna-thinking-20261006,DeepSeek V4 Pro T,GPT-6 Luna T,cross vendor,0.830986,0.018779,204,0.740196,72,0.833333
+deepseek-v4-pro-0813-thinking-20261006,claude-sonnet-5-thinking-20261007,DeepSeek V4 Pro T,Claude Sonnet 5.5 T,cross vendor,0.819249,0.042254,171,0.48538,62,0.451613
+deepseek-v4-pro-0813-thinking-20261006,claude-sonnet-5-nonthinking-20261007,DeepSeek V4 Pro T,Claude Sonnet 5.5 N,cross vendor,0.780908,0.118936,159,0.295597,65,0.369231
+deepseek-v4-pro-0813-thinking-20261006,qwen3.8-flash-thinking-20261006,DeepSeek V4 Pro T,Qwen3.8 Flash T,cross vendor,0.774648,0.131455,262,0.496183,84,0.511905
+deepseek-v4-pro-0813-thinking-20261006,glm-5.3-thinking-high-20261007,DeepSeek V4 Pro T,GLM-5.3 T,cross vendor,0.770736,0.13928,258,0.406977,100,0.49
+deepseek-v4-pro-0813-thinking-20261006,deepseek-v4-flash-thinking-20261006,DeepSeek V4 Pro T,DeepSeek V4 Flash T,same vendor,0.733959,0.212833,433,0.554273,151,0.655629
+deepseek-v4-pro-0813-thinking-20261006,qwen3.8-27b-thinking-20261008,DeepSeek V4 Pro T,Qwen3.8-27B T,cross vendor,0.731612,0.217527,234,0.367521,100,0.44
+deepseek-v4-pro-0813-thinking-20261006,deepseek-v4-pro-0813-nonthinking-20261006,DeepSeek V4 Pro T,DeepSeek V4 Pro N,same model,0.715962,0.248826,381,0.469816,124,0.5
+deepseek-v4-pro-0813-thinking-20261006,deepseek-v4-flash-nonthinking-20261006,DeepSeek V4 Pro T,DeepSeek V4 Flash N,same vendor,0.714397,0.251956,411,0.469586,133,0.571429
+deepseek-v4-pro-0813-thinking-20261006,gpt-6-luna-nonthinking-20261006,DeepSeek V4 Pro T,GPT-6 Luna N,cross vendor,0.714397,0.251956,266,0.353383,131,0.381679
+deepseek-v4-pro-0813-thinking-20261006,qwen3.8-27b-nonthinking-20261008,DeepSeek V4 Pro T,Qwen3.8-27B N,cross vendor,0.659624,0.361502,332,0.259036,118,0.305085
+deepseek-v4-pro-0813-thinking-20261006,qwen3.8-flash-nonthinking-20261006,DeepSeek V4 Pro T,Qwen3.8 Flash N,cross vendor,0.658059,0.364632,309,0.407767,99,0.353535
+gemini-3.8-flash-thinking-20261007,gpt-6-luna-thinking-20261006,Gemini 3.8 Flash T,GPT-6 Luna T,cross vendor,0.827074,0.010955,184,0.891304,33,1.0
+gemini-3.8-flash-thinking-20261007,claude-sonnet-5-thinking-20261007,Gemini 3.8 Flash T,Claude Sonnet 5.5 T,cross vendor,0.815336,0.034429,188,0.484043,33,0.606061
+gemini-3.8-flash-thinking-20261007,claude-sonnet-5-nonthinking-20261007,Gemini 3.8 Flash T,Claude Sonnet 5.5 N,cross vendor,0.776995,0.111111,124,0.41129,30,0.533333
+gemini-3.8-flash-thinking-20261007,qwen3.8-flash-thinking-20261006,Gemini 3.8 Flash T,Qwen3.8 Flash T,cross vendor,0.770736,0.123631,248,0.850806,45,0.933333
+gemini-3.8-flash-thinking-20261007,glm-5.3-thinking-high-20261007,Gemini 3.8 Flash T,GLM-5.3 T,cross vendor,0.766823,0.131455,219,0.671233,52,0.653846
+gemini-3.8-flash-thinking-20261007,deepseek-v4-flash-thinking-20261006,Gemini 3.8 Flash T,DeepSeek V4 Flash T,cross vendor,0.730047,0.205008,261,0.777778,50,0.78
+gemini-3.8-flash-thinking-20261007,qwen3.8-27b-thinking-20261008,Gemini 3.8 Flash T,Qwen3.8-27B T,cross vendor,0.7277,0.209703,165,0.581818,35,0.771429
+gemini-3.8-flash-thinking-20261007,deepseek-v4-pro-0813-nonthinking-20261006,Gemini 3.8 Flash T,DeepSeek V4 Pro N,cross vendor,0.71205,0.241002,184,0.711957,38,0.736842
+gemini-3.8-flash-thinking-20261007,deepseek-v4-flash-nonthinking-20261006,Gemini 3.8 Flash T,DeepSeek V4 Flash N,cross vendor,0.710485,0.244131,257,0.603113,49,0.714286
+gemini-3.8-flash-thinking-20261007,gpt-6-luna-nonthinking-20261006,Gemini 3.8 Flash T,GPT-6 Luna N,cross vendor,0.710485,0.244131,174,0.448276,50,0.58
+gemini-3.8-flash-thinking-20261007,qwen3.8-27b-nonthinking-20261008,Gemini 3.8 Flash T,Qwen3.8-27B N,cross vendor,0.655712,0.353678,259,0.389961,51,0.509804
+gemini-3.8-flash-thinking-20261007,qwen3.8-flash-nonthinking-20261006,Gemini 3.8 Flash T,Qwen3.8 Flash N,cross vendor,0.654147,0.356808,255,0.513725,54,0.611111
+gpt-6-luna-thinking-20261006,claude-sonnet-5-thinking-20261007,GPT-6 Luna T,Claude Sonnet 5.5 T,cross vendor,0.809859,0.023474,387,0.560724,99,0.464646
+gpt-6-luna-thinking-20261006,claude-sonnet-5-nonthinking-20261007,GPT-6 Luna T,Claude Sonnet 5.5 N,cross vendor,0.771518,0.100156,326,0.509202,109,0.513761
+gpt-6-luna-thinking-20261006,qwen3.8-flash-thinking-20261006,GPT-6 Luna T,Qwen3.8 Flash T,cross vendor,0.765258,0.112676,404,0.566832,88,0.602273
+gpt-6-luna-thinking-20261006,glm-5.3-thinking-high-20261007,GPT-6 Luna T,GLM-5.3 T,cross vendor,0.761346,0.120501,468,0.574786,109,0.587156
+gpt-6-luna-thinking-20261006,deepseek-v4-flash-thinking-20261006,GPT-6 Luna T,DeepSeek V4 Flash T,cross vendor,0.72457,0.194053,568,0.642606,140,0.535714
+gpt-6-luna-thinking-20261006,qwen3.8-27b-thinking-20261008,GPT-6 Luna T,Qwen3.8-27B T,cross vendor,0.722222,0.198748,529,0.353497,143,0.398601
+gpt-6-luna-thinking-20261006,deepseek-v4-pro-0813-nonthinking-20261006,GPT-6 Luna T,DeepSeek V4 Pro N,cross vendor,0.706573,0.230047,513,0.331384,137,0.321168
+gpt-6-luna-thinking-20261006,deepseek-v4-flash-nonthinking-20261006,GPT-6 Luna T,DeepSeek V4 Flash N,cross vendor,0.705008,0.233177,655,0.500763,163,0.527607
+gpt-6-luna-thinking-20261006,gpt-6-luna-nonthinking-20261006,GPT-6 Luna T,GPT-6 Luna N,same model,0.705008,0.233177,610,0.439344,187,0.55615
+gpt-6-luna-thinking-20261006,qwen3.8-27b-nonthinking-20261008,GPT-6 Luna T,Qwen3.8-27B N,cross vendor,0.650235,0.342723,735,0.307483,174,0.33908
+gpt-6-luna-thinking-20261006,qwen3.8-flash-nonthinking-20261006,GPT-6 Luna T,Qwen3.8 Flash N,cross vendor,0.64867,0.345853,469,0.381663,133,0.421053
+claude-sonnet-5-thinking-20261007,claude-sonnet-5-nonthinking-20261007,Claude Sonnet 5.5 T,Claude Sonnet 5.5 N,same model,0.759781,0.076682,1088,0.648897,266,0.729323
+claude-sonnet-5-thinking-20261007,qwen3.8-flash-thinking-20261006,Claude Sonnet 5.5 T,Qwen3.8 Flash T,cross vendor,0.753521,0.089202,572,0.501748,159,0.503145
+claude-sonnet-5-thinking-20261007,glm-5.3-thinking-high-20261007,Claude Sonnet 5.5 T,GLM-5.3 T,cross vendor,0.749609,0.097027,653,0.68147,185,0.627027
+claude-sonnet-5-thinking-20261007,deepseek-v4-flash-thinking-20261006,Claude Sonnet 5.5 T,DeepSeek V4 Flash T,cross vendor,0.712833,0.170579,678,0.620944,206,0.533981
+claude-sonnet-5-thinking-20261007,qwen3.8-27b-thinking-20261008,Claude Sonnet 5.5 T,Qwen3.8-27B T,cross vendor,0.710485,0.175274,724,0.506906,224,0.544643
+claude-sonnet-5-thinking-20261007,deepseek-v4-pro-0813-nonthinking-20261006,Claude Sonnet 5.5 T,DeepSeek V4 Pro N,cross vendor,0.694836,0.206573,876,0.438356,231,0.493506
+claude-sonnet-5-thinking-20261007,deepseek-v4-flash-nonthinking-20261006,Claude Sonnet 5.5 T,DeepSeek V4 Flash N,cross vendor,0.693271,0.209703,879,0.365188,239,0.430962
+claude-sonnet-5-thinking-20261007,gpt-6-luna-nonthinking-20261006,Claude Sonnet 5.5 T,GPT-6 Luna N,cross vendor,0.693271,0.209703,723,0.264177,222,0.234234
+claude-sonnet-5-thinking-20261007,qwen3.8-27b-nonthinking-20261008,Claude Sonnet 5.5 T,Qwen3.8-27B N,cross vendor,0.638498,0.319249,1037,0.333655,282,0.340426
+claude-sonnet-5-thinking-20261007,qwen3.8-flash-nonthinking-20261006,Claude Sonnet 5.5 T,Qwen3.8 Flash N,cross vendor,0.636933,0.322379,901,0.305216,254,0.354331
+claude-sonnet-5-nonthinking-20261007,qwen3.8-flash-thinking-20261006,Claude Sonnet 5.5 N,Qwen3.8 Flash T,cross vendor,0.71518,0.01252,614,0.412052,165,0.472727
+claude-sonnet-5-nonthinking-20261007,glm-5.3-thinking-high-20261007,Claude Sonnet 5.5 N,GLM-5.3 T,cross vendor,0.711268,0.020344,766,0.451697,228,0.574561
+claude-sonnet-5-nonthinking-20261007,deepseek-v4-flash-thinking-20261006,Claude Sonnet 5.5 N,DeepSeek V4 Flash T,cross vendor,0.674491,0.093897,749,0.41522,236,0.563559
+claude-sonnet-5-nonthinking-20261007,qwen3.8-27b-thinking-20261008,Claude Sonnet 5.5 N,Qwen3.8-27B T,cross vendor,0.672144,0.098592,791,0.307206,259,0.405405
+claude-sonnet-5-nonthinking-20261007,deepseek-v4-pro-0813-nonthinking-20261006,Claude Sonnet 5.5 N,DeepSeek V4 Pro N,cross vendor,0.656495,0.12989,1124,0.387011,302,0.519868
+claude-sonnet-5-nonthinking-20261007,deepseek-v4-flash-nonthinking-20261006,Claude Sonnet 5.5 N,DeepSeek V4 Flash N,cross vendor,0.65493,0.13302,1032,0.311047,293,0.399317
+claude-sonnet-5-nonthinking-20261007,gpt-6-luna-nonthinking-20261006,Claude Sonnet 5.5 N,GPT-6 Luna N,cross vendor,0.65493,0.13302,975,0.290256,304,0.414474
+claude-sonnet-5-nonthinking-20261007,qwen3.8-27b-nonthinking-20261008,Claude Sonnet 5.5 N,Qwen3.8-27B N,cross vendor,0.600156,0.242567,1350,0.226667,380,0.357895
+claude-sonnet-5-nonthinking-20261007,qwen3.8-flash-nonthinking-20261006,Claude Sonnet 5.5 N,Qwen3.8 Flash N,cross vendor,0.598592,0.245696,1120,0.305357,317,0.40694
+qwen3.8-flash-thinking-20261006,glm-5.3-thinking-high-20261007,Qwen3.8 Flash T,GLM-5.3 T,cross vendor,0.705008,0.007825,691,0.507959,211,0.57346
+qwen3.8-flash-thinking-20261006,deepseek-v4-flash-thinking-20261006,Qwen3.8 Flash T,DeepSeek V4 Flash T,cross vendor,0.668232,0.081377,729,0.412894,240,0.325
+qwen3.8-flash-thinking-20261006,qwen3.8-27b-thinking-20261008,Qwen3.8 Flash T,Qwen3.8-27B T,same vendor,0.665884,0.086072,865,0.211561,254,0.307087
+qwen3.8-flash-thinking-20261006,deepseek-v4-pro-0813-nonthinking-20261006,Qwen3.8 Flash T,DeepSeek V4 Pro N,cross vendor,0.650235,0.117371,783,0.318008,206,0.446602
+qwen3.8-flash-thinking-20261006,deepseek-v4-flash-nonthinking-20261006,Qwen3.8 Flash T,DeepSeek V4 Flash N,cross vendor,0.64867,0.120501,974,0.277207,275,0.338182
+qwen3.8-flash-thinking-20261006,gpt-6-luna-nonthinking-20261006,Qwen3.8 Flash T,GPT-6 Luna N,cross vendor,0.64867,0.120501,771,0.233463,248,0.278226
+qwen3.8-flash-thinking-20261006,qwen3.8-27b-nonthinking-20261008,Qwen3.8 Flash T,Qwen3.8-27B N,same vendor,0.593897,0.230047,1054,0.185958,306,0.248366
+qwen3.8-flash-thinking-20261006,qwen3.8-flash-nonthinking-20261006,Qwen3.8 Flash T,Qwen3.8 Flash N,same model,0.592332,0.233177,955,0.307853,304,0.325658
+glm-5.3-thinking-high-20261007,deepseek-v4-flash-thinking-20261006,GLM-5.3 T,DeepSeek V4 Flash T,cross vendor,0.664319,0.073552,966,0.521739,310,0.635484
+glm-5.3-thinking-high-20261007,qwen3.8-27b-thinking-20261008,GLM-5.3 T,Qwen3.8-27B T,cross vendor,0.661972,0.078247,1051,0.289248,304,0.411184
+glm-5.3-thinking-high-20261007,deepseek-v4-pro-0813-nonthinking-20261006,GLM-5.3 T,DeepSeek V4 Pro N,cross vendor,0.646322,0.109546,995,0.39799,297,0.531987
+glm-5.3-thinking-high-20261007,deepseek-v4-flash-nonthinking-20261006,GLM-5.3 T,DeepSeek V4 Flash N,cross vendor,0.644757,0.112676,1352,0.305473,364,0.497253
+glm-5.3-thinking-high-20261007,gpt-6-luna-nonthinking-20261006,GLM-5.3 T,GPT-6 Luna N,cross vendor,0.644757,0.112676,908,0.26652,301,0.378738
+glm-5.3-thinking-high-20261007,qwen3.8-27b-nonthinking-20261008,GLM-5.3 T,Qwen3.8-27B N,cross vendor,0.589984,0.222222,1352,0.244822,422,0.329384
+glm-5.3-thinking-high-20261007,qwen3.8-flash-nonthinking-20261006,GLM-5.3 T,Qwen3.8 Flash N,cross vendor,0.588419,0.225352,1119,0.245755,372,0.354839
+deepseek-v4-flash-thinking-20261006,qwen3.8-27b-thinking-20261008,DeepSeek V4 Flash T,Qwen3.8-27B T,cross vendor,0.625196,0.004695,1117,0.384064,356,0.410112
+deepseek-v4-flash-thinking-20261006,deepseek-v4-pro-0813-nonthinking-20261006,DeepSeek V4 Flash T,DeepSeek V4 Pro N,same vendor,0.609546,0.035994,1245,0.401606,341,0.504399
+deepseek-v4-flash-thinking-20261006,deepseek-v4-flash-nonthinking-20261006,DeepSeek V4 Flash T,DeepSeek V4 Flash N,same model,0.607981,0.039124,1666,0.586435,460,0.654348
+deepseek-v4-flash-thinking-20261006,gpt-6-luna-nonthinking-20261006,DeepSeek V4 Flash T,GPT-6 Luna N,cross vendor,0.607981,0.039124,971,0.282183,317,0.359621
+deepseek-v4-flash-thinking-20261006,qwen3.8-27b-nonthinking-20261008,DeepSeek V4 Flash T,Qwen3.8-27B N,cross vendor,0.553208,0.14867,1528,0.280759,445,0.294382
+deepseek-v4-flash-thinking-20261006,qwen3.8-flash-nonthinking-20261006,DeepSeek V4 Flash T,Qwen3.8 Flash N,cross vendor,0.551643,0.1518,1206,0.257048,396,0.285354
+qwen3.8-27b-thinking-20261008,deepseek-v4-pro-0813-nonthinking-20261006,Qwen3.8-27B T,DeepSeek V4 Pro N,cross vendor,0.607199,0.031299,1201,0.231474,352,0.335227
+qwen3.8-27b-thinking-20261008,deepseek-v4-flash-nonthinking-20261006,Qwen3.8-27B T,DeepSeek V4 Flash N,cross vendor,0.605634,0.034429,1655,0.2429,426,0.413146
+qwen3.8-27b-thinking-20261008,gpt-6-luna-nonthinking-20261006,Qwen3.8-27B T,GPT-6 Luna N,cross vendor,0.605634,0.034429,1226,0.193312,338,0.272189
+qwen3.8-27b-thinking-20261008,qwen3.8-27b-nonthinking-20261008,Qwen3.8-27B T,Qwen3.8-27B N,same model,0.550861,0.143975,1963,0.261335,557,0.398564
+qwen3.8-27b-thinking-20261008,qwen3.8-flash-nonthinking-20261006,Qwen3.8-27B T,Qwen3.8 Flash N,same vendor,0.549296,0.147105,1437,0.181628,445,0.274157
+deepseek-v4-pro-0813-nonthinking-20261006,deepseek-v4-flash-nonthinking-20261006,DeepSeek V4 Pro N,DeepSeek V4 Flash N,same vendor,0.589984,0.00313,1429,0.294612,392,0.428571
+deepseek-v4-pro-0813-nonthinking-20261006,gpt-6-luna-nonthinking-20261006,DeepSeek V4 Pro N,GPT-6 Luna N,cross vendor,0.589984,0.00313,1363,0.170213,398,0.296482
+deepseek-v4-pro-0813-nonthinking-20261006,qwen3.8-27b-nonthinking-20261008,DeepSeek V4 Pro N,Qwen3.8-27B N,cross vendor,0.535211,0.112676,1989,0.180995,501,0.353293
+deepseek-v4-pro-0813-nonthinking-20261006,qwen3.8-flash-nonthinking-20261006,DeepSeek V4 Pro N,Qwen3.8 Flash N,cross vendor,0.533646,0.115806,1355,0.230258,383,0.336815
+deepseek-v4-flash-nonthinking-20261006,gpt-6-luna-nonthinking-20261006,DeepSeek V4 Flash N,GPT-6 Luna N,cross vendor,0.588419,0.0,1319,0.293404,405,0.348148
+deepseek-v4-flash-nonthinking-20261006,qwen3.8-27b-nonthinking-20261008,DeepSeek V4 Flash N,Qwen3.8-27B N,cross vendor,0.533646,0.109546,2009,0.217521,573,0.363002
+deepseek-v4-flash-nonthinking-20261006,qwen3.8-flash-nonthinking-20261006,DeepSeek V4 Flash N,Qwen3.8 Flash N,cross vendor,0.532081,0.112676,1576,0.224619,442,0.294118
+gpt-6-luna-nonthinking-20261006,qwen3.8-27b-nonthinking-20261008,GPT-6 Luna N,Qwen3.8-27B N,cross vendor,0.533646,0.109546,1833,0.162029,508,0.255906
+gpt-6-luna-nonthinking-20261006,qwen3.8-flash-nonthinking-20261006,GPT-6 Luna N,Qwen3.8 Flash N,cross vendor,0.532081,0.112676,1349,0.200148,433,0.34642
+qwen3.8-27b-nonthinking-20261008,qwen3.8-flash-nonthinking-20261006,Qwen3.8-27B N,Qwen3.8 Flash N,same vendor,0.477308,0.00313,2103,0.180694,611,0.306056

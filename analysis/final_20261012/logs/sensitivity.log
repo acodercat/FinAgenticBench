@@ -2,6 +2,7 @@ full                                       cfgs 14 cases 213 | shared 39.0% | st
 excluding 4 re-pinned cases                cfgs 14 cases 209 | shared 39.2% | strong-tier shared 65.1% (1387) | weak->strong shared -47% other -88% | N->T shared -23% other -62% | conv S-W +13.9% T-N +6.6%
 excluding 3 K9 cases                       cfgs 14 cases 210 | shared 37.3% | strong-tier shared 62.2% (1235) | weak->strong shared -51% other -88% | N->T shared -25% other -62% | conv S-W +14.9% T-N +6.9%
 excluding both sets                        cfgs 14 cases 206 | shared 37.4% | strong-tier shared 62.1% (1223) | weak->strong shared -52% other -88% | N->T shared -25% other -62% | conv S-W +13.7% T-N +6.5%
+excluding 3 K9 and 2 unstated-convention cases cfgs 14 cases 208 | shared 37.4% | strong-tier shared 62.1% (1221) | weak->strong shared -51% other -88% | N->T shared -25% other -62% | conv S-W +14.8% T-N +6.9%
 pre-revision snapshot 2026-10-11           cfgs 14 cases 213 | shared 39.1% | strong-tier shared 65.5% (1414) | weak->strong shared -46% other -88% | N->T shared -22% other -61% | conv S-W +14.0% T-N +6.6%
 thresholds strong 0.83 mid 0.65            cfgs 14 cases 213 | shared 39.0% | strong-tier shared 65.8% (415) | weak->strong shared -69% other -92% | N->T shared -23% other -62% | conv S-W +4.8% T-N +7.0%
 thresholds strong 0.73 mid 0.55            cfgs 14 cases 213 | shared 39.0% | strong-tier shared 65.2% (1399) | weak->strong shared -41% other -91% | N->T shared -23% other -62% | conv S-W +20.7% T-N +7.0%
