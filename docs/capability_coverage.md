@@ -165,5 +165,5 @@ These are review prompts, not automatic defects. A narrow capability may legitim
 - Sample by primary capability when constructing a balanced diagnostic slice; use secondary tags only to prevent hidden over- or under-coverage.
 - Report both case-level results and capability-level results. A capability score aggregates all tagged cases but must retain difficulty and source breakdowns.
 - Treat repeated source combinations as repeated evidence within those sources, not proof of broad transfer. Prefer a new necessary source role or a genuinely different phenomenon when strengthening coverage.
-- Do not create a case merely to fill an empty cell. New cases still pass the case-design standard and independent review gates.
+- Do not create a case merely to fill an empty cell. New cases still pass the case-design standard.
 - Update `metadata/capabilities.json` whenever a case is added, retired, or materially changed, then regenerate this report.

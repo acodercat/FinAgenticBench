@@ -137,7 +137,7 @@ def render_capability_report() -> str:
         "broad transfer. Prefer a new necessary source role or a genuinely different phenomenon when "
         "strengthening coverage.",
         "- Do not create a case merely to fill an empty cell. New cases still pass the case-design "
-        "standard and independent review gates.",
+        "standard.",
         "- Update `metadata/capabilities.json` whenever a case is added, retired, or materially changed, "
         "then regenerate this report.",
         "",

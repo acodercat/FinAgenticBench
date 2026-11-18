@@ -41,8 +41,7 @@ later turn uses it for a new computation.
 | Agent interface | one `python` tool in a persistent kernel, 30 calls per turn; only the task's declared tables are visible |
 | Scoring | programmatic verification (primary); claim coverage and response quality by language-model judges |
 
-A task passes only when every output in every turn is correct. The reference value of every output was
-recomputed twice, independently, before the task entered the benchmark. The full task list is in
+A task passes only when every output in every turn is correct. The full task list is in
 [`docs/benchmark_catalog.md`](docs/benchmark_catalog.md).
 
 ## Main results
