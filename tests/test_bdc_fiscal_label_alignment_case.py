@@ -11,6 +11,18 @@ from core.data import load_expansion_table
 from evals.temporal_path import bdc_fiscal_label_cross_section_alignment as case
 
 
+def _period_end_rows():
+    """Schedule rows of the retained label filings at each filing's own period end."""
+    schedule = load_expansion_table("sec_bdc")
+    filings = load_expansion_table("sec_bdc_filings")
+    labelled = filings.loc[
+        filings.fiscal_year.eq(case.FISCAL_YEAR) & filings.fiscal_period.eq(case.FISCAL_PERIOD)
+    ]
+    retained = case._latest_per_filer(labelled)
+    rows = schedule.merge(retained[["accession", "period"]], on="accession")
+    return rows, rows.loc[rows.report_date.astype(str).eq(rows.period.astype(str))]
+
+
 def _reported():
     answers = case.analysis()
     return {
@@ -34,9 +46,9 @@ def test_anchor_values():
     assert answers["label_off_date_filers"] == 20
     assert answers["label_filers_with_schedule_rows"] == 135
     assert answers["calendar_filer_count"] == 162
-    assert round(answers["label_fair_value_mn"], 3) == 1287095.147
-    assert round(answers["off_date_fair_value_mn"], 3) == 79739.295
-    assert round(answers["calendar_fair_value_mn"], 3) == 1290044.225
+    assert round(answers["label_fair_value_mn"], 3) == 728393.143
+    assert round(answers["off_date_fair_value_mn"], 3) == 45203.107
+    assert round(answers["calendar_fair_value_mn"], 3) == 732648.089
     assert round(answers["earliest_period_sofr_pct"], 2) == 5.33
     assert round(answers["dominant_period_sofr_pct"], 2) == 4.96
 
@@ -84,14 +96,8 @@ def test_span_brackets_a_rate_move():
 def test_dropping_incomplete_accessions_is_a_different_answer():
     """Discarding a whole filing over one absent mark is the listed overclaim;
     it removes most of the cross-section, so it must not validate."""
-    schedule = load_expansion_table("sec_bdc")
-    filings = load_expansion_table("sec_bdc_filings")
     answers = case.analysis()
-    labelled = filings.loc[
-        filings.fiscal_year.eq(case.FISCAL_YEAR) & filings.fiscal_period.eq(case.FISCAL_PERIOD)
-    ]
-    retained = set(case._latest_per_filer(labelled).accession)
-    rows = schedule.loc[schedule.accession.isin(retained)]
+    _, rows = _period_end_rows()
     incomplete = set(rows.loc[rows.fair_value_usd.isna()].accession)
     naive = float(rows.loc[~rows.accession.isin(incomplete), "fair_value_usd"].dropna().sum() / 1e6)
     assert naive < 0.5 * answers["label_fair_value_mn"]
@@ -102,16 +108,23 @@ def test_dropping_incomplete_accessions_is_a_different_answer():
 
 def test_excluding_negative_marks_is_a_different_answer():
     """The other listed overclaim: negative fair values are reported marks."""
-    schedule = load_expansion_table("sec_bdc")
-    filings = load_expansion_table("sec_bdc_filings")
-    labelled = filings.loc[
-        filings.fiscal_year.eq(case.FISCAL_YEAR) & filings.fiscal_period.eq(case.FISCAL_PERIOD)
-    ]
-    retained = set(case._latest_per_filer(labelled).accession)
-    values = schedule.loc[schedule.accession.isin(retained), "fair_value_usd"].dropna()
+    _, rows = _period_end_rows()
+    values = rows["fair_value_usd"].dropna()
     positive_only = float(values.loc[values > 0].sum() / 1e6)
     outside = _reported()
     outside["label_fair_value_mn"] = round(positive_only, 3)
+    assert not case.validate(outside).success
+
+
+def test_summing_comparative_rows_is_a_different_answer():
+    """A 10-Q schedule restates earlier balance-sheet dates; summing those rows
+    with the period-end ones counts prior holdings again and must not validate."""
+    every, at_period_end = _period_end_rows()
+    assert len(every) > len(at_period_end)
+    all_rows = float(every["fair_value_usd"].dropna().sum() / 1e6)
+    assert all_rows > 1.5 * case.analysis()["label_fair_value_mn"]
+    outside = _reported()
+    outside["label_fair_value_mn"] = round(all_rows, 3)
     assert not case.validate(outside).success
 
 

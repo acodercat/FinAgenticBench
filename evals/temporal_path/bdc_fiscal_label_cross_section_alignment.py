@@ -13,18 +13,24 @@ Three conventions the query states. Only the first, and the negative half of
 the second, change a reported number; the rest are stated so that the answer is
 well posed rather than because a competing reading would score differently.
 Measured alternatives: dropping a whole accession on one absent mark gives
-447,864.528 rather than 1,287,095.147 USD millions; excluding negative marks
-gives 1,299,091.220. Excluding zero marks, and retaining the earliest rather
+246,779.755 rather than 728,393.142 USD millions; excluding negative marks
+gives 735,533.119. Excluding zero marks, and retaining the earliest rather
 than the latest filed accession, both reproduce every reported output exactly,
 the latter because the amendment restates an identical 1,132-row schedule:
 
-1. ``fair_value_usd`` is absent on 5.79% of the rows in this label's filings,
-   touching 91 of the 135 accessions that carry schedule rows. Dropping a whole
-   accession on one missing mark would discard two thirds of the cross-section,
-   so a missing mark contributes nothing and the surviving total is a reported
-   floor rather than a portfolio valuation.
-2. 6,082 rows carry a negative fair value and 5,616 carry zero. Both are real
-   reported marks, so neither is filtered.
+1. ``fair_value_usd`` is absent on 6.61% of the period-end rows in this label's
+   filings, touching 88 of the 135 accessions that carry schedule rows. Dropping
+   a whole accession on one missing mark would discard two thirds of the
+   cross-section, so a missing mark contributes nothing and the surviving total
+   is a reported floor rather than a portfolio valuation.
+2. 3,610 period-end rows carry a negative fair value and 3,288 carry zero. Both
+   are real reported marks, so neither is filtered.
+
+A filing's schedule also restates earlier balance-sheet dates as comparatives;
+"the reported fair value across the retained filings" is the schedule at each
+filing's own period end, so rows are kept only where their report date equals
+it. Summing every row under the accession gives 1,287,095.147 for the label
+total and 1,290,044.225 for the calendar cross-section instead.
 3. One filer appears twice under the label, a 10-Q and the 10-Q/A filed the next
    day. Keeping the latest filed accession per filer is what makes the
    cross-section one row per filer.
@@ -85,9 +91,14 @@ def _latest_per_filer(filings):
     return ordered.drop_duplicates("cik", keep="last")
 
 
-def _fair_value(schedule, accessions):
-    """Reported marks only; an absent mark contributes nothing."""
-    rows = schedule.loc[schedule.accession.isin(accessions), "fair_value_usd"]
+def _fair_value(schedule, filings):
+    """Reported marks at each filing's own period end; an absent mark contributes nothing.
+
+    A filing's schedule also restates earlier balance-sheet dates as comparatives, so rows are matched on
+    accession and on report date equal to the filing's period end.
+    """
+    rows = schedule.merge(filings[["accession", "period"]], on="accession")
+    rows = rows.loc[rows.report_date.astype(str).eq(rows.period.astype(str)), "fair_value_usd"]
     return sum((Decimal(str(x)) for x in rows.dropna()), Decimal(0))
 
 
@@ -125,11 +136,11 @@ def analysis():
     off_date = retained.loc[retained.period.ne(dominant)]
 
     with_rows = retained.loc[retained.accession.isin(set(schedule.accession))]
-    label_value = _fair_value(schedule, set(retained.accession))
-    off_value = _fair_value(schedule, set(off_date.accession))
+    label_value = _fair_value(schedule, retained)
+    off_value = _fair_value(schedule, off_date)
 
     calendar = _latest_per_filer(filings.loc[filings.period.eq(CALENDAR_END)])
-    calendar_value = _fair_value(schedule, set(calendar.accession))
+    calendar_value = _fair_value(schedule, calendar)
 
     return {
         "index_filer_count": int(filings.cik.nunique()),
