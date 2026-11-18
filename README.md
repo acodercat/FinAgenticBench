@@ -93,9 +93,7 @@ shown the wrong one than in its own independent runs (38.4% against 50.5%, a dif
 **Shared errors lie in conventions and in the meaning of data rows.** We read the code behind the 307 outputs on
 which five or more configurations gave the same wrong value. The two largest sources were statistical conventions
 (23.7% of these wrong attempts), mostly stated in the task, and data-model semantics (22.2%): a filer is its SEC
-identifier (CIK) and not its name, a file carries a total row beside the detail rows. Two readers judged, for the
-72 root causes that admit a second reading, which reading the task's wording requires; each chose the reference in
-69, and on no item did both choose the shared reading. Rewording four tasks removed the shared readings it targeted
+identifier (CIK) and not its name, a file carries a total row beside the detail rows. Rewording four tasks removed the shared readings it targeted
 and raised passes from 80 to 122 of 168 runs.
 
 **Shared errors fall more slowly with accuracy.** From the weak to the strong tier, unshared wrong values fall by

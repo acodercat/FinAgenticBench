@@ -56,20 +56,7 @@ for s in agreement_residual knowledge_change_ci convergence_robust judge_self_ex
 done
 # 8. Answering by vote over runs and over vendors (Supplementary Table 34)
 uv run python $S/vote.py | tee analysis/final_20261012/logs/vote.log
-# 9. The two readers' adjudication of the references
-uv run python $S/adjudication_agreement.py | tee analysis/final_20261012/logs/adjudication_agreement.log
 ```
-
-## Adjudication of the references
-
-`final_20261012/adjudication/` holds the material given to the two readers and what they returned. For each of the
-72 root causes that admit a second reading, `items_readings.md` gives the task text, its data sources and the two
-readings with the value each yields, and `sheet_readings.csv` is the blank sheet; `sheet_readings_1.csv` and
-`sheet_readings_2.csv` are the two readers' filled sheets, completed independently. `key.csv` records which
-candidate is the reference and was not given to the readers; `readings.json` holds the text of each reading and
-lists the 14 root causes that are errors of implementation and have no second reading.
-`scripts/adjudication_readings.py` builds the material from `items.md` and `sheet.csv`, and
-`scripts/adjudication_agreement.py` writes `tables/adjudication.csv` and `tables/adjudication_items.csv`.
 
 ## Verification study
 
