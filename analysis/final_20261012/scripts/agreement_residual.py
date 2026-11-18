@@ -14,6 +14,10 @@ and, for two vendors against the same model, the relative change in each part on
 Two circularity guards follow, because the agreeing configurations count toward the three that make a value shared:
 the agreed value must also be given by >= 2 configurations outside the agreeing set, or, strictest, by >= 2
 configurations of vendors outside it (with a base rate under the same rule).
+A second table gives the miss rate of each check: of the wrong values of a first candidate, the share a second
+candidate reproduced (a second run of the same configuration, or the first run of a thinking configuration of
+another vendor), split by whether >= 2 configurations of vendors outside the pair also gave the value, and by the
+modal_shared definition. Both candidates must have stored the output. Writes tables/agreement_miss.csv.
 Writes tables/agreement_residual.csv. Rows other than the four signals reuse columns: relative-change rows put the
 change and its interval in shared_share / _lo / _hi; convergence and base-rate rows put the denominator in
 n_agree_wrong, the numerator in n_agree_wrong_shared and the share in shared_share.
@@ -183,6 +187,42 @@ for v in vars_:
 print(f"base rate: shared share of all thinking-configuration wrong values {base[1]}/{base[0]} = {rate(base[1], base[0]):.1%}")
 rows.append(("base rate: shared share of thinking wrong values", "", base[0], base[1], round(rate(base[1], base[0]), 6),
              *[""] * 11))
+
+# Miss rate: of the wrong values of a first candidate, the share the second candidate reproduced.
+# check -> rule -> class -> case -> [reproduced, wrong first candidates]
+miss = collections.defaultdict(lambda: collections.defaultdict(lambda: [0, 0]))
+CHECKS = ["second run of the same model", "one run of a second vendor"]
+RULES = ["given by >= 2 configurations of other vendors", "shared (>= 3 configurations)"]
+
+
+def add_miss(check, slot, first, second, vendors):
+    if first[2]:
+        return
+    hit = first[1] == second[1]
+    outside = sum(VENDOR[s] not in vendors for s in WRONG_BY[slot][first[1]]) >= 2
+    for rule, shared in ((RULES[0], outside), (RULES[1], SHARED.get(slot) == first[1])):
+        for cls in ("all", "shared" if shared else "unshared"):
+            c = miss[(check, rule, cls)][slot[0]]; c[0] += hit; c[1] += 1
+
+
+for k, m in S.items():
+    for s in think:
+        for a, b in itertools.permutations(sorted(m.get(s, [])), 2):
+            add_miss(CHECKS[0], k, a, b, {VENDOR[s]})
+    for s1, s2 in itertools.permutations(think, 2):
+        if VENDOR[s1] != VENDOR[s2] and s1 in m and s2 in m:
+            add_miss(CHECKS[1], k, sorted(m[s1])[0], sorted(m[s2])[0], {VENDOR[s1], VENDOR[s2]})
+print("\nmiss rate: wrong values of a first candidate that the second candidate reproduced")
+miss_rows = []
+for check in CHECKS:
+    for rule in RULES:
+        for cls in ("all", "shared", "unshared"):
+            per = miss[(check, rule, cls)]
+            p, lo, hi = boot_rate({c: tuple(x) for c, x in per.items()})
+            n_hit = sum(x[0] for x in per.values()); n = sum(x[1] for x in per.values())
+            print(f"  {check:30} | {rule:46} | {cls:8} {n_hit:5}/{n:5} = {p:.1%} [{lo:.1%}, {hi:.1%}]")
+            miss_rows.append((check, rule, cls, n, n_hit, round(p, 6), round(lo, 6), round(hi, 6)))
+write_csv("agreement_miss.csv", ["check", "rule", "class", "n_wrong", "n_reproduced", "miss_rate", "lo", "hi"], miss_rows)
 
 write_csv("agreement_residual.csv",
           ["signal", "n_agree", "n_agree_wrong", "n_agree_wrong_shared", "shared_share", "shared_share_lo",

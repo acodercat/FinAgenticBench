@@ -1,0 +1,6 @@
+Sol runs 639, tasks 213; accuracy A = 0.9640
+Sol wrong values 117 on 52 slots in 11 tasks; equal to the consensus error C = 0.4701
+P1: predicted C = 0.766, 95% prediction interval [0.568, 0.965] -> below
+P2: D = -0.112 [-0.385, +0.139] on 32 slots in 8 tasks; A - strong mean = +0.141; expected about +0.085
+Sol wrong values given by >= 2 of the fourteen: 58 of 117 = 49.6%
+largest task insider_sale_plan_discretion_split: 36 wrong values; without it C = 0.679 (55 of 81)

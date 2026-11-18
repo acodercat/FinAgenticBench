@@ -1,0 +1,116 @@
+answering outputs per answer set: DeepSeek V4 Pro: 2550, Gemini 3.8 Flash: 2550, GPT-6 Luna: 2550
+wrong before per answer set: DeepSeek V4 Pro: 99, Gemini 3.8 Flash: 45, GPT-6 Luna: 120
+
+answers / verifier: task accuracy before -> after on the 149 tasks; wrong outputs fixed / kept / changed / unstored; correct outputs broken
+  DeepSeek V4 Pro   / DeepSeek V4 Flash  tasks 117 -> 111   wrong  99: fixed  17 kept  61 changed  12 unstored   9   correct 2430: broken 151 (unstored 130)
+  DeepSeek V4 Pro   / GPT-6 Luna         tasks 117 -> 123   wrong  99: fixed  56 kept  38 changed   5 unstored   0   correct 2430: broken  40 (unstored 1)
+  DeepSeek V4 Pro   / GPT-6.1 Sol        tasks 117 -> 141   wrong  99: fixed  78 kept  21 changed   0 unstored   0   correct 2430: broken  15 (unstored 0)
+  Gemini 3.8 Flash  / DeepSeek V4 Flash  tasks 115 -> 121   wrong  45: fixed  12 kept  32 changed   1 unstored   0   correct 2391: broken 102 (unstored 64)
+  Gemini 3.8 Flash  / GPT-6 Luna         tasks 115 -> 123   wrong  45: fixed   8 kept  37 changed   0 unstored   0   correct 2391: broken  53 (unstored 3)
+  Gemini 3.8 Flash  / GPT-6.1 Sol        tasks 115 -> 141   wrong  45: fixed  21 kept  24 changed   0 unstored   0   correct 2391: broken   9 (unstored 0)
+  GPT-6 Luna        / DeepSeek V4 Flash  tasks 118 -> 122   wrong 120: fixed  36 kept  73 changed   2 unstored   9   correct 2414: broken  68 (unstored 61)
+  GPT-6 Luna        / GPT-6 Luna         tasks 118 -> 123   wrong 120: fixed  47 kept  70 changed   3 unstored   0   correct 2414: broken  82 (unstored 26)
+  GPT-6 Luna        / GPT-6.1 Sol        tasks 118 -> 145   wrong 120: fixed 101 kept  19 changed   0 unstored   0   correct 2414: broken  14 (unstored 0)
+
+fix rate of wrong outputs
+  all                                                        47.5% [35.8%, 60.0%] (n=792)
+  verifier DeepSeek V4 Flash                                 24.6% [13.9%, 37.6%] (n=264)
+  verifier GPT-6 Luna                                        42.0% [27.4%, 59.1%] (n=264)
+  verifier GPT-6.1 Sol                                       75.8% [57.1%, 93.0%] (n=264)
+  relation self                                              39.2% [17.6%, 64.2%] (n=120)
+  relation same vendor                                       53.9% [35.7%, 70.5%] (n=219)
+  relation other vendor                                      46.6% [33.1%, 61.8%] (n=453)
+  shared                                                     38.4% [27.0%, 51.7%] (n=588)
+  shared, verifier DeepSeek V4 Flash                         17.3% [7.3%, 28.3%] (n=196)
+  shared, verifier GPT-6 Luna                                30.6% [16.7%, 48.4%] (n=196)
+  shared, verifier GPT-6.1 Sol                               67.3% [44.1%, 90.4%] (n=196)
+  shared, relation self                                      12.0% [2.7%, 28.6%] (n=83)
+  shared, relation same vendor                               50.0% [28.8%, 71.8%] (n=152)
+  shared, relation other vendor                              39.7% [25.4%, 57.0%] (n=353)
+  unshared                                                   73.5% [56.1%, 87.4%] (n=204)
+  unshared, verifier DeepSeek V4 Flash                       45.6% [14.5%, 71.7%] (n=68)
+  unshared, verifier GPT-6 Luna                              75.0% [48.5%, 95.1%] (n=68)
+  unshared, verifier GPT-6.1 Sol                             100.0% [100.0%, 100.0%] (n=68)
+  unshared, relation self                                    100.0% [100.0%, 100.0%] (n=37)
+  unshared, relation same vendor                             62.7% [33.3%, 86.4%] (n=67)
+  unshared, relation other vendor                            71.0% [55.4%, 86.3%] (n=100)
+  verifier gives it                                          21.4% [13.3%, 34.5%] (n=373)
+  verifier gives it, DeepSeek V4 Flash                       11.7% [0.8%, 24.6%] (n=154)
+  verifier gives it, GPT-6 Luna                              35.0% [17.6%, 56.5%] (n=177)
+  verifier gives it, GPT-6.1 Sol                             0.0% [0.0%, 0.0%] (n=42)
+  verifier does not give it                                  70.6% [59.2%, 80.9%] (n=419)
+  verifier does not give it, DeepSeek V4 Flash               42.7% [20.4%, 64.5%] (n=110)
+  verifier does not give it, GPT-6 Luna                      56.3% [34.1%, 77.9%] (n=87)
+  verifier does not give it, GPT-6.1 Sol                     90.1% [77.7%, 99.6%] (n=222)
+
+kept (the same wrong value) among wrong outputs
+  kept, shared                                               58.0% [43.6%, 70.7%] (n=588)
+  kept, unshared                                             16.7% [4.5%, 34.1%] (n=204)
+  kept, verifier gives it                                    72.9% [57.5%, 84.2%] (n=373)
+  kept, verifier does not give it                            24.6% [14.5%, 35.9%] (n=419)
+
+break rate of correct outputs
+  broken, verifier DeepSeek V4 Flash                         4.4% [2.8%, 6.3%] (n=7235)
+  broken with a stored wrong value, verifier DeepSeek V4 Flash 0.9% [0.3%, 1.6%] (n=7235)
+  broken, verifier GPT-6 Luna                                2.4% [1.4%, 3.8%] (n=7235)
+  broken with a stored wrong value, verifier GPT-6 Luna      2.0% [1.1%, 3.2%] (n=7235)
+  broken, verifier GPT-6.1 Sol                               0.5% [0.0%, 1.6%] (n=7235)
+  broken with a stored wrong value, verifier GPT-6.1 Sol     0.5% [0.0%, 1.6%] (n=7235)
+
+predictions (PREDICTION.md)
+  1. fix rate, verifier does not give it minus gives it: +49.2% [+36.3%, +59.4%] -> holds
+  2. fix rate, unshared minus shared: +35.1% [+13.8%, +53.0%] -> holds
+  3. shared fix rate, Sol minus DeepSeek V4 Flash: +50.0% [+22.2%, +76.6%]
+  3. shared fix rate, Sol minus GPT-6 Luna: +36.7% [+20.0%, +55.0%]
+  3. -> holds (point estimates)
+  4. shared fix rate by relation: self 12.0%, same vendor 50.0%, other vendor 39.7% -> holds
+  5. break rate, DeepSeek V4 Flash minus Sol: +3.9% [+1.9%, +6.0%] -> holds
+
+further analyses (after the results were seen)
+  1 without self: fix rate, verifier does not give it minus gives it: +57.6% [+47.2%, +68.1%]
+  shared, verifier gives it                                  12.8% [6.9%, 20.0%] (n=329)
+  shared, verifier does not give it                          71.0% [56.9%, 83.5%] (n=259)
+  unshared, verifier gives it                                86.4% [62.5%, 97.0%] (n=44)
+  unshared, verifier does not give it                        70.0% [53.0%, 86.3%] (n=160)
+  GPT-6 Luna, shared fix rate on other configurations' answers minus on its own: +32.2% [+3.8%, +61.5%]
+  outputs wrong before: verifier's fix rate when shown the values, its correct rate answering alone, difference
+    DeepSeek V4 Flash, shared      shown 17.3%  alone 31.1%  difference -13.8% [-32.1%, +1.6%] (n=196)
+    DeepSeek V4 Flash, unshared    shown 45.6%  alone 40.7%  difference +4.9% [-29.9%, +30.8%] (n=68)
+    GPT-6 Luna, shared             shown 30.6%  alone 41.0%  difference -10.4% [-30.1%, +6.2%] (n=196)
+    GPT-6 Luna, unshared           shown 75.0%  alone 72.5%  difference +2.5% [-34.1%, +30.3%] (n=68)
+    GPT-6.1 Sol, shared            shown 67.3%  alone 79.3%  difference -11.9% [-27.4%, +0.0%] (n=196)
+    GPT-6.1 Sol, unshared          shown 100.0%  alone 95.6%  difference +4.4% [+0.0%, +16.2%] (n=68)
+    pooled, shared                 shown 38.4%  alone 50.5%  difference -12.0% [-24.1%, -2.7%] (n=588)
+    pooled, unshared               shown 73.5%  alone 69.6%  difference +3.9% [-15.2%, +18.8%] (n=204)
+  outputs correct before: share kept correct when shown the values, correct rate answering alone, difference
+    DeepSeek V4 Flash              shown 95.6%  alone 87.0%  difference +8.5% [+5.6%, +11.6%]
+    GPT-6 Luna                     shown 97.6%  alone 96.2%  difference +1.3% [+0.1%, +2.6%]
+    GPT-6.1 Sol                    shown 99.5%  alone 99.1%  difference +0.3% [+0.0%, +0.7%]
+    pooled                         shown 97.5%  alone 94.1%  difference +3.4% [+2.3%, +4.5%]
+  task accuracy on the 149 tasks: answering run -> verifier; verifier alone
+    DeepSeek V4 Flash alone  81.0; DeepSeek V4 Pro 117 -> 111; Gemini 3.8 Flash 115 -> 121; GPT-6 Luna 118 -> 122
+    GPT-6 Luna        alone 116.7; DeepSeek V4 Pro 117 -> 123; Gemini 3.8 Flash 115 -> 123; GPT-6 Luna 118 -> 123
+    GPT-6.1 Sol       alone 142.0; DeepSeek V4 Pro 117 -> 141; Gemini 3.8 Flash 115 -> 141; GPT-6 Luna 118 -> 145
+  wrong outputs by the number of other vendors that gave the value: fixed, kept
+    0 other vendors: fixed 81.8% [62.5%, 93.3%] (n=132)  kept 10.6% [1.6%, 28.0%]
+    1 other vendors: fixed 58.9% [49.3%, 75.8%] (n=168)  kept 28.0% [13.8%, 38.1%]
+    2 other vendors: fixed 46.4% [24.5%, 70.0%] (n=183)  kept 51.4% [26.2%, 74.5%]
+    3 other vendors: fixed 50.0% [37.3%, 75.0%] (n=36)  kept 50.0% [25.0%, 62.7%]
+    4 other vendors: fixed 37.1% [22.6%, 50.0%] (n=132)  kept 61.4% [45.2%, 76.6%]
+    5 other vendors: fixed 12.1% [0.0%, 30.6%] (n=141)  kept 85.8% [66.7%, 97.4%]
+  wrong outputs the verifier stored unchanged, and their share among all outputs it stored unchanged
+    DeepSeek V4 Flash  shared 144/196, unshared 22/68; of the 166 passed, shared 144 = 86.7%; passed wrong among all unchanged or accepted outputs 2.34%
+    GPT-6 Luna         shared 133/196, unshared 12/68; of the 145 passed, shared 133 = 91.7%; passed wrong among all unchanged or accepted outputs 2.01%
+    GPT-6.1 Sol        shared 64/196, unshared 0/68; of the 64 passed, shared 64 = 100.0%; passed wrong among all unchanged or accepted outputs 0.88%
+    pooled             shared 341/588, unshared 34/204; of the 375 passed, shared 341 = 90.9%; passed wrong among all unchanged or accepted outputs 1.74%
+  correct outputs that remained correct: 97.5% [96.7%, 98.3%] (n=21705)
+  wrong outputs no verifier fixed: 54 of 264 in 9 tasks, shared 54; fixed by at least one 210 = 79.5%
+  shown wrong values kept by a verifier correct in all three of its own runs: 72, shared 56; DeepSeek V4 Flash 19, GPT-6 Luna 31, GPT-6.1 Sol 22
+  model calls per task, answering alone and verifying (mean over the three answer sets)
+    DeepSeek V4 Flash  alone 24.5  verifying 24.3
+    GPT-6 Luna         alone 15.6  verifying 15.8
+    GPT-6.1 Sol        alone 11.6  verifying 11.8
+  without the 3 ambiguous tasks (229 wrong outputs):
+  without ambiguous tasks, shared                            44.4% [33.3%, 56.7%] (n=489)
+  without ambiguous tasks, unshared                          73.2% [55.7%, 87.5%] (n=198)
+    unshared minus shared +28.9% [+6.2%, +47.2%]; shared, shown minus alone -15.1% [-27.2%, -5.7%]

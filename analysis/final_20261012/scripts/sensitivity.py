@@ -113,7 +113,7 @@ rows.append(evaluate("excluding 4 re-pinned cases", cases, *sub(REPINNED)))
 rows.append(evaluate("excluding 3 K9 cases", cases, *sub(K9)))
 rows.append(evaluate("excluding both sets", cases, *sub(REPINNED | K9)))
 rows.append(evaluate("excluding 3 K9 and 2 unstated-convention cases", cases, *sub(K9 | UNSTATED)))
-pre = Path("analysis/final_20261012/inputs/final_data_prerevision_20261011.json")
+pre = Path("analysis/scratch/final_data_prerefix_20261011.json")
 if pre.exists():
     d = json.loads(pre.read_text())
     own = {(c, i + 1, v) for c, info in d["cases"].items() for i, st in enumerate(info["turn_stores"]) for v in st}

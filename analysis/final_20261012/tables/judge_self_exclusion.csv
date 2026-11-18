@@ -1,11 +1,11 @@
 channel,judge,subset,turns,auc_pass_vs_rest,lo,hi,auc_pass_vs_wrong,lo_wrong,hi_wrong,cc_pass_verified,cc_pass_shared_wrong,spearman_cc_accuracy,cc_pass_least_accurate,cc_pass_most_accurate
-claim coverage,deepseek-v4-flash-oneapi,all configurations,34516,0.526286,0.510114,0.542846,0.520411,0.503106,0.540012,0.953311,0.900293,0.222222,0.970745,0.950721
-claim coverage,deepseek-v4-flash-oneapi,excluding deepseek,24541,0.528019,0.512328,0.54751,0.522823,0.504588,0.542824,0.953309,0.892163,-0.006061,0.970745,0.966031
-claim coverage,glm-5.3-flash,all configurations,34521,0.533277,0.515823,0.552676,0.528851,0.509031,0.547868,0.864135,0.8,0.242024,0.899469,0.856971
-claim coverage,glm-5.3-flash,excluding zhipu,32019,0.533942,0.515743,0.552946,0.529376,0.508942,0.548543,0.860075,0.794732,0.222834,0.899469,0.856971
-claim coverage,gpt-6-luna-nonthinking,all configurations,34460,0.517733,0.495479,0.540237,0.510546,0.488503,0.533472,0.782603,0.731544,0.248625,0.811279,0.797189
-claim coverage,gpt-6-luna-nonthinking,excluding openai,29461,0.516235,0.495781,0.536299,0.508467,0.488018,0.531833,0.800623,0.748208,0.377622,0.811279,0.797189
-response quality,deepseek-v4-flash-oneapi,all configurations,34818,0.875415,0.85957,0.890758,0.896177,0.878588,0.912082,,,,,
-response quality,deepseek-v4-flash-oneapi,excluding deepseek,24757,0.881689,0.864634,0.895727,0.904466,0.889152,0.918582,,,,,
-response quality,gpt-6-luna-nonthinking,all configurations,34836,0.856036,0.839061,0.87118,0.875833,0.859469,0.892305,,,,,
-response quality,gpt-6-luna-nonthinking,excluding openai,29788,0.854527,0.836341,0.870537,0.870761,0.853259,0.886179,,,,,
+claim coverage,deepseek-v4-flash-oneapi,all configurations,34516,0.526286,0.510114,0.542846,0.520411,0.503106,0.540012,0.953311,0.900377,0.248352,0.940955,0.950721
+claim coverage,deepseek-v4-flash-oneapi,excluding deepseek,24541,0.527983,0.512262,0.547423,0.522786,0.504527,0.542777,0.953304,0.892095,0.042424,0.940955,0.966031
+claim coverage,glm-5.3-flash,all configurations,34521,0.533448,0.515823,0.552676,0.529041,0.509233,0.548362,0.864135,0.800588,0.274725,0.822297,0.856971
+claim coverage,glm-5.3-flash,excluding zhipu,32019,0.534075,0.515881,0.553113,0.529524,0.509103,0.548832,0.860065,0.795558,0.263736,0.822297,0.856971
+claim coverage,gpt-6-luna-nonthinking,all configurations,34460,0.518449,0.496697,0.540908,0.511337,0.488557,0.534295,0.782813,0.730092,0.27033,0.743601,0.797189
+claim coverage,gpt-6-luna-nonthinking,excluding openai,29461,0.516894,0.497053,0.536446,0.509192,0.488935,0.532265,0.800787,0.74666,0.398601,0.743601,0.797189
+response quality,deepseek-v4-flash-oneapi,all configurations,34818,0.872686,0.856039,0.888351,0.893158,0.87388,0.909658,,,,,
+response quality,deepseek-v4-flash-oneapi,excluding deepseek,24757,0.879082,0.860873,0.893795,0.901559,0.885995,0.916683,,,,,
+response quality,gpt-6-luna-nonthinking,all configurations,34836,0.853695,0.836586,0.868992,0.873243,0.855846,0.889601,,,,,
+response quality,gpt-6-luna-nonthinking,excluding openai,29788,0.852435,0.833824,0.867416,0.868461,0.850607,0.883949,,,,,

@@ -30,3 +30,7 @@ analysis/final_20261012/inputs/final_data_prerevision_20261011.json
 
 # Written by scripts.no_data_control; a measurement, not a registry input.
 metadata/no_data_control.json
+
+# verification and prospective studies, kept apart from the paper's fourteen configurations
+experiments_prospective/
+experiments_verify/

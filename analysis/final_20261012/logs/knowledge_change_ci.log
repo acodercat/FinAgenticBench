@@ -2,7 +2,7 @@ weak to strong                   K1: 355 -> 145 per 1000, change -59% [-73%, -22
 weak to strong                   K2: 367 -> 93 per 1000, change -75% [-100%, -54%] (4 tasks) | minus K4 -18% [-66%, +20%]
 weak to strong                   K3: 282 -> 85 per 1000, change -70% [-87%, -46%] (10 tasks) | minus K4 -13% [-49%, +25%]
 weak to strong                   K4: 282 -> 122 per 1000, change -57% [-87%, -26%] (14 tasks)
-weak to strong                   K5: 276 -> 245 per 1000, change -11% [-48%, +27%] (19 tasks) | minus K4 +46% [-5%, +94%]
+weak to strong                   K5: 287 -> 248 per 1000, change -14% [-49%, +24%] (19 tasks) | minus K4 +43% [-7%, +90%]
 weak to strong                   K6: 312 -> 169 per 1000, change -46% [-70%, -22%] (16 tasks) | minus K4 +11% [-30%, +50%]
 weak to strong                   K7: 382 -> 266 per 1000, change -30% [-100%, +25%] (4 tasks) | minus K4 +26% [-55%, +96%]
 weak to strong                   K8: 578 -> 111 per 1000, change -81% [-84%, -77%] (3 tasks) | minus K4 -24% [-54%, +6%]
@@ -11,7 +11,7 @@ paired non-thinking to thinking  K1: 366 -> 227 per 1000, change -38% [-59%, -5%
 paired non-thinking to thinking  K2: 324 -> 184 per 1000, change -43% [-72%, -29%] (4 tasks) | minus K4 -9% [-49%, +15%]
 paired non-thinking to thinking  K3: 291 -> 189 per 1000, change -35% [-54%, -14%] (10 tasks) | minus K4 -1% [-29%, +29%]
 paired non-thinking to thinking  K4: 296 -> 195 per 1000, change -34% [-53%, -13%] (14 tasks)
-paired non-thinking to thinking  K5: 270 -> 278 per 1000, change +3% [-46%, +59%] (19 tasks) | minus K4 +38% [-18%, +98%]
+paired non-thinking to thinking  K5: 276 -> 270 per 1000, change -2% [-49%, +52%] (19 tasks) | minus K4 +32% [-21%, +92%]
 paired non-thinking to thinking  K6: 325 -> 239 per 1000, change -26% [-51%, -0%] (16 tasks) | minus K4 +8% [-24%, +40%]
 paired non-thinking to thinking  K7: 345 -> 381 per 1000, change +10% [-77%, +95%] (4 tasks) | minus K4 +44% [-56%, +141%]
 paired non-thinking to thinking  K8: 481 -> 296 per 1000, change -38% [-71%, -18%] (3 tasks) | minus K4 -4% [-44%, +26%]

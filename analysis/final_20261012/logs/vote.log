@@ -1,0 +1,30 @@
+check: runs whose task verdict differs from their outputs' verdicts: 0 of 8946
+one run: DeepSeek V4 Pro           k=1  task accuracy 84.2% [80.6%, 87.6%]  wrong outputs per vote   91.7, shared 50.5%
+own runs: DeepSeek V4 Pro          k=3  task accuracy 90.1% [85.9%, 93.9%]  wrong outputs per vote   55.0, shared 63.6%
+one run: Gemini 3.8 Flash          k=1  task accuracy 82.8% [78.1%, 87.3%]  wrong outputs per vote   48.7, shared 93.2%
+own runs: Gemini 3.8 Flash         k=3  task accuracy 86.9% [81.7%, 91.1%]  wrong outputs per vote   57.0, shared 98.2%
+one run: GPT-6 Luna                k=1  task accuracy 82.5% [78.7%, 86.4%]  wrong outputs per vote  119.7, shared 69.6%
+own runs: GPT-6 Luna               k=3  task accuracy 91.1% [87.3%, 94.8%]  wrong outputs per vote   78.0, shared 91.0%
+one run: Claude Sonnet 5.5         k=1  task accuracy 79.7% [75.0%, 83.9%]  wrong outputs per vote  206.3, shared 64.3%
+own runs: Claude Sonnet 5.5        k=3  task accuracy 82.2% [76.5%, 87.3%]  wrong outputs per vote  165.0, shared 79.4%
+one run: Qwen3.8 Flash             k=1  task accuracy 71.2% [66.7%, 75.4%]  wrong outputs per vote  200.0, shared 42.3%
+own runs: Qwen3.8 Flash            k=3  task accuracy 81.2% [75.6%, 86.4%]  wrong outputs per vote  149.0, shared 54.4%
+one run: GLM-5.3                   k=1  task accuracy 70.3% [65.7%, 74.6%]  wrong outputs per vote  292.3, shared 52.9%
+own runs: GLM-5.3                  k=3  task accuracy 81.2% [76.1%, 86.4%]  wrong outputs per vote  184.0, shared 62.5%
+one run: DeepSeek V4 Flash         k=1  task accuracy 62.9% [57.7%, 67.9%]  wrong outputs per vote  345.3, shared 45.6%
+own runs: DeepSeek V4 Flash        k=3  task accuracy 70.9% [64.3%, 77.0%]  wrong outputs per vote  285.0, shared 58.6%
+one run: Qwen3.8-27B               k=1  task accuracy 62.1% [56.8%, 67.6%]  wrong outputs per vote  381.3, shared 28.8%
+own runs: Qwen3.8-27B              k=3  task accuracy 73.7% [67.6%, 79.3%]  wrong outputs per vote  290.0, shared 30.3%
+one run, thinking configurations   k=1  task accuracy 74.5% [71.5%, 77.3%]  wrong outputs per vote  210.7, shared 48.3%
+own runs, thinking configurations  k=3  task accuracy 82.2% [79.0%, 85.1%]  wrong outputs per vote  157.9, shared 58.9%
+vendors' representatives: DeepSeek V4 Pro (84.2%), Gemini 3.8 Flash (82.8%), GPT-6 Luna (82.5%), Claude Sonnet 5.5 (79.7%), Qwen3.8 Flash (71.2%), GLM-5.3 (70.3%)
+own runs, vendor representatives   k=3  task accuracy 85.4% [82.5%, 88.1%]  wrong outputs per vote  114.7, shared 71.1%
+vendors                            k=1  task accuracy 78.4% [75.6%, 81.1%]  wrong outputs per vote  159.8, shared 57.1%
+vendors                            k=2  task accuracy 86.6% [84.0%, 89.0%]  wrong outputs per vote  114.5, shared 57.2%
+vendors                            k=3  task accuracy 91.0% [88.4%, 93.4%]  wrong outputs per vote   68.3, shared 70.5%
+vendors                            k=4  task accuracy 93.0% [90.5%, 95.1%]  wrong outputs per vote   53.0, shared nan%
+vendors                            k=5  task accuracy 94.5% [92.1%, 96.6%]  wrong outputs per vote   41.7, shared nan%
+vendors                            k=6  task accuracy 93.6% [90.8%, 96.1%]  wrong outputs per vote   44.7, shared nan%
+three own runs, against one run of a vendor's representative: shared wrong outputs -10.6%, unshared -51.6%
+three vendors, against one run of a vendor's representative: shared wrong outputs -47.3%, unshared -70.7%
+-> analysis/final_20261012/tables/vote.csv

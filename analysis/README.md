@@ -54,7 +54,36 @@ done
 for s in agreement_residual knowledge_change_ci convergence_robust judge_self_exclusion; do
   uv run python $S/$s.py | tee analysis/final_20261012/logs/$s.log
 done
+# 8. Answering by vote over runs and over vendors (Supplementary Table 34)
+uv run python $S/vote.py | tee analysis/final_20261012/logs/vote.log
+# 9. The two readers' adjudication of the references
+uv run python $S/adjudication_agreement.py | tee analysis/final_20261012/logs/adjudication_agreement.log
 ```
+
+## Adjudication of the references
+
+`final_20261012/adjudication/` holds the material given to the two readers and what they returned. For each of the
+72 root causes that admit a second reading, `items_readings.md` gives the task text, its data sources and the two
+readings with the value each yields, and `sheet_readings.csv` is the blank sheet; `sheet_readings_1.csv` and
+`sheet_readings_2.csv` are the two readers' filled sheets, completed independently. `key.csv` records which
+candidate is the reference and was not given to the readers; `readings.json` holds the text of each reading and
+lists the 14 root causes that are errors of implementation and have no second reading.
+`scripts/adjudication_readings.py` builds the material from `items.md` and `sheet.csv`, and
+`scripts/adjudication_agreement.py` writes `tables/adjudication.csv` and `tables/adjudication_items.csv`.
+
+## Verification study
+
+`verification_20261116/` measures what a verifier does with another configuration's stored answers (Figure 5,
+Supplementary Tables 35 and 36). `PREDICTION.md` gives the design, measures and predictions, written before the
+runs. `select_tasks.py` writes `tasks.json` (149 tasks); `scripts/run_verifier.py` runs one verifier over one
+answering run, with its runs under `experiments_verify/`; `analyse.py` writes `tables/` and `logs/analyse.log`.
+
+## Prospective test
+
+`prospective_20261115/` tests the relation between accuracy and convergence on GPT-6.1 Sol, a model outside the
+fourteen (Supplementary Table 37). `PREDICTION.md` records the fitted line, its prediction interval and the decision
+rule before the study was run; `evaluate.py` writes `tables/` and `evaluate.log` from the runs under
+`experiments_prospective/`.
 
 `final_20261012/scripts/groups.py` is the single definition of the configuration groups: reasoning mode, model pairs, vendors,
 the capability tiers (strong at least 78% task accuracy, mid 60–78%, weak below 60%) and the size pairs.

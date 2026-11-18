@@ -1,5 +1,5 @@
 """One pass over the final results: per-turn and per-variable rows for the defect analysis."""
-import json, importlib, sys
+import json, collections, importlib, sys
 from pathlib import Path
 sys.path.insert(0, ".")
 E = Path("experiments")

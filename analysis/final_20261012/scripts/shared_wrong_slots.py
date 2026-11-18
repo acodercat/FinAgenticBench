@@ -2,17 +2,18 @@
 
 Rebuilds analysis/scratch/shared_wrong_all_20261012.json with the fields the reader batches used,
 and diffs it against the pre-refix file behind knowledge_classification.json (308 slots).
-The same rule applied to inputs/final_data_prerevision_20261011.json reproduces that file exactly.
+The same rule applied to final_data_prerefix_20261011.json reproduces that file exactly.
 """
 import collections
 import glob
 import json
 import re
+import sys
 
 from common import load
 
 OUT = "analysis/scratch/shared_wrong_all_20261012.json"
-OLD = "analysis/final_20261012/inputs/shared_wrong_prerevision_20261011.json"
+OLD = "analysis/scratch/shared_wrong_all.json"
 MIN_CFGS = 5
 
 cases, turns, vars_ = load()

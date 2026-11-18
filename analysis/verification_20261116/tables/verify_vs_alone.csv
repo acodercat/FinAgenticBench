@@ -1,0 +1,13 @@
+verifier,class,outputs,n,correct_when_shown,correct_alone,difference,lo,hi
+DeepSeek V4 Flash,shared,wrong before,196,0.173469,0.311224,-0.137755,-0.321343,0.016129
+DeepSeek V4 Flash,unshared,wrong before,68,0.455882,0.406863,0.04902,-0.299145,0.308176
+GPT-6 Luna,shared,wrong before,196,0.306122,0.409864,-0.103741,-0.300654,0.061782
+GPT-6 Luna,unshared,wrong before,68,0.75,0.72549,0.02451,-0.34058,0.30303
+GPT-6.1 Sol,shared,wrong before,196,0.673469,0.792517,-0.119048,-0.273927,0.0
+GPT-6.1 Sol,unshared,wrong before,68,1.0,0.955882,0.044118,0.0,0.162162
+pooled,shared,wrong before,588,0.384354,0.504535,-0.120181,-0.240741,-0.026562
+pooled,unshared,wrong before,204,0.735294,0.696078,0.039216,-0.152263,0.188347
+DeepSeek V4 Flash,,correct before,7235,0.955632,0.870306,0.085326,0.05639,0.116436
+GPT-6 Luna,,correct before,7235,0.975812,0.962359,0.013453,0.000692,0.02592
+GPT-6.1 Sol,,correct before,7235,0.994748,0.991384,0.003363,0.000143,0.007376
+pooled,,correct before,21705,0.975397,0.94135,0.034047,0.023474,0.045343

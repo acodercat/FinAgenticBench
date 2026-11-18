@@ -1,19 +1,34 @@
 three-vendor configurations (most accurate thinking configuration per vendor, chosen on these results): Claude Sonnet 5.5, DeepSeek V4 Pro, Gemini 3.8 Flash, GLM-5.3, GPT-6 Luna, Qwen3.8 Flash
-same model, 2 runs agree (thinking)      agreeing  83266 | wrong  1451 | shared among wrong 83.0% [73.6%,89.5%] | P(wrong|agree) 1.74%: shared 1.45% [0.92%,2.12%], unshared 0.30% [0.18%,0.44%]
+same model, 2 runs agree (thinking)      agreeing  83266 | wrong  1449 | shared among wrong 83.0% [73.6%,89.5%] | P(wrong|agree) 1.74%: shared 1.44% [0.92%,2.12%], unshared 0.30% [0.18%,0.44%]
 2 vendors agree (1 run each, thinking)   agreeing  89678 | wrong   728 | shared among wrong 92.3% [82.5%,97.0%] | P(wrong|agree) 0.81%: shared 0.75% [0.36%,1.27%], unshared 0.06% [0.03%,0.11%]
 3 vendors agree                          agreeing  67635 | wrong   175 | shared among wrong 98.9% [93.6%,100.0%] | P(wrong|agree) 0.26%: shared 0.26% [0.05%,0.60%], unshared 0.00% [0.00%,0.01%]
-3 runs identical (thinking)              agreeing  26633 | wrong   295 | shared among wrong 88.1% [78.0%,94.9%] | P(wrong|agree) 1.11%: shared 0.98% [0.55%,1.52%], unshared 0.13% [0.05%,0.25%]
-2 vendors vs same model, shared   part of P(wrong|agree): -48.2% [-65.8%, -33.2%]
+3 runs identical (thinking)              agreeing  26633 | wrong   294 | shared among wrong 88.1% [77.8%,94.9%] | P(wrong|agree) 1.10%: shared 0.97% [0.54%,1.52%], unshared 0.13% [0.05%,0.25%]
+2 vendors vs same model, shared   part of P(wrong|agree): -48.1% [-65.7%, -33.1%]
 2 vendors vs same model, unshared part of P(wrong|agree): -78.9% [-91.1%, -58.2%]
 
 agreed wrong values also given by >= 2 configurations outside the agreeing set (circularity-free):
-  same model, 2 runs agree (thinking)      1246/1451 = 85.9%
+  same model, 2 runs agree (thinking)      1244/1449 = 85.9%
   2 vendors agree (1 run each, thinking)   655/728 = 90.0%
   3 vendors agree                          174/175 = 99.4%
-  3 runs identical (thinking)              268/295 = 90.8%
+  3 runs identical (thinking)              267/294 = 90.8%
 agreed wrong values also given by >= 2 configurations of vendors outside the agreeing set (strictest):
-  same model, 2 runs agree (thinking)      1186/1451 = 81.7%
+  same model, 2 runs agree (thinking)      1184/1449 = 81.7%
   2 vendors agree (1 run each, thinking)   575/728 = 79.0%
-  base rate, one thinking wrong value, same rule: 2447/5062 = 48.3%
-base rate: shared share of all thinking-configuration wrong values 2524/5062 = 49.9%
+  base rate, one thinking wrong value, same rule: 2443/5056 = 48.3%
+base rate: shared share of all thinking-configuration wrong values 2520/5056 = 49.8%
+
+miss rate: wrong values of a first candidate that the second candidate reproduced
+  second run of the same model   | given by >= 2 configurations of other vendors  | all       2898/ 9929 = 29.2% [22.4%, 36.2%]
+  second run of the same model   | given by >= 2 configurations of other vendors  | shared    2368/ 4797 = 49.4% [40.6%, 57.1%]
+  second run of the same model   | given by >= 2 configurations of other vendors  | unshared   530/ 5132 = 10.3% [6.8%, 15.0%]
+  second run of the same model   | shared (>= 3 configurations)                   | all       2898/ 9929 = 29.2% [22.4%, 36.2%]
+  second run of the same model   | shared (>= 3 configurations)                   | shared    2404/ 4953 = 48.5% [39.7%, 56.5%]
+  second run of the same model   | shared (>= 3 configurations)                   | unshared   494/ 4976 = 9.9% [6.5%, 14.5%]
+  one run of a second vendor     | given by >= 2 configurations of other vendors  | all       1456/11038 = 13.2% [7.4%, 19.6%]
+  one run of a second vendor     | given by >= 2 configurations of other vendors  | shared    1150/ 4541 = 25.3% [12.5%, 36.1%]
+  one run of a second vendor     | given by >= 2 configurations of other vendors  | unshared   306/ 6497 = 4.7% [2.7%, 7.0%]
+  one run of a second vendor     | shared (>= 3 configurations)                   | all       1456/11038 = 13.2% [7.4%, 19.6%]
+  one run of a second vendor     | shared (>= 3 configurations)                   | shared    1344/ 5291 = 25.4% [15.1%, 34.7%]
+  one run of a second vendor     | shared (>= 3 configurations)                   | unshared   112/ 5747 = 1.9% [0.9%, 3.2%]
+-> analysis/final_20261012/tables/agreement_miss.csv
 -> analysis/final_20261012/tables/agreement_residual.csv

@@ -2,7 +2,7 @@
 import collections
 
 from common import load, runs, write_csv
-from groups import PAIRS, STUDIES, model_tiers, task_accuracy, tiers
+from groups import MODE, PAIRS, STUDIES, model_tiers, task_accuracy, tiers
 
 cases, turns, vars_ = load()
 acc = task_accuracy(turns); TIER = tiers(acc); MT = model_tiers(acc)

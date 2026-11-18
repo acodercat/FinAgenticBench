@@ -748,11 +748,11 @@
   ],
   "primary": "K5",
   "secondary": null,
-  "mechanism": "After joining retained accessions to the schedule, added an extra filter keeping only rows whose row-level report_date equals the filing period end, treating other rows as 'prior-period comparative' holdings, which discarded ~43% of reported fair value the query says to count.",
+  "mechanism": "Summed every schedule row under the retained accessions, including the comparative rows that restate earlier balance-sheet dates, instead of only the rows at each filing's own period end, so the reported fair value counts prior-period holdings again (1,290,044.225 vs 732,648.089 for the calendar cross-section).",
   "anticipated_by_author": "no",
   "knows_but_fails": "no",
   "confidence": "medium",
-  "evidence": "sched_cal_cur = sched_cal[sched_cal['report_date']==sched_cal['period']]; prose: 'prior-period comparative rows, which were excluded'"
+  "evidence": "The shared values equal the all-rows totals (1,287,095.147; 79,739.295; 1,290,044.225); 43% of the label total sits in rows whose report date differs from the filing's period end."
  },
  {
   "case": "bis_eer_credit_service_screen",

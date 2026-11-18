@@ -12,7 +12,7 @@ import json
 import os
 
 from common import boot_ratio_change, load, load_cats, modal_shared, rate, runs, write_csv
-from groups import PAIRS, SIZE_PAIRS, STUDIES, label, model_tiers, task_accuracy, tiers
+from groups import MODE, PAIRS, SIZE_PAIRS, STUDIES, label, model_tiers, task_accuracy, tiers
 
 cases, turns, vars_ = load()
 cats = load_cats()

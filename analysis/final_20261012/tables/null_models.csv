@@ -1,55 +1,55 @@
 null,statistic,observed,expected,ci_lo,ci_hi
-A: one rate per configuration,never-wrong slots,1902,382.2,343,416
-A: one rate per configuration,slots with >=3 failing configurations,972,1232.0,1176,1287
-A: one rate per configuration,slots with >=6 failing configurations,529,31.2,21,42
-A: one rate per configuration,slots with exactly 0 failing configurations,1902,382.2,,
-A: one rate per configuration,slots with exactly 1 failing configurations,492,960.5,,
-A: one rate per configuration,slots with exactly 2 failing configurations,303,1094.2,,
-A: one rate per configuration,slots with exactly 3 failing configurations,185,748.0,,
-A: one rate per configuration,slots with exactly 4 failing configurations,151,342.2,,
-A: one rate per configuration,slots with exactly 5 failing configurations,107,110.7,,
+A: one rate per configuration,never-wrong slots,1902,382.3,343,416
+A: one rate per configuration,slots with >=3 failing configurations,972,1231.7,1175,1285
+A: one rate per configuration,slots with >=6 failing configurations,529,31.1,21,42
+A: one rate per configuration,slots with exactly 0 failing configurations,1902,382.3,,
+A: one rate per configuration,slots with exactly 1 failing configurations,492,960.7,,
+A: one rate per configuration,slots with exactly 2 failing configurations,303,1094.3,,
+A: one rate per configuration,slots with exactly 3 failing configurations,185,747.9,,
+A: one rate per configuration,slots with exactly 4 failing configurations,151,342.1,,
+A: one rate per configuration,slots with exactly 5 failing configurations,107,110.6,,
 A: one rate per configuration,slots with exactly 6 failing configurations,121,26.0,,
 A: one rate per configuration,slots with exactly 7 failing configurations,140,4.5,,
 A: one rate per configuration,slots with exactly 8 failing configurations,65,0.6,,
 A: one rate per configuration,slots with exactly 9 failing configurations,70,0.1,,
-A: one rate per configuration,slots with exactly 10 failing configurations,45,0.0,,
-A: one rate per configuration,slots with exactly 11 failing configurations,42,0.0,,
+A: one rate per configuration,slots with exactly 10 failing configurations,46,0.0,,
+A: one rate per configuration,slots with exactly 11 failing configurations,41,0.0,,
 A: one rate per configuration,slots with exactly 12 failing configurations,41,0.0,,
 A: one rate per configuration,slots with exactly 13 failing configurations,5,0.0,,
 A: one rate per configuration,slots with exactly 14 failing configurations,0,0.0,,
-B: rate per configuration within task family and turn,never-wrong slots,1902,781.7,737,823
-B: rate per configuration within task family and turn,slots with >=3 failing configurations,972,1136.8,1094,1178
-B: rate per configuration within task family and turn,slots with >=6 failing configurations,529,147.8,128,167
+B: rate per configuration within task family and turn,never-wrong slots,1902,781.7,736,823
+B: rate per configuration within task family and turn,slots with >=3 failing configurations,972,1136.5,1094,1179
+B: rate per configuration within task family and turn,slots with >=6 failing configurations,529,147.7,128,167
 B: rate per configuration within task family and turn,slots with exactly 0 failing configurations,1902,781.7,,
-B: rate per configuration within task family and turn,slots with exactly 1 failing configurations,492,987.1,,
-B: rate per configuration within task family and turn,slots with exactly 2 failing configurations,303,763.5,,
+B: rate per configuration within task family and turn,slots with exactly 1 failing configurations,492,987.2,,
+B: rate per configuration within task family and turn,slots with exactly 2 failing configurations,303,763.6,,
 B: rate per configuration within task family and turn,slots with exactly 3 failing configurations,185,499.1,,
-B: rate per configuration within task family and turn,slots with exactly 4 failing configurations,151,310.1,,
-B: rate per configuration within task family and turn,slots with exactly 5 failing configurations,107,179.7,,
+B: rate per configuration within task family and turn,slots with exactly 4 failing configurations,151,310.0,,
+B: rate per configuration within task family and turn,slots with exactly 5 failing configurations,107,179.6,,
 B: rate per configuration within task family and turn,slots with exactly 6 failing configurations,121,91.2,,
-B: rate per configuration within task family and turn,slots with exactly 7 failing configurations,140,38.8,,
+B: rate per configuration within task family and turn,slots with exactly 7 failing configurations,140,38.7,,
 B: rate per configuration within task family and turn,slots with exactly 8 failing configurations,65,13.4,,
 B: rate per configuration within task family and turn,slots with exactly 9 failing configurations,70,3.6,,
-B: rate per configuration within task family and turn,slots with exactly 10 failing configurations,45,0.7,,
-B: rate per configuration within task family and turn,slots with exactly 11 failing configurations,42,0.1,,
+B: rate per configuration within task family and turn,slots with exactly 10 failing configurations,46,0.7,,
+B: rate per configuration within task family and turn,slots with exactly 11 failing configurations,41,0.1,,
 B: rate per configuration within task family and turn,slots with exactly 12 failing configurations,41,0.0,,
 B: rate per configuration within task family and turn,slots with exactly 13 failing configurations,5,0.0,,
 B: rate per configuration within task family and turn,slots with exactly 14 failing configurations,0,0.0,,
-"C: rate per configuration within the task, slot left out",never-wrong slots,1902,1433.3,1398,1470
-"C: rate per configuration within the task, slot left out",slots with >=3 failing configurations,972,1120.3,1091,1146
+"C: rate per configuration within the task, slot left out",never-wrong slots,1902,1433.4,1398,1470
+"C: rate per configuration within the task, slot left out",slots with >=3 failing configurations,972,1120.0,1091,1147
 "C: rate per configuration within the task, slot left out",slots with >=6 failing configurations,529,364.1,342,386
-"C: rate per configuration within the task, slot left out",slots with exactly 0 failing configurations,1902,1433.3,,
-"C: rate per configuration within the task, slot left out",slots with exactly 1 failing configurations,492,699.3,,
-"C: rate per configuration within the task, slot left out",slots with exactly 2 failing configurations,303,416.1,,
-"C: rate per configuration within the task, slot left out",slots with exactly 3 failing configurations,185,307.4,,
-"C: rate per configuration within the task, slot left out",slots with exactly 4 failing configurations,151,250.3,,
-"C: rate per configuration within the task, slot left out",slots with exactly 5 failing configurations,107,198.5,,
+"C: rate per configuration within the task, slot left out",slots with exactly 0 failing configurations,1902,1433.4,,
+"C: rate per configuration within the task, slot left out",slots with exactly 1 failing configurations,492,699.5,,
+"C: rate per configuration within the task, slot left out",slots with exactly 2 failing configurations,303,416.2,,
+"C: rate per configuration within the task, slot left out",slots with exactly 3 failing configurations,185,307.3,,
+"C: rate per configuration within the task, slot left out",slots with exactly 4 failing configurations,151,250.2,,
+"C: rate per configuration within the task, slot left out",slots with exactly 5 failing configurations,107,198.4,,
 "C: rate per configuration within the task, slot left out",slots with exactly 6 failing configurations,121,146.1,,
 "C: rate per configuration within the task, slot left out",slots with exactly 7 failing configurations,140,102.1,,
 "C: rate per configuration within the task, slot left out",slots with exactly 8 failing configurations,65,44.3,,
 "C: rate per configuration within the task, slot left out",slots with exactly 9 failing configurations,70,27.0,,
-"C: rate per configuration within the task, slot left out",slots with exactly 10 failing configurations,45,20.0,,
-"C: rate per configuration within the task, slot left out",slots with exactly 11 failing configurations,42,15.0,,
+"C: rate per configuration within the task, slot left out",slots with exactly 10 failing configurations,46,20.0,,
+"C: rate per configuration within the task, slot left out",slots with exactly 11 failing configurations,41,15.0,,
 "C: rate per configuration within the task, slot left out",slots with exactly 12 failing configurations,41,9.6,,
 "C: rate per configuration within the task, slot left out",slots with exactly 13 failing configurations,5,0.2,,
 "C: rate per configuration within the task, slot left out",slots with exactly 14 failing configurations,0,0.0,,

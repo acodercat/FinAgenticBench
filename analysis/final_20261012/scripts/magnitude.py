@@ -1,4 +1,4 @@
-import json, re, collections
+import json, re, collections, math
 d = json.load(open("analysis/scratch/final_data.json")); V = d["vars"]; C = d["cases"]
 def parse(msg):
     m = re.match(r"^(\S+?)=(.*?),? expected (.*)$", msg)

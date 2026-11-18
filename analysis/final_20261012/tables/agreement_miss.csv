@@ -1,0 +1,13 @@
+check,rule,class,n_wrong,n_reproduced,miss_rate,lo,hi
+second run of the same model,given by >= 2 configurations of other vendors,all,9929,2898,0.291872,0.223658,0.361885
+second run of the same model,given by >= 2 configurations of other vendors,shared,4797,2368,0.493642,0.405954,0.571327
+second run of the same model,given by >= 2 configurations of other vendors,unshared,5132,530,0.103274,0.068413,0.150195
+second run of the same model,shared (>= 3 configurations),all,9929,2898,0.291872,0.223658,0.361885
+second run of the same model,shared (>= 3 configurations),shared,4953,2404,0.485362,0.397123,0.564919
+second run of the same model,shared (>= 3 configurations),unshared,4976,494,0.099277,0.064625,0.145333
+one run of a second vendor,given by >= 2 configurations of other vendors,all,11038,1456,0.131908,0.074273,0.196436
+one run of a second vendor,given by >= 2 configurations of other vendors,shared,4541,1150,0.253248,0.125344,0.361463
+one run of a second vendor,given by >= 2 configurations of other vendors,unshared,6497,306,0.047099,0.026957,0.069613
+one run of a second vendor,shared (>= 3 configurations),all,11038,1456,0.131908,0.074273,0.196436
+one run of a second vendor,shared (>= 3 configurations),shared,5291,1344,0.254016,0.151323,0.347496
+one run of a second vendor,shared (>= 3 configurations),unshared,5747,112,0.019488,0.00905,0.03211

@@ -1,19 +1,19 @@
 term,n_pairs,estimate,ci_lo,ci_hi
-same model,6,0.440792,0.377474,0.515444
-same vendor,8,0.264454,0.207169,0.332824
-cross vendor,77,0.333101,0.264553,0.41631
-"same model minus cross vendor, unadjusted",,0.107691,0.053634,0.16445
-"same vendor minus cross vendor, unadjusted",,-0.068648,-0.117962,-0.023483
-adjusted: intercept,,-0.607314,-0.820834,-0.375808
-adjusted: same model,,0.117688,0.072088,0.167919
-adjusted: same vendor,,0.008404,-0.032618,0.043905
-adjusted: mean accuracy,,1.507695,1.116139,1.886616
-adjusted: accuracy gap,,-0.131263,-0.325934,0.047977
-matched: DeepSeek V4 Pro T x DeepSeek V4 Flash T,57,0.554273,0.412768,
-matched: DeepSeek V4 Pro T x DeepSeek V4 Flash N,54,0.469586,0.406212,
-matched: Qwen3.8 Flash T x Qwen3.8-27B T,56,0.211561,0.35166,
-matched: Qwen3.8 Flash T x Qwen3.8-27B N,43,0.185958,0.277587,
-matched: DeepSeek V4 Flash T x DeepSeek V4 Pro N,47,0.401606,0.287362,
-matched: Qwen3.8-27B T x Qwen3.8 Flash N,27,0.181628,0.25152,
-matched: DeepSeek V4 Pro N x DeepSeek V4 Flash N,41,0.294612,0.276062,
-matched: Qwen3.8-27B N x Qwen3.8 Flash N,8,0.180694,0.21557,
+same model,6,0.441137,0.377647,0.516567
+same vendor,8,0.264315,0.206971,0.332824
+cross vendor,77,0.33429,0.26494,0.41774
+"same model minus cross vendor, unadjusted",,0.106846,0.052916,0.163699
+"same vendor minus cross vendor, unadjusted",,-0.069975,-0.119964,-0.024421
+adjusted: intercept,,-0.59096,-0.805044,-0.360787
+adjusted: same model,,0.115764,0.070745,0.165937
+adjusted: same vendor,,0.005909,-0.034782,0.042235
+adjusted: mean accuracy,,1.486796,1.095992,1.862693
+adjusted: accuracy gap,,-0.136559,-0.330959,0.048611
+matched: DeepSeek V4 Pro T x DeepSeek V4 Flash T,57,0.554273,0.417265,
+matched: DeepSeek V4 Pro T x DeepSeek V4 Flash N,55,0.475827,0.407583,
+matched: Qwen3.8 Flash T x Qwen3.8-27B T,56,0.203271,0.352896,
+matched: Qwen3.8 Flash T x Qwen3.8-27B N,43,0.185958,0.280987,
+matched: DeepSeek V4 Flash T x DeepSeek V4 Pro N,48,0.410135,0.288827,
+matched: Qwen3.8-27B T x Qwen3.8 Flash N,25,0.176471,0.251216,
+matched: DeepSeek V4 Flash N x DeepSeek V4 Pro N,41,0.294612,0.277731,
+matched: Qwen3.8 Flash N x Qwen3.8-27B N,8,0.180694,0.218279,

@@ -1,0 +1,10 @@
+answers,verifier,relation,tasks,tasks_passed_before,tasks_passed_after,wrong_before,fixed,kept,changed,unstored,correct_before,broken,broken_unstored,shared,shared_fixed,shared_kept,unshared,unshared_fixed,unshared_kept
+DeepSeek V4 Pro,DeepSeek V4 Flash,same vendor,149,117,111,99,17,61,12,9,2430,151,130,69,12,43,30,5,18
+DeepSeek V4 Pro,GPT-6 Luna,other vendor,149,117,123,99,56,38,5,0,2430,40,1,69,43,26,30,13,12
+DeepSeek V4 Pro,GPT-6.1 Sol,other vendor,149,117,141,99,78,21,0,0,2430,15,0,69,48,21,30,30,0
+Gemini 3.8 Flash,DeepSeek V4 Flash,other vendor,149,115,121,45,12,32,1,0,2391,102,64,44,12,32,1,0,0
+Gemini 3.8 Flash,GPT-6 Luna,other vendor,149,115,123,45,8,37,0,0,2391,53,3,44,7,37,1,1,0
+Gemini 3.8 Flash,GPT-6.1 Sol,other vendor,149,115,141,45,21,24,0,0,2391,9,0,44,20,24,1,1,0
+GPT-6 Luna,DeepSeek V4 Flash,other vendor,149,118,122,120,36,73,2,9,2414,68,61,83,10,69,37,26,4
+GPT-6 Luna,GPT-6 Luna,self,149,118,123,120,47,70,3,0,2414,82,26,83,10,70,37,37,0
+GPT-6 Luna,GPT-6.1 Sol,same vendor,149,118,145,120,101,19,0,0,2414,14,0,83,64,19,37,37,0

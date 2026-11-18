@@ -1,0 +1,16 @@
+measure,value
+root_causes,86
+implementation_items,14
+items,72
+r1_reference,69
+r1_shared,2
+r1_both,1
+r2_reference,69
+r2_shared,3
+r2_both,0
+both_reference,66
+both_reference_pct,91.7
+both_shared,0
+readers_agree,66
+readers_agree_pct,91.7
+gwet_ac1,0.91

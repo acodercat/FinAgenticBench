@@ -1,5 +1,5 @@
-analysis/scratch/shared_wrong_all_20261012.json: 307 slots, 3412 attempts, 75 cases
-vs pre-refix: kept 304 | added 3 | gone 4 | same slot, different modal value 0
+analysis/scratch/shared_wrong_all_20261012.json: 307 slots, 3416 attempts, 75 cases
+vs pre-refix: kept 301 | added 3 | gone 4 | same slot, different modal value 3
   ADDED   pension_discount_rate_remeasurement t3 median_implied_duration_years  wrong=9.1609 n=6 cfgs=5
   ADDED   pension_discount_rate_remeasurement t4 median_start_funded_ratio  wrong=0.9523 n=6 cfgs=5
   ADDED   pension_discount_rate_remeasurement t4 negative_return_improved_count  wrong=69 n=6 cfgs=5
@@ -7,3 +7,6 @@ vs pre-refix: kept 304 | added 3 | gone 4 | same slot, different modal value 0
   GONE    bis_currency_credit_cointegration_branch t4 no_change_benchmark_rmse_log_points  wrong=4.0162 n=10 cfgs=5
   GONE    nfip_compound_poisson_stoploss_capacity t1 severity_second_moment_million  wrong=0.0223 n=6 cfgs=5
   GONE    pension_discount_rate_remeasurement t2 tracking_count  wrong=117 n=13 cfgs=10
+  CHANGED bdc_fiscal_label_cross_section_alignment t3 label_fair_value_mn  wrong=1287095.147 n=20 cfgs=10 (was 728393.143)
+  CHANGED bdc_fiscal_label_cross_section_alignment t3 off_date_fair_value_mn  wrong=79739.295 n=20 cfgs=10 (was 45203.107)
+  CHANGED bdc_fiscal_label_cross_section_alignment t4 calendar_fair_value_mn  wrong=1290044.225 n=19 cfgs=10 (was 732648.089)

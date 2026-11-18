@@ -1,0 +1,16 @@
+measure,value
+runs,639
+task_accuracy_pct,96.4
+wrong_values,117
+slots,52
+tasks,11
+equal_consensus,55
+equal_consensus_pct,47.0
+predicted_pct,76.6
+interval_lo_pct,56.8
+interval_hi_pct,96.5
+given_by_two,58
+given_by_two_pct,49.6
+largest_task,insider_sale_plan_discretion_split
+largest_task_wrong,36
+without_largest_pct,67.9

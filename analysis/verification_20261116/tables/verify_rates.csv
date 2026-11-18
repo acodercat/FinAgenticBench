@@ -1,0 +1,40 @@
+measure,rate,lo,hi,n
+all,0.474747,0.358434,0.600427,792
+verifier DeepSeek V4 Flash,0.246212,0.138577,0.375527,264
+verifier GPT-6 Luna,0.420455,0.273504,0.59058,264
+verifier GPT-6.1 Sol,0.757576,0.571429,0.930481,264
+relation self,0.391667,0.176471,0.641791,120
+relation same vendor,0.538813,0.357143,0.705,219
+relation other vendor,0.465784,0.330864,0.618182,453
+shared,0.384354,0.270019,0.516966,588
+"shared, verifier DeepSeek V4 Flash",0.173469,0.073171,0.283333,196
+"shared, verifier GPT-6 Luna",0.306122,0.166667,0.484127,196
+"shared, verifier GPT-6.1 Sol",0.673469,0.44086,0.904306,196
+"shared, relation self",0.120482,0.027027,0.285714,83
+"shared, relation same vendor",0.5,0.287879,0.718182,152
+"shared, relation other vendor",0.396601,0.253676,0.569921,353
+unshared,0.735294,0.560976,0.874214,204
+"unshared, verifier DeepSeek V4 Flash",0.455882,0.145161,0.716981,68
+"unshared, verifier GPT-6 Luna",0.75,0.485294,0.95122,68
+"unshared, verifier GPT-6.1 Sol",1.0,1.0,1.0,68
+"unshared, relation self",1.0,1.0,1.0,37
+"unshared, relation same vendor",0.626866,0.333333,0.864407,67
+"unshared, relation other vendor",0.71,0.553846,0.862745,100
+verifier gives it,0.214477,0.132626,0.34471,373
+"verifier gives it, DeepSeek V4 Flash",0.116883,0.007812,0.245614,154
+"verifier gives it, GPT-6 Luna",0.350282,0.176471,0.564706,177
+"verifier gives it, GPT-6.1 Sol",0.0,0.0,0.0,42
+verifier does not give it,0.706444,0.592428,0.809069,419
+"verifier does not give it, DeepSeek V4 Flash",0.427273,0.20354,0.644628,110
+"verifier does not give it, GPT-6 Luna",0.563218,0.341463,0.779412,87
+"verifier does not give it, GPT-6.1 Sol",0.900901,0.777143,0.995595,222
+"kept, shared",0.579932,0.436073,0.707143,588
+"kept, unshared",0.166667,0.045455,0.34127,204
+"kept, verifier gives it",0.729223,0.575406,0.842271,373
+"kept, verifier does not give it",0.245823,0.144809,0.359477,419
+"broken, verifier DeepSeek V4 Flash",0.044368,0.02773,0.063167,7235
+"broken with a stored wrong value, verifier DeepSeek V4 Flash",0.009122,0.003144,0.016145,7235
+"broken, verifier GPT-6 Luna",0.024188,0.01368,0.037961,7235
+"broken with a stored wrong value, verifier GPT-6 Luna",0.020041,0.01057,0.031976,7235
+"broken, verifier GPT-6.1 Sol",0.005252,0.0,0.015618,7235
+"broken with a stored wrong value, verifier GPT-6.1 Sol",0.005252,0.0,0.015618,7235

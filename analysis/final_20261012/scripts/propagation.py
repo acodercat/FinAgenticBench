@@ -6,7 +6,7 @@ then the within-(case, turn) contrast, which removes task difficulty. Writes tab
 import collections
 
 from common import load, runs, write_csv
-from groups import label
+from groups import STUDIES, label
 
 cases, turns, vars_ = load()
 R = runs(turns)

@@ -38,5 +38,21 @@
    "tracking_count"
   ]
  ],
- "changed": []
+ "changed": [
+  [
+   "bdc_fiscal_label_cross_section_alignment",
+   3,
+   "label_fair_value_mn"
+  ],
+  [
+   "bdc_fiscal_label_cross_section_alignment",
+   3,
+   "off_date_fair_value_mn"
+  ],
+  [
+   "bdc_fiscal_label_cross_section_alignment",
+   4,
+   "calendar_fair_value_mn"
+  ]
+ ]
 }

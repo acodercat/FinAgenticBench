@@ -1,15 +1,19 @@
-[self] wrong value = consensus error: strong 61.4%, mid 44.3%, weak 28.3%; Spearman with accuracy 0.92
-   within slot strong - weak: +15.1% [+8.3%, +21.7%] slots 562
-   within slot strong - mid: +2.9% [-2.7%, +8.2%] slots 548
-   within slot mid - weak: +6.8% [+3.8%, +9.8%] slots 1142
-[sibling] wrong value = consensus error: strong 58.2%, mid 41.1%, weak 26.1%; Spearman with accuracy 0.91
-   within slot strong - weak: +12.4% [+5.6%, +19.2%] slots 562
-   within slot strong - mid: +1.8% [-3.7%, +7.2%] slots 548
-   within slot mid - weak: +5.7% [+2.8%, +8.6%] slots 1142
-[vendor] wrong value = consensus error: strong 57.4%, mid 39.9%, weak 24.0%; Spearman with accuracy 0.88
-   within slot strong - weak: +13.0% [+6.5%, +19.3%] slots 562
-   within slot strong - mid: +2.9% [-2.2%, +8.4%] slots 548
-   within slot mid - weak: +6.0% [+3.2%, +8.8%] slots 1142
-slot fixed effects, sibling rule, accuracy, per 10 points: +6.0 points [+3.8, +8.1] (7341 configuration-slot rows on 1403 slots)
-slot fixed effects, sibling rule, thinking, within model: +8.2 points [+4.1, +11.7] (7341 configuration-slot rows on 1403 slots)
+[self] wrong value = consensus error: strong 61.5%, mid 44.2%, weak 28.4%; Spearman with accuracy 0.85
+   within slot strong - weak: +15.0% [+8.2%, +21.6%] slots 562
+   within slot strong - mid: +2.9% [-2.6%, +8.2%] slots 548
+   within slot mid - weak: +6.7% [+3.8%, +9.7%] slots 1142
+[sibling] wrong value = consensus error: strong 58.3%, mid 41.0%, weak 26.2%; Spearman with accuracy 0.92
+   within slot strong - weak: +12.3% [+5.5%, +19.2%] slots 562
+   within slot strong - mid: +1.8% [-3.6%, +7.2%] slots 548
+   within slot mid - weak: +5.7% [+2.7%, +8.6%] slots 1142
+[vendor] wrong value = consensus error: strong 57.5%, mid 39.8%, weak 24.1%; Spearman with accuracy 0.90
+   within slot strong - weak: +12.9% [+6.5%, +19.3%] slots 562
+   within slot strong - mid: +3.0% [-2.1%, +8.5%] slots 548
+   within slot mid - weak: +5.9% [+3.1%, +8.8%] slots 1142
+slot fixed effects, sibling rule, accuracy, per 10 points: +6.0 points [+3.7, +8.0] (7340 configuration-slot rows on 1403 slots)
+slot fixed effects, sibling rule, thinking, within model: +8.1 points [+4.0, +11.6] (7340 configuration-slot rows on 1403 slots)
+slot fixed effects, sibling rule, non-thinking configurations: accuracy, per 10 points +6.9 points [+2.7, +10.8] (4114 configuration-slot rows on 1182 slots)
+slot fixed effects, sibling rule, thinking configurations: accuracy, per 10 points +3.4 points [-1.1, +8.2] (2617 configuration-slot rows on 769 slots)
+slot fixed effects, sibling rule, accuracy and thinking jointly: accuracy, per 10 points +5.4 points [+2.3, +8.4] (7340 configuration-slot rows on 1403 slots)
+slot fixed effects, sibling rule, accuracy and thinking jointly: thinking +1.8 points [-4.0, +7.8] (7340 configuration-slot rows on 1403 slots)
 -> analysis/final_20261012/tables/convergence_robust.csv

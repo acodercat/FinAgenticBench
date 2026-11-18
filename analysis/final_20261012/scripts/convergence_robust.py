@@ -13,6 +13,9 @@ share of its wrong values on the slot that equal the consensus error, weighted b
 Slot fixed effects absorb how hard a slot is and how many readings it admits, so each coefficient compares
 configurations on the same slots. Spec A: task accuracy (per 10 points). Spec B: thinking, with model fixed effects
 (the within-model contrast; only the six paired models carry it). Intervals: 1,000 draws resampling tasks.
+Capability tiers coincide with reasoning mode at the extremes (every strong configuration is thinking, every weak one
+non-thinking), so Spec A is refitted on the non-thinking and on the thinking configurations separately, and jointly
+with a thinking indicator on all fourteen (Spec C).
 Writes tables/convergence_robust.csv.
 """
 import collections
@@ -151,4 +154,36 @@ for spec, label in (("A", "accuracy, per 10 points"), ("B", "thinking, within mo
     print(f"slot fixed effects, sibling rule, {label}: {b0 * 100:+.1f} points [{lo * 100:+.1f}, {hi * 100:+.1f}] "
           f"({nobs} configuration-slot rows on {nslots} slots)")
     rows.append(("sibling", f"slot FE: {label}", nobs, round(b0, 6), round(lo, 6), round(hi, 6), nslots))
+# ---- accuracy and reasoning mode separated ---------------------------------------------------------------------
+def fit_cols(records, cols):
+    """As fit(), for any regressors; returns every coefficient."""
+    X = np.asarray([cols(r[1]) for r in records], float)
+    y = np.array([r[2] for r in records]); w = np.array([r[3] for r in records], float)
+    ids = {}
+    g = np.array([ids.setdefault(r[0], len(ids)) for r in records])
+    sw = np.bincount(g, w)
+    yd = y - (np.bincount(g, w * y) / sw)[g]
+    Xd = X - np.stack([np.bincount(g, w * X[:, j]) / sw for j in range(X.shape[1])], 1)[g]
+    keep = np.bincount(g)[g] > 1
+    beta = np.linalg.lstsq(Xd[keep] * np.sqrt(w[keep])[:, None], yd[keep] * np.sqrt(w[keep]), rcond=None)[0]
+    return beta, int(keep.sum()), len(set(g[keep]))
+
+
+SPECS = [("non-thinking configurations", {s for s in STUDIES if MODE[s] == "N"}, lambda s: [acc[s] * 10], ["accuracy, per 10 points"]),
+         ("thinking configurations", {s for s in STUDIES if MODE[s] == "T"}, lambda s: [acc[s] * 10], ["accuracy, per 10 points"]),
+         ("accuracy and thinking jointly", set(STUDIES), lambda s: [acc[s] * 10, 1.0 if MODE[s] == "T" else 0.0], ["accuracy, per 10 points", "thinking"])]
+rng = random.Random(2)
+for label, subset, cols, names in SPECS:
+    recs = [r for t in tasks for r in by_task[t] if r[1] in subset]
+    b0, nobs, nslots = fit_cols(recs, cols)
+    draws = []
+    for _ in range(1000):
+        sample = [rng.choice(tasks) for _ in tasks]
+        draws.append(fit_cols([((i,) + r[0], r[1], r[2], r[3]) for i, t in enumerate(sample) for r in by_task[t] if r[1] in subset], cols)[0])
+    d = np.sort(np.array(draws), 0)
+    for j, nm in enumerate(names):
+        print(f"slot fixed effects, sibling rule, {label}: {nm} {b0[j] * 100:+.1f} points [{d[25, j] * 100:+.1f}, {d[974, j] * 100:+.1f}] "
+              f"({nobs} configuration-slot rows on {nslots} slots)")
+        rows.append(("sibling", f"slot FE, {label}: {nm}", nobs, round(float(b0[j]), 6), round(float(d[25, j]), 6), round(float(d[974, j]), 6), nslots))
+
 write_csv("convergence_robust.csv", ["rule", "measure", "n", "estimate", "lo_or_mid", "hi_or_weak", "n_slots"], rows)

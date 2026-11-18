@@ -1,9 +1,9 @@
 judge,group,mean_overall_score,n_turns,auc_pv_pass,auc_pv_pass_vs_wrong_value,config_rank_corr_rq_pv
-deepseek-v4-flash-oneapi,PV pass,4.1901,28908,0.8754,0.8962,0.4198
-deepseek-v4-flash-oneapi,"PV wrong value, other",2.9309,2862,0.8754,0.8962,0.4198
-deepseek-v4-flash-oneapi,"PV wrong value, shared",2.899,2391,0.8754,0.8962,0.4198
-deepseek-v4-flash-oneapi,PV unanswered or other failure,3.3248,657,0.8754,0.8962,0.4198
-gpt-6-luna-nonthinking,PV pass,3.436,28923,0.856,0.8758,0.4549
-gpt-6-luna-nonthinking,"PV wrong value, other",2.4637,2862,0.856,0.8758,0.4549
-gpt-6-luna-nonthinking,"PV wrong value, shared",2.4905,2394,0.856,0.8758,0.4549
-gpt-6-luna-nonthinking,PV unanswered or other failure,2.7601,657,0.856,0.8758,0.4549
+deepseek-v4-flash-oneapi,PV pass,4.1885,28908,0.8727,0.8932,0.4593
+deepseek-v4-flash-oneapi,"PV wrong value, other",2.9312,2860,0.8727,0.8932,0.4593
+deepseek-v4-flash-oneapi,"PV wrong value, shared",2.9178,2393,0.8727,0.8932,0.4593
+deepseek-v4-flash-oneapi,PV unanswered or other failure,3.3248,657,0.8727,0.8932,0.4593
+gpt-6-luna-nonthinking,PV pass,3.435,28923,0.8537,0.8732,0.4198
+gpt-6-luna-nonthinking,"PV wrong value, other",2.4648,2860,0.8537,0.8732,0.4198
+gpt-6-luna-nonthinking,"PV wrong value, shared",2.502,2396,0.8537,0.8732,0.4198
+gpt-6-luna-nonthinking,PV unanswered or other failure,2.7601,657,0.8537,0.8732,0.4198

@@ -1,18 +1,22 @@
 rule,measure,n,estimate,lo_or_mid,hi_or_weak,n_slots
-self,tier share,strong/mid/weak,0.61401,0.442799,0.282923,
-self,Spearman with accuracy,,0.920879,,,
-self,within slot strong - weak,562,0.150546,0.082894,0.216566,
-self,within slot strong - mid,548,0.028586,-0.026712,0.081891,
-self,within slot mid - weak,1142,0.067837,0.038276,0.098067,
-sibling,tier share,strong/mid/weak,0.581844,0.410722,0.261116,
-sibling,Spearman with accuracy,,0.912088,,,
-sibling,within slot strong - weak,562,0.123629,0.05606,0.192406,
-sibling,within slot strong - mid,548,0.01783,-0.036685,0.071948,
-sibling,within slot mid - weak,1142,0.057221,0.027819,0.086234,
-vendor,tier share,strong/mid/weak,0.573981,0.399058,0.240159,
-vendor,Spearman with accuracy,,0.876923,,,
-vendor,within slot strong - weak,562,0.13002,0.065227,0.193397,
-vendor,within slot strong - mid,548,0.029157,-0.02212,0.084007,
-vendor,within slot mid - weak,1142,0.059902,0.031669,0.088192,
-sibling,"slot FE: accuracy, per 10 points",7341,0.060474,0.037532,0.081184,1403
-sibling,"slot FE: thinking, within model",7341,0.082033,0.040857,0.116735,1403
+self,tier share,strong/mid/weak,0.61544,0.441672,0.284158,
+self,Spearman with accuracy,,0.854945,,,
+self,within slot strong - weak,562,0.149981,0.082293,0.216066,
+self,within slot strong - mid,548,0.029194,-0.026141,0.082417,
+self,within slot mid - weak,1142,0.067267,0.037503,0.097321,
+sibling,tier share,strong/mid/weak,0.583274,0.40953,0.262376,
+sibling,Spearman with accuracy,,0.920879,,,
+sibling,within slot strong - weak,562,0.123064,0.055424,0.1916,
+sibling,within slot strong - mid,548,0.018438,-0.036121,0.072179,
+sibling,within slot mid - weak,1142,0.056651,0.027057,0.0858,
+vendor,tier share,strong/mid/weak,0.575411,0.397842,0.241443,
+vendor,Spearman with accuracy,,0.898901,,,
+vendor,within slot strong - weak,562,0.129455,0.064807,0.192817,
+vendor,within slot strong - mid,548,0.029765,-0.020986,0.084685,
+vendor,within slot mid - weak,1142,0.059332,0.031207,0.087505,
+sibling,"slot FE: accuracy, per 10 points",7340,0.059806,0.037146,0.080197,1403
+sibling,"slot FE: thinking, within model",7340,0.08104,0.040216,0.116434,1403
+sibling,"slot FE, non-thinking configurations: accuracy, per 10 points",4114,0.069096,0.026762,0.10783,1182
+sibling,"slot FE, thinking configurations: accuracy, per 10 points",2617,0.034135,-0.011099,0.082131,769
+sibling,"slot FE, accuracy and thinking jointly: accuracy, per 10 points",7340,0.054165,0.023359,0.084485,1403
+sibling,"slot FE, accuracy and thinking jointly: thinking",7340,0.017902,-0.040161,0.077596,1403

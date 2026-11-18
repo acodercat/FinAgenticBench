@@ -1,0 +1,307 @@
+{
+ "_note": "KEY FILE - keep from adjudicators. For each item: 'ref' describes the computation behind the reference value, 'alt' the computation behind the shared wrong value (from knowledge_classification_20261012.json). Items listed under '_implementation' have a shared wrong value that comes from an implementation or upstream departure rather than from a second reading of the task; they are not in the readings sheet.",
+ "_implementation": [
+  "Q08",
+  "Q13",
+  "Q14",
+  "Q19",
+  "Q25",
+  "Q28",
+  "Q41",
+  "Q48",
+  "Q53",
+  "Q60",
+  "Q61",
+  "Q63",
+  "Q76",
+  "Q77"
+ ],
+ "Q01": {
+  "ref": "Take each selected series' reported daily liquid-asset amount divided by its net assets, and blend the three by net assets.",
+  "alt": "Take each selected series' filed daily-liquid percentage column (a share of total assets), and blend the three by net assets."
+ },
+ "Q02": {
+  "ref": "Join the annual filings selected from the financial statements to the submission index on filer and accession, whatever form the index gives them, and count those with a later amendment for the same period end.",
+  "alt": "Restrict the submission index to rows it labels 10-K, join the annual filings to that subset, and count supersession within the index-side set."
+ },
+ "Q03": {
+  "ref": "Settle only the two stipulated windows, starting August 25 and October 8, against the treaty in date order.",
+  "alt": "Settle every 72-hour window with a start from August 20 to October 27 in date order, and report what the August 25 and October 8 windows recover within that sequence."
+ },
+ "Q04": {
+  "ref": "A MIDAS observation has trade and odd-lot volume 'reported' when both fields are non-null; a reported zero qualifies.",
+  "alt": "A MIDAS observation has trade and odd-lot volume 'reported' when both fields are strictly positive."
+ },
+ "Q05": {
+  "ref": "Residual standard deviation is the sample standard deviation of the estimation-period residuals (denominator n-1).",
+  "alt": "Residual standard deviation is the regression standard error of the fitted line (denominator n-2)."
+ },
+ "Q06": {
+  "ref": "Estimate the mean coefficients and the variance parameters together by Gaussian maximum likelihood; the OLS coefficients are the starting values.",
+  "alt": "Hold the mean coefficients at their preliminary OLS values and estimate the variance parameters by maximum likelihood."
+ },
+ "Q07": {
+  "ref": "Infer the day-count rule on the bills of at most 182 days, then count 366-day years among all selected bills, including the 52-week bills.",
+  "alt": "Infer the day-count rule on the bills of at most 182 days, and count 366-day years within that same cohort."
+ },
+ "Q09": {
+  "ref": "Total redemptions as the sum of the absolute value of each monthly redemption amount.",
+  "alt": "Total redemptions as the absolute value of the sum of the monthly redemption amounts with the signs as filed."
+ },
+ "Q10": {
+  "ref": "A 90% combined loan-to-value means collateral equals senior plus junior principal divided by 0.90.",
+  "alt": "A 90% combined loan-to-value means collateral equals 0.90 times senior plus junior principal."
+ },
+ "Q11": {
+  "ref": "Enter the short rate, long-run level and volatility in the Vasicek bond formula as decimals (4.49% as 0.0449), and convert the fitted level to percent at the end.",
+  "alt": "Enter the short rate, long-run level and volatility in the Vasicek bond formula in percent units (4.49% as 4.49)."
+ },
+ "Q12": {
+  "ref": "A 90% combined loan-to-value means collateral equals senior plus junior principal divided by 0.90.",
+  "alt": "A 90% combined loan-to-value means collateral equals 0.90 times senior plus junior principal."
+ },
+ "Q15": {
+  "ref": "'Its book equity' is the book equity of the 20% stake being appraised (20% of the target's book equity).",
+  "alt": "'Its book equity' is the target bank's whole book equity."
+ },
+ "Q16": {
+  "ref": "Days from period end to public acceptance are whole calendar days between the period-end date and the acceptance date.",
+  "alt": "Days from period end to public acceptance are fractional days measured to the clock time of the acceptance timestamp."
+ },
+ "Q17": {
+  "ref": "Count negative net issuance over the quarters that support a quarter-over-quarter change (every quarter after the first observed level).",
+  "alt": "Count negative net issuance over every quarter for which the series has an observation, the first included."
+ },
+ "Q18": {
+  "ref": "In the Ho-Lee tree, adjacent nodes at one date are 2 x sigma x sqrt(dt) apart (each step moves the rate up or down by sigma x sqrt(dt)).",
+  "alt": "In the Ho-Lee tree, adjacent nodes at one date are sigma x sqrt(dt) apart."
+ },
+ "Q20": {
+  "ref": "Pair a filer's 2021 and 2022 year-end rates by its CIK.",
+  "alt": "Pair a filer's 2021 and 2022 year-end rates by CIK and registrant name together, so a filer renamed between the two filings has no pair."
+ },
+ "Q21": {
+  "ref": "'Sample denominator' for the covariance is N-1.",
+  "alt": "'Sample denominator' for the covariance is N."
+ },
+ "Q22": {
+  "ref": "The filer universe is every filer in the annual financial-statement table.",
+  "alt": "The filer universe is the companies in the largest-filer company-facts table."
+ },
+ "Q23": {
+  "ref": "The normal-equation moment is the design matrix times the OLS residuals, X'(Y - XB).",
+  "alt": "The normal-equation moment is the design cross-product X'X."
+ },
+ "Q24": {
+  "ref": "Compound from one business day to the next, each daily rate applying with simple interest over the calendar days until the next business day.",
+  "alt": "Compound on every calendar day, a weekend or holiday being its own compounding step at the rate in force."
+ },
+ "Q26": {
+  "ref": "Turn 2 keeps turn 1's population: designations of declarations whose incident began in 2024 with incident type Flood, Hurricane or Tropical Storm.",
+  "alt": "Turn 2 takes every major-disaster designation row in the file as its population."
+ },
+ "Q27": {
+  "ref": "Gross swap payments are the sum of the monthly net settlements in the months where the fixed price is above spot.",
+  "alt": "Gross swap payments are the fixed-leg amounts (hedged quantity times fixed price) summed over all months."
+ },
+ "Q29": {
+  "ref": "The share at which the highest fifth begins is the smallest share held by a bank that belongs to that group.",
+  "alt": "The share at which the highest fifth begins is the share interpolated at the 80th-percentile rank cutpoint."
+ },
+ "Q30": {
+  "ref": "Estimate the error-correction equation on the sample through 2023-12-31 used for the long-run relation.",
+  "alt": "Estimate the error-correction equation on the whole 2021-2025 weekly panel."
+ },
+ "Q31": {
+  "ref": "Store the quarter with a hyphen, as in 2025-Q2.",
+  "alt": "Store the quarter as the source writes it, with a colon, as in 2025:Q2."
+ },
+ "Q32": {
+  "ref": "Report the hedge as face amount held per 100 face of the target.",
+  "alt": "Report the hedge as the multiplier solved from DV01s quoted per 100 face (hedge units per target unit)."
+ },
+ "Q33": {
+  "ref": "'How many quarters match' counts the quarters for which a compounded market return can be paired with a revaluation.",
+  "alt": "'How many quarters match' counts the quarters where the two series lie within one percentage point of each other."
+ },
+ "Q34": {
+  "ref": "Security-level rows are the rows identified by a CUSIP.",
+  "alt": "Security-level rows are every inflation-protected row with a value in the identifier column, the row labelled 'Total Treasury TIPS' among them."
+ },
+ "Q35": {
+  "ref": "Distinct causes after reading numeric codes as numbers, so '4' and '4.0' are one cause.",
+  "alt": "Distinct causes as distinct stored strings, so '4' and '4.0' are two causes."
+ },
+ "Q36": {
+  "ref": "Lower inverse empirical percentile: the smallest observed value x whose empirical distribution function reaches 0.95 (order statistic ceil(0.95 n)).",
+  "alt": "Lower percentile as in numpy's method='lower': the order statistic at position floor(0.95 (n-1)), counting from zero."
+ },
+ "Q37": {
+  "ref": "Net issuance transacted is the FU series (flow for the quarter, not seasonally adjusted).",
+  "alt": "Net issuance transacted is the FA series (seasonally adjusted flow at an annual rate)."
+ },
+ "Q38": {
+  "ref": "The series name is the one on the filing for the 2025-06-30 yield date.",
+  "alt": "The series name is the first one recorded for that series identifier anywhere in the file."
+ },
+ "Q39": {
+  "ref": "Apply the whole USD 3 million to debt on April 1 and redraw the freed capacity on June 30.",
+  "alt": "Hold the USD 3 million as cash from April 1 and repay no debt."
+ },
+ "Q40": {
+  "ref": "Continuing operations is the control number: with a continuing loss, no potential share enters total diluted EPS.",
+  "alt": "Test dilution on total earnings, which are a profit, so the options enter total diluted EPS."
+ },
+ "Q42": {
+  "ref": "Count settlement days on the depository's calendar, on which Memorial Day (2024-05-27) is not a settlement day.",
+  "alt": "Count settlement days as weekdays."
+ },
+ "Q43": {
+  "ref": "The modification fees reduce the carrying amount of the continuing liability.",
+  "alt": "The modification fees are added to the carrying amount of the continuing liability."
+ },
+ "Q44": {
+  "ref": "Choose security sales and repo together, with the sale tranches and the repo both available up to their limits.",
+  "alt": "Draw the repo to its USD 1,000 million limit first, then sell from the securities left unpledged."
+ },
+ "Q45": {
+  "ref": "Store the category as the query writes it, 'Credit'.",
+  "alt": "Store the category in lower case, 'credit'."
+ },
+ "Q46": {
+  "ref": "Use the turn-2 distance at full precision as the radius.",
+  "alt": "Use the turn-2 distance as reported to four decimals as the radius."
+ },
+ "Q47": {
+  "ref": "The severe case replaces the 20% income and collateral reductions with 30% ones, starting from the reported values.",
+  "alt": "The severe case applies 30% reductions to the income and collateral already reduced in the acquisition underwriting case."
+ },
+ "Q49": {
+  "ref": "A filer has 'reported total dividends' only when it tags the total-dividends concept.",
+  "alt": "Where the total-dividends concept is absent, the common-stock dividends concept stands in for it."
+ },
+ "Q50": {
+  "ref": "After-tax net investment income is the line after income and excise taxes.",
+  "alt": "After-tax net investment income is the net investment income line before the income and excise tax line."
+ },
+ "Q51": {
+  "ref": "The common population needs all three reported debt-service ratios: household, non-financial corporate and private non-financial sector.",
+  "alt": "The common population needs the private non-financial sector debt-service ratio only."
+ },
+ "Q52": {
+  "ref": "Count filers with a positive dividend under the broader-first rule and nothing under the narrow tag.",
+  "alt": "Count filers that tag the broader concept and do not tag the narrow one, whatever the amount."
+ },
+ "Q54": {
+  "ref": "Interest accrues on the facility loan left after the sale proceeds repaid debt.",
+  "alt": "Interest accrues on the principal of the investments left in the collateral pool."
+ },
+ "Q55": {
+  "ref": "The running peak starts from the initial wealth of one, before the first return.",
+  "alt": "The running peak starts from wealth after the first day's return."
+ },
+ "Q56": {
+  "ref": "Lower inverse empirical percentile: the smallest observed value x whose empirical distribution function reaches 0.95 (order statistic ceil(0.95 n)).",
+  "alt": "Lower percentile as in numpy's method='lower': the order statistic at position floor(0.95 (n-1)), counting from zero."
+ },
+ "Q57": {
+  "ref": "Consolidated gross long-term debt is the face-amount concept, before discount, issuance costs and hedge adjustments.",
+  "alt": "Consolidated gross long-term debt is the long-term debt carrying-amount concept."
+ },
+ "Q58": {
+  "ref": "Turn 4 matches segment goodwill for every annual filer with an entity goodwill figure.",
+  "alt": "Turn 4 matches segment goodwill for the positive-equity filers carried from turns 2 and 3."
+ },
+ "Q59": {
+  "ref": "The numerator is the turn-3 total of holding rows across the issuer's retained filings.",
+  "alt": "The numerator is the largest single holding row reported earlier in turn 4."
+ },
+ "Q62": {
+  "ref": "Smith-Wilson in its cash-flow form: a kernel at every coupon date, weighted by each bond's cash flows.",
+  "alt": "Smith-Wilson with one kernel per bond, placed at the bond's maturity."
+ },
+ "Q64": {
+  "ref": "On the ratio scale: the fourteen exact integers and the five named ranges.",
+  "alt": "On the ratio scale: the fourteen exact integers."
+ },
+ "Q65": {
+  "ref": "A positive reported DV01 is a gain when yields fall, so the loss is DV01 times the yield rise.",
+  "alt": "A positive reported DV01 is a loss when yields fall, so the loss is DV01 times the yield decline."
+ },
+ "Q66": {
+  "ref": "Financing rate = SOFR + (25 basis points x bid-to-cover).",
+  "alt": "Financing rate = (SOFR + 25 basis points) x bid-to-cover."
+ },
+ "Q67": {
+  "ref": "The 10% test discounts the new contractual cash flows together with the lender fee paid.",
+  "alt": "The 10% test discounts the new contractual cash flows alone."
+ },
+ "Q68": {
+  "ref": "An issuer is one CIK.",
+  "alt": "An issuer is one combination of CIK and issuer name, so a renamed issuer counts twice."
+ },
+ "Q69": {
+  "ref": "January's clearing balance starts from the turn-1 opening unrestricted cash.",
+  "alt": "January's clearing balance starts from zero cash; it holds collections, interest and payments only."
+ },
+ "Q70": {
+  "ref": "Sum the schedule rows of the retained filings whose own row date equals the filing's period end.",
+  "alt": "Sum every schedule row of the retained filings that reports a fair value."
+ },
+ "Q71": {
+  "ref": "Sum the schedule rows of that filing dated 2025-09-30.",
+  "alt": "Sum every schedule row under that filing's accession, the 2024-12-31 comparative rows included."
+ },
+ "Q72": {
+  "ref": "HMDA loan purpose 32 is cash-out refinancing and 31 is other refinancing.",
+  "alt": "HMDA loan purpose 31 is cash-out refinancing and 32 is other refinancing."
+ },
+ "Q73": {
+  "ref": "Debt-security rows are every row that carries the C.9 debt-security fields, asset-backed securities and loans included.",
+  "alt": "Debt-security rows are the rows whose asset category is DBT."
+ },
+ "Q74": {
+  "ref": "Count the distinct filing accessions whose information table holds the CUSIP.",
+  "alt": "Count the information-table rows that hold the CUSIP."
+ },
+ "Q75": {
+  "ref": "Hidden volume divided by the MIDAS trade volume against which hidden orders can execute.",
+  "alt": "Hidden volume divided by total MIDAS trade volume."
+ },
+ "Q78": {
+  "ref": "Identifiable net assets for goodwill are assets less liabilities less the inherited subsidiary NCI.",
+  "alt": "Identifiable net assets for goodwill are assets less liabilities."
+ },
+ "Q79": {
+  "ref": "Retained payment = the first USD 250,000 plus anything paid above USD 1,000,000.",
+  "alt": "Retained payment = the first USD 250,000."
+ },
+ "Q80": {
+  "ref": "The official label is the abbreviation in the Ken French file, 'Enrgy'.",
+  "alt": "The label is the industry's full name, 'Energy'."
+ },
+ "Q81": {
+  "ref": "A month's index level is the reference CPI dated the first day of the month three months later; reference CPIs on other days are interpolations.",
+  "alt": "A month's index level is the reference CPI dated the last day of the month two months later."
+ },
+ "Q82": {
+  "ref": "A January 2024 trade settles two business days later (T+2).",
+  "alt": "A January 2024 trade settles one business day later (T+1)."
+ },
+ "Q83": {
+  "ref": "Daily NAV return = HiTec return less the factor-contract payoffs.",
+  "alt": "Daily NAV return = HiTec return minus the risk-free rate, less the factor-contract payoffs."
+ },
+ "Q84": {
+  "ref": "A 10-K filed jointly by two registrants counts as one in the cohort.",
+  "alt": "The cohort counts distinct CIKs, so a 10-K filed jointly by two registrants counts as two."
+ },
+ "Q85": {
+  "ref": "Average balance = total balance divided by all settlement dates in the window, a date without a record counting as zero.",
+  "alt": "Average balance = total balance divided by the settlement dates on which the security has a record."
+ },
+ "Q86": {
+  "ref": "Closing cash is the cash-and-equivalents balance.",
+  "alt": "Closing cash is the balance of cash, cash equivalents and restricted cash."
+ }
+}
