@@ -1,4 +1,4 @@
-"""Numbers quoted in report.md that no table carries: Gemini's share of strong-tier budget exhaustion,
+"""Numbers quoted in the paper that no table carries: Gemini's share of strong-tier budget exhaustion,
 share of max_steps turns that never assigned a target variable, pooled identical-wrong rate."""
 import collections
 import glob

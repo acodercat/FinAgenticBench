@@ -5,7 +5,6 @@ import collections
 import csv
 import json
 import random
-import statistics
 from pathlib import Path
 
 DATA = Path("analysis/scratch/final_data.json")

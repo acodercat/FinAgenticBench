@@ -17,7 +17,7 @@ REWORDED = ("bank_year_to_date_flow_derivation", "pension_discount_rate_remeasur
             "nfip_compound_poisson_stoploss_capacity", "bis_currency_credit_cointegration_branch")
 
 cases, turns, vars_ = load()
-pre = json.loads(Path("analysis/scratch/final_data_prerefix_20261011.json").read_text())
+pre = json.loads(Path("analysis/final_20261012/inputs/final_data_prerevision_20261011.json").read_text())
 own = {(c, i + 1, v) for c, info in pre["cases"].items() for i, st in enumerate(info["turn_stores"]) for v in st}
 pre_vars = [v for v in pre["vars"] if (v["case"], v["turn"], v["var"]) in own]
 pre_turns = pre["turns"]
