@@ -1,6 +1,6 @@
 # FinAgenticBench
 
-**Capable language model agents make fewer errors but the same ones**
+**Errors shared by language model agents are harder to detect and correct**
 
 [Paper](#citation) (link to be added) · [Data and runs](#data-and-run-artifacts) · [Reproducing the paper](#reproducing-the-paper)
 
@@ -12,14 +12,15 @@ ends, a deterministic validator compares every stored output with a value recomp
 is never parsed for numbers.
 
 Because every answer is a checked value, the runs also show whether two agents computed the same wrong number,
-which reading of the data produced it, and whether a model's wrong answer changes when it reasons longer.
+which reading of the data produced it, and whether the usual checks (a second run, a second model, a reviewing
+model) catch it.
 
 ![Overview of FinAgenticBench](assets/fig1_overview.png)
 
 *(a) The 85 tables from 44 official sources, in six groups. (b) Each task runs over two to six turns, and state
 carries into later turns; in each turn the model writes code that a Python runtime executes on the task's tables,
 and the turn ends with saved values and a written response. (c) Saved values are checked against a reference
-recomputed from the same data; the written response is checked against pre-registered claims. The example is
+recomputed from the same data; the written response is checked against the claims written with the task. The example is
 illustrative.*
 
 ## The benchmark
@@ -57,49 +58,57 @@ points.*
 
 | Model | Non-thinking (%) | Thinking (%) | Gain (pp) |
 |---|---:|---:|---:|
-| DeepSeek V4 Pro | 59.2 | **84.0** | +24.9 |
-| Gemini 3.8 Flash | — | 83.3 | — |
-| GPT-6 Luna | 58.8 | 82.2 | +23.3 |
-| Claude Sonnet 5.5 | 72.1 | 79.8 | +7.7 |
-| Qwen3.8 Flash | 47.6 | 70.9 | +23.3 |
-| GLM-5.3 | — | 70.1 | — |
-| DeepSeek V4 Flash | 58.8 | 62.8 | +3.9 |
-| Qwen3.8-27B | 47.9 | 62.3 | +14.4 |
+| DeepSeek V4 Pro | 58.7 | **84.2** | +25.5 |
+| Gemini 3.8 Flash | — | 82.8 | — |
+| GPT-6 Luna | 58.5 | 82.5 | +23.9 |
+| Claude Sonnet 5.5 | 72.3 | 79.7 | +7.4 |
+| Qwen3.8 Flash | 47.7 | 71.2 | +23.5 |
+| GLM-5.3 | — | 70.3 | — |
+| DeepSeek V4 Flash | 59.2 | 62.9 | +3.8 |
+| Qwen3.8-27B | 47.4 | 62.1 | +14.7 |
 
 *Task accuracy: share of the 213 tasks with every turn correct, mean of three runs. Gemini 3.8 Flash and GLM-5.3
 cannot switch thinking off. The four leading configurations did not differ from one another (paired 95% intervals included zero). Below, the
 strong tier is the configurations at 78% or above and the weak tier those below 60%.*
 
-**Errors converge on the same values.** If each configuration erred independently at its own rate on each task,
+**Agents give the same wrong values.** If each configuration erred independently at its own rate on each task,
 1,433 of the 3,669 outputs attempted by all fourteen would have escaped every error and 364 would have been failed by
 six or more configurations; 1,902 and 529 did. Of all wrong values, 39% were a value that at least three of the
 fourteen configurations gave on the same output (we call these shared, and the rest unshared). Which output is asked
 for explains 27.8% of the variance in correctness, which configuration answers it 2.4%. Apart from the two modes of
-one model, shared wrong values show no detectable clustering by vendor; sharing rises by 15 points for every 10 points of a pair's
-accuracy.
+one model, shared wrong values show no detectable clustering by vendor.
 
-**More accurate agents keep the errors that others make.** Where a strong and a weak configuration both erred on an
-output, the strong one gave the other configurations' most common wrong value 52% of the time and the weak one 37%.
-Holding the model fixed, its wrong values matched the other models' more often with thinking on (by 7 points
-pooled). The tier contrast holds when the model's other mode, or its whole vendor, is left out of the consensus.
-From the weak to the strong tier, unshared wrong values fall by 88% and shared ones by 46%, and 65% of strong-tier
-wrong values are shared.
+**Agreement passes the errors agents share.** Among thinking configurations, a second run of the same model
+repeated 49.4% of the wrong values that at least two configurations of other vendors also gave, and 10.3% of the
+rest; one run of another vendor's model repeated 25.3% and 4.7%. Agreement is still a good sign for a single
+output: two runs of one model that agreed were correct 98.3% of the time and one run each from two vendors 99.2%.
+But of the wrong values two vendors agreed on, 79% were also given by configurations of other vendors. On 111
+air-quality tasks, a second run likewise repeated shared wrong values more often than the rest (53.7% against 27.4%).
+
+**Verifiers keep the shared errors they are shown.** Three verifiers were shown the stored values of another
+configuration's run on 149 tasks and asked to recompute each from the data. They corrected 73.5% of the unshared
+wrong outputs and 38.4% of the shared ones. On the shared ones, a verifier stored the correct value less often when
+shown the wrong one than in its own independent runs (38.4% against 50.5%, a difference of −12.0 points, 95% CI
+−24.1 to −2.7).
 
 **Shared errors lie in conventions and in the meaning of data rows.** We read the code behind the 307 outputs on
 which five or more configurations gave the same wrong value. The two largest sources were statistical conventions
-(23.8% of these wrong attempts), mostly stated in the task, and data-model semantics (22.1%): a filer is its SEC
-identifier (CIK) and not its name, a file carries a total row beside the detail rows. Capability reduced six of the
-nine classes; for data-model semantics no reduction was detectable. Rewording four tasks removed the shared readings
-it targeted and raised passes from 80 to 122 of 168 runs.
+(23.7% of these wrong attempts), mostly stated in the task, and data-model semantics (22.2%): a filer is its SEC
+identifier (CIK) and not its name, a file carries a total row beside the detail rows. Two readers judged, for the
+72 root causes that admit a second reading, which reading the task's wording requires; each chose the reference in
+69, and on no item did both choose the shared reading. Rewording four tasks removed the shared readings it targeted
+and raised passes from 80 to 122 of 168 runs.
 
-**Agreement passes the errors agents share.** Among thinking configurations, two runs of one model that agreed on
-a value were correct 98.3% of the time and one run each from two vendors 99.2%. Of the wrong values two vendors
-agreed on, 79% were also given by configurations of other vendors, against 48% of wrong values overall.
+**Shared errors fall more slowly with accuracy.** From the weak to the strong tier, unshared wrong values fall by
+88% and shared ones by 47%, and 65% of strong-tier wrong values are shared. Where a strong and a weak configuration
+both erred on an output, the strong one gave the other configurations' most common wrong value 52% of the time and
+the weak one 37%. The relation was measured between 47% and 84% task accuracy; GPT-6.1 Sol, run afterwards with its
+expected share recorded beforehand, reached 96.4% and fell below the predicted interval.
 
 **Judging the written response says little about whether the numbers are right.** Three judges from different
-vendors checked each turn's response against its pre-registered claims, without the reference values. Claim
-coverage separated correct from incorrect turns with an AUC of 0.52–0.53, also without each judge's own vendor,
-and under every judge the least accurate configuration passed more often than the most accurate.
+vendors checked each turn's response against its claims, without the reference values. Claim coverage separated
+correct from incorrect turns with an AUC of 0.52–0.53, also without each judge's own vendor. Judges shown the
+reference outputs and scoring response quality reached 0.87 and 0.85.
 
 Because every output is checked by a program, the tasks could also provide verifiable rewards for reinforcement
 learning (RLVR); the paper discusses this use but does not test it.
