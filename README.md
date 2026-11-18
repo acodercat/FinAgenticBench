@@ -124,12 +124,13 @@ uv run --group dev python -m pytest -m "not runtime_data and not raw_data"   # r
 
 ## Data and run artifacts
 
-Two archives are distributed separately on Google Drive; download them and unzip both at the repository root.
+Three archives are distributed separately on Google Drive; download them and unzip each at the repository root.
 
 | Archive | Unzips to | Contents |
 |---|---|---|
-| [`FinAgenticBench-data.zip`](https://drive.google.com/file/d/1oXdaz0lpf24xoBBAWhdlyTnasH2FUC2C/view?usp=drive_link) (1.2 GB) | `datasets/dataset_new/` | the runtime tables the tasks read, with `catalog.json`, per-source `schema.json` and `sources.json`; three sources whose terms do not allow redistribution are rebuilt from the publishers instead (see below) |
-| [`FinAgenticBench-runs.zip`](https://drive.google.com/file/d/1pT193gRyY6eUVtKgGAv9CH6limrxHtvu/view?usp=drive_link) (546 MB) | `experiments/`, `analysis/final_20261012/inputs/` | the paper's 8,946 runs with transcripts and scores, and one pre-revision input of the analysis |
+| [`FinAgenticBench-data.zip`](https://drive.google.com/file/d/16UCzEtM7htzfCDAc1x-Q6jf_61ivxoVE/view?usp=sharing) (1.2 GB) | `datasets/dataset_new/` | the runtime tables the tasks read, with `catalog.json`, per-source `schema.json` and `sources.json`; three sources whose terms do not allow redistribution are rebuilt from the publishers instead (see below) |
+| [`FinAgenticBench-runs.zip`](https://drive.google.com/file/d/1fnCIYpVV-lO-LfV3spRnwv1lbb_KM_zr/view?usp=sharing) (546 MB) | `experiments/`, `analysis/final_20261012/inputs/` | the paper's 8,946 runs with transcripts and scores, and one pre-revision input of the analysis |
+| [`FinAgenticBench-verification-runs.zip`](https://drive.google.com/file/d/1ch9leSqc_VkxASSf85QXIQHrZW2_eOfY/view?usp=sharing) (72 MB) | `experiments_verify/`, `experiments_prospective/` | the verification study (three verifiers on three answering runs, 149 tasks) and the three runs of GPT-6.1 Sol on every task |
 
 With the data in place, check the installation and run the full test suite:
 

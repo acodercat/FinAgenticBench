@@ -18,7 +18,7 @@ final_20261012/
 
 ## Order
 
-Unzip `FinAgenticBench-runs.zip` at the repository root first. Run everything from the repository root;
+Unzip `FinAgenticBench-runs.zip` at the repository root first (and `FinAgenticBench-verification-runs.zip` for the verification study and the prospective test). Run everything from the repository root;
 intermediate files go to `analysis/scratch/`, which is ignored by Git.
 
 ```bash
