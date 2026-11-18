@@ -1,10 +1,9 @@
 """Raw certification for the eight cases whose modules record it as blocked.
 
 Each case's answer is recomputed by its own module from the governed runtime
-tables. That closes two of the three evidence chains the cross-review protocol
-asks for; the third has to start at the source-native archive, because a defect
-introduced while building the runtime layer would be invisible to both of the
-others.
+tables. These tests recompute it from the source-native archive as well, because
+a defect introduced while building the runtime layer would be invisible to a
+check that reads only the runtime tables.
 
 These tests supply that chain. For every source one of the eight cases reads,
 the archive is parsed independently of `core.dataset_layers` and compared with
